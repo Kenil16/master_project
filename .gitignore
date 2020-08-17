@@ -1,0 +1,18 @@
+# LaTeX
+*-blx.bib
+*.log
+*.bbl
+*.blg
+*.aux
+*.out
+*.xml
+*.toc
+*.synctex.gz
+*.bak
+*.pdf
+__pycache__
+*~
+*.pdf
+# Exceptions
+!Report.pdf
+
