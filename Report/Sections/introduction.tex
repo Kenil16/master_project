@@ -7,7 +7,7 @@ When drones are set to fly autonomously they rely heavily on the Global Navigati
 
 A solution to this problem could be to use a camera placed on the drone and analyzing the incoming data using computer vision. By placing markers on the ground, the position of these objects could be found with high precision. This would lead to autonomous flight tasks where high precision of the position is needed.      
 
-This paper proposes methods for navigation in environments using computer vision. The basic idea of this can be seen in Figure \ref{fig:masterProjectIllustration}. Here the drone will fly autonomously using GPS coordinates until a higher accuracy is needed. In this case, it will be the navigation and precision landing of the drone using markers on the ground. Hence, the drone will follow the markers till a landing is required which is illustrated as step 3. The markers considered in this case will be Aruco markers, which have been shown to be very accurate and reliable in changing light conditions \cite{visualmarkers}. In this example, the same marker is used for illustration, but different bit encoded Aruco markers will be used to navigate the drone to the landing sight. This is a cheap and effective solution when lack of GPS precision is present e.g using low cost GPS systems or inside buildings (Hanger) \cite{Visual-Inertial-Navigation}. 
+This paper proposes methods for navigation in environments using computer vision. The basic idea of this can be seen in Figure \ref{fig:masterProjectIllustration}. Here the drone will fly autonomously using GPS coordinates until a higher accuracy is needed. In this case, it will be the navigation and precision landing of the drone using markers on the ground. Hence, the drone will follow the markers till a landing is required which is illustrated as step 3. The markers considered in this case will be ArUco markers, where the detection of these markers have been shown to be very accurate and reliable in changing light conditions \cite{visualmarkers}. In this example, the same marker is used for illustration, but different bit encoded ArUco markers will be used to navigate the drone to the landing sight. This is a cheap and effective solution when lack of GPS precision is present e.g using low cost GPS systems or inside buildings \cite{Visual-Inertial-Navigation}. 
 
 \begin{figure}[H]
 	\centering
@@ -32,15 +32,16 @@ In regard to the hardware used in this project, a quad-copter with a DJI SK500 f
 
 \subsection{Problem Statement}
 
-The drone must be able to fly autonomously according to markers on the ground using computer vision. The  This should lead to a high precision landing where the navigation is based on the position of the markers. 
+The drone must be able to fly autonomously according to ArUco markers on the ground using computer vision. This leads to the challenge of finding a robust solution for the transition of using GPS coordinates to indoor vision based navigation even in windy conditions. Furthermore, the precise landing should be implemented in such a way that the settling time, from which the drone is hovering above the marker to the landing is performed, is minimized. The same goes for the error associated with the precise landing.  
 
 This leads to the following problems:
 
 \begin{itemize}
     \item How can computer vision be used to detect objects?
+    \item How can a smooth transition between using GPS coordinates to vision based navigation be found?
     \item How can navigation between objects be performed?
     \item How can a precise landing be executed?
-    \item How can the landing be performed in windy conditions?
+    \item How can the settling time of the landing be reduced without causing instabilities to the drone?
     
 \end{itemize} 
 
@@ -49,9 +50,9 @@ This leads to the following problems:
 From the outline of the project as well as the problem statement, the following requirements for the project have been formulated:
 
 \begin{itemize}
-    \item The error of the landing must not exceed $\pm 10$ cm  
-    \item The drone must be able to land in windy conditions e.g up to 8 m/s
-    \item The landing must be performed within 5 seconds from a flying height of 2 meters 
+    \item The error of the landing must not exceed $\pm 10$ cm. 
+    \item The drone should be able to make the transition of using GPS coordinates to indoor vision based navigation even in windy conditions e.g up to 8 m/s.
+    \item The landing must be performed within 5 seconds from which the drone is hovering 2 meters above the landing sight to a landing is performed e.g a settling time below 5 seconds is wanted.   
 
 \end{itemize}
 
