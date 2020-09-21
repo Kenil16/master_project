@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="truss">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 0 0 0 0</pose>
+
+      <collision name="collision">
+      <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.3 0.3 6</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="truss">
+        <geometry>
+          <mesh>
+            <uri>model://truss/model/model.stl</uri>
+            <scale>1 1 1</scale>
+	         </mesh>
+        </geometry>
+     </visual>
+    </link>
+  </model>
+</sdf>
