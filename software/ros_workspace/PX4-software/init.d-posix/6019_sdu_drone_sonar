@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# @name SDU Drone with Sonar
+#
+# @type Hexarotor x
+#
+
+sh /etc/init.d-posix/6014_sdu_drone

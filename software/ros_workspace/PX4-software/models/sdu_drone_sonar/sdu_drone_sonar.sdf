@@ -1,0 +1,34 @@
+<?xml version='1.0'?>
+<sdf version='1.5'>
+  <model name='sdu_drone_mono_cam'>
+
+    <include>
+      <uri>model://sdu_drone</uri>
+    </include>
+
+    <include>
+      <uri>model://sdu_sonar</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <joint name='sensor_link' type='revolute'>
+      <child>sdu_sonar::link</child>
+      <parent>sdu_drone::base_link</parent>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>0</upper>
+          <effort>0</effort>
+          <velocity>0</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+        <use_parent_model_frame>1</use_parent_model_frame>
+      </axis>
+    </joint>
+
+  </model>
+</sdf>

@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# @name SDU Drone
+#
+# @type Hexarotor x
+#
+
+sh /etc/init.d/rc.mc_defaults
+
+set MAV_TYPE 13
+set MIXER hexa_x_sdu
+
+param set NAV_DLL_ACT 0
+param set NAV_RCL_ACT 0
+param set COM_OBL_ACT 0
