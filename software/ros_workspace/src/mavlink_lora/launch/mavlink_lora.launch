@@ -1,0 +1,20 @@
+<!-- launch file -->
+
+<launch>
+	<!-- node pkg="rosbag" name="rosbag_record" type="record" args="-a"/ -->
+
+    <arg name="serial_device" default="/dev/ttyUSB0"/>
+	<arg name="serial_baudrate" default="57600" />
+
+	<!-- Used to mock heartbeats. If set to true, mavlink outputs heartbeats by itself -->
+	<arg name="heartbeats" default="false" />
+
+
+	<node pkg="mavlink_lora" type="mavlink_lora_node" name="mavlink_lora" respawn="true" output="screen" >
+		<param name="serial_device" value="$(arg serial_device)"/>
+		<param name="serial_baudrate" value="$(arg serial_baudrate)" />
+		<param name="heartbeats" value="$(arg heartbeats)" />
+	</node>
+
+</launch>
+

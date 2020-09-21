@@ -1,0 +1,2 @@
+float64 message_id
+float64 interval

@@ -1,1 +1,3 @@
-# master_project
+# Vision based navigation of a drone 
+
+

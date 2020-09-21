@@ -1,0 +1,7 @@
+uint64 time_usec
+float64 altitude_monotonic
+float64 altitude_amsl
+float64 altitude_local
+float64 altitude_relative
+float64 altitude_terrain
+float64 bottom_clearance

@@ -1,0 +1,16 @@
+uint32 time_boot_ms
+uint8 target_system
+uint8 target_component
+uint8 coordinate_frame
+uint16 type_mask
+float64 x
+float64 y
+float64 z
+float64 vx
+float64 vy
+float64 vz
+float64 afx
+float64 afy
+float64 afz
+float64 yaw
+float64 yaw_rate

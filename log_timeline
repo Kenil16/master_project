@@ -1,0 +1,8 @@
+11/09/2020:
+The day has been spend on litterature search. A number of articles were found which is going to be used in the related work section of the report. 
+
+12/09/2020:
+PX4 has been installed. Moreover, a 3D model of the aruco markers has been made. However, the model could not be importet into Gazebo. A solution to this must be found. 12/09/2020:
+
+16/09/2020:
+The drone to be used in this project has been implemented as well as the optitrack world in Gazebo. 

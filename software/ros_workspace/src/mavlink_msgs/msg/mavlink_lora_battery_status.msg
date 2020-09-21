@@ -1,0 +1,9 @@
+uint8 id
+uint8 battery_function
+uint8 type
+int16 temperature
+uint16[] voltages
+int16 current_battery
+int32 current_consumed
+int32 energy_consumed
+int8 battery_remaining

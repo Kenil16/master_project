@@ -1,0 +1,10 @@
+uint64 time_usec
+uint8 fix_type
+float64 lat
+float64 lon
+float64 alt
+uint16 eph
+uint16 epv
+float64 vel
+float64 cog
+uint8 satellites_visible

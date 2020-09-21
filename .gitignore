@@ -1,4 +1,6 @@
 # LaTeX
+
+# Exclude the following 
 *-blx.bib
 *.log
 *.bbl
@@ -12,7 +14,14 @@
 *.pdf
 __pycache__
 *~
-*.pdf
+!Report.pdf
+
+#ROS enviroment
+software/ros_workspace/build*
+software/ros_workspace/devel*
+software/ros_workspace/logs*
+software/ros_workspace/.catkin_tools*
+
 # Exceptions
-#!Report.pdf
+!.pdf
 

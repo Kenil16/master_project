@@ -1,0 +1,10 @@
+int32 latitude
+int32 longitude
+int32 altitude
+float64 x
+float64 y
+float64 z
+float64[] q
+float64 approach_x
+float64 approach_y
+float64 approach_z

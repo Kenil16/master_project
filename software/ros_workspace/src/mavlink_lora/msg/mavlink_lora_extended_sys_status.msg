@@ -1,0 +1,2 @@
+uint8 vtol_state
+uint8 landed_state
