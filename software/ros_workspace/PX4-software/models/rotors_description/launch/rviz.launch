@@ -1,0 +1,28 @@
+<launch>
+    <arg name="model" default="$(find eit_playground)/models/rotors_description/urdf/dji_m100.urdf.xacro"/>
+
+    <arg name="tf_prefix" default="$(optenv ROS_NAMESPACE)"/>
+    <arg name="world_frame" default="/world"/>
+    <arg name="base_link_frame" default="$(arg tf_prefix)/base_link"/>
+
+    <param name="robot_description" command="$(find xacro)/xacro '$(arg model)' base_link_frame:=$(arg base_link_frame) world_frame:=$(arg world_frame)" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+
+    <node name="rviz" pkg="rviz" type="rviz"/>
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="True"/>
+    </node>
+
+    <!-- Gazebo -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="paused" default="false"/>
+      <arg name="use_sim_time" default="true"/>
+      <arg name="gui" default="true"/>
+      <arg name="headless" default="false"/>
+      <arg name="debug" default="false"/>
+    </include>
+
+    <!-- Spawn the robot into Gazebo -->
+    <node name="spawn_urdf_vecloc" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model dji_m100" />
+
+</launch>

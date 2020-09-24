@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<!--
+  Copyright 2015 Fadri Furrer, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Michael Burri, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Mina Kamel, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Janosch Nikolic, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- Properties -->
+  <xacro:property name="namespace" value="" />
+  <xacro:property name="rotor_velocity_slowdown_sim" value="10" />
+
+  <!-- ConVecDro chassis -->
+  <xacro:property name="chassis_mesh_file" value="convecdro_chassis.stl" />
+  <xacro:property name="chassis_mesh_scale" value="1 1 1"/>
+  <xacro:property name="chassis_mass" value="1.5" /> <!-- [kg] -->
+  <xacro:property name="chassis_width" value="0.47" /> <!-- [m] -->
+  <xacro:property name="chassis_height" value="0.20" /> <!-- [m] -->
+
+  <xacro:property name="chassis_inertia">
+    <inertia
+    ixx="${1/12 * chassis_mass * (chassis_height * chassis_height + chassis_width * chassis_width)}"
+    iyy="${1/12 * chassis_mass * (chassis_height * chassis_height + chassis_width * chassis_width)}"
+    izz="${1/12 * chassis_mass * (chassis_width * chassis_width + chassis_width * chassis_width)}"
+    ixy="0.0" ixz="0.0" iyz="0.0" /> <!-- [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] -->
+  </xacro:property>
+
+
+  <!-- ConVecDro hood -->
+  <xacro:property name="hood_mesh_file" value="convecdro_hood.dae" />
+  <xacro:property name="hood_mesh_scale" value="1.1 1.1 1.1"/>
+  <xacro:property name="hood_mass" value="0.01" /> <!-- [kg] -->
+  <xacro:property name="hood_width" value="0.25" /> <!-- [m] -->
+  <xacro:property name="hood_length" value="0.25" /> <!-- [m] -->
+  <xacro:property name="hood_height" value="0.02" /> <!-- [m] -->
+
+  <xacro:property name="hood_x" value="0.0" /> <!-- [m] -->
+  <xacro:property name="hood_y" value="0.0" /> <!-- [m] -->
+  <xacro:property name="hood_offset" value="0.032" /> <!-- [m] -->
+
+  <xacro:property name="hood_inertia">
+    <inertia
+    ixx="${1/12 * hood_mass * (hood_height * hood_height + hood_length * hood_length)}"
+    iyy="${1/12 * hood_mass * (hood_width * hood_width + hood_length * hood_length)}"
+    izz="${1/12 * hood_mass * (hood_width * hood_width + hood_height * hood_height)}"
+    ixy="0.0" ixz="0.0" iyz="0.0" /> <!-- [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] -->
+  </xacro:property>
+
+  <!-- ConVecDro left -->
+  <xacro:property name="leg_mesh_scale" value="1 1 1"/>
+  <xacro:property name="leg_mass" value="0.20" /> <!-- [kg] -->
+  <xacro:property name="leg_width" value="0.20" /> <!-- [m] -->
+  <xacro:property name="leg_length" value="0.02" /> <!-- [m] -->
+  <xacro:property name="leg_height" value="0.20" /> <!-- [m] -->
+  <xacro:property name="leg_offset_z" value="-${chassis_height/2}" /> <!-- [m] -->
+  <xacro:property name="leg_offset_x" value="0.0" /> <!-- [m] -->
+  <xacro:property name="leg_offset_y" value="0.1" /> <!-- [m] -->
+
+  <xacro:property name="leg_left_mesh_file" value="convecdro_leg_left.stl" />
+  <xacro:property name="leg_right_mesh_file" value="convecdro_leg_right.stl" />
+
+  <xacro:property name="leg_inertia">
+    <inertia
+    ixx="${1/12 * leg_mass * (leg_height * leg_height + leg_length * leg_length)}"
+    iyy="${1/12 * leg_mass * (leg_width * leg_width + leg_length * leg_length)}"
+    izz="${1/12 * leg_mass * (leg_width * leg_width + leg_height * leg_height)}"
+    ixy="0.0" ixz="0.0" iyz="0.0" /> <!-- [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] -->
+  </xacro:property>
+
+
+  <!-- Rotor params -->
+  <xacro:property name="rotor_mass" value="0.005" /> <!-- [kg] -->
+  <xacro:property name="mesh_scale_prop" value="1 1 1"/>
+  <xacro:property name="arm_length" value="0.44" /> <!-- [m] -->
+
+  <xacro:property name="cos30" value="0.866025403784" />
+  <xacro:property name="sin30" value="0.5" />
+
+  <xacro:property name="cos90" value="0" />
+  <xacro:property name="sin90" value="1" />
+
+  <xacro:property name="cos150" value="-0.866025403784" />
+  <xacro:property name="sin150" value="0.5" />
+
+  <xacro:property name="cos210" value="-0.866025403784" />
+  <xacro:property name="sin210" value="-0.5" />
+
+  <xacro:property name="cos270" value="0" />
+  <xacro:property name="sin270" value="-1" />
+
+  <xacro:property name="cos330" value="0.866025403784" />
+  <xacro:property name="sin330" value="-0.5" />
+
+  <xacro:property name="rotor0_x" value="${cos270 * arm_length}" /> <!-- [m] -->
+  <xacro:property name="rotor0_y" value="${sin270 * arm_length}" /> <!-- [m] -->
+
+  <xacro:property name="rotor1_x" value="${cos90 * arm_length}" /> <!-- [m] -->
+  <xacro:property name="rotor1_y" value="${sin90 * arm_length}" /> <!-- [m] -->
+
+  <xacro:property name="rotor2_x" value="${cos30 * arm_length}" /> <!-- [m] -->
+  <xacro:property name="rotor2_y" value="${sin30 * arm_length}" /> <!-- [m] -->
+
+  <xacro:property name="rotor3_x" value="${cos210 * arm_length}" /> <!-- [m] -->
+  <xacro:property name="rotor3_y" value="${sin210 * arm_length}" /> <!-- [m] -->
+
+  <xacro:property name="rotor4_x" value="${cos330 * arm_length}" /> <!-- [m] -->
+  <xacro:property name="rotor4_y" value="${sin330 * arm_length}" /> <!-- [m] -->
+
+  <xacro:property name="rotor5_x" value="${cos150 * arm_length}" /> <!-- [m] -->
+  <xacro:property name="rotor5_y" value="${sin150 * arm_length}" /> <!-- [m] -->
+
+  <xacro:property name="radius_rotor" value="0.128" /> <!-- [m] -->
+  <xacro:property name="rotor_offset_top" value="0.023" /> <!-- [m] -->
+
+  <xacro:property name="motor_constant" value="8.54858e-06" /> <!-- [kg.m/s^2] -->
+  <xacro:property name="moment_constant" value="0.06" /> <!-- [m] -->
+  <xacro:property name="time_constant_up" value="0.0125" /> <!-- [s] -->
+  <xacro:property name="time_constant_down" value="0.025" /> <!-- [s] -->
+  <xacro:property name="max_rot_velocity" value="1100" /> <!-- [rad/s] -->
+  <xacro:property name="sqrt2" value="1.4142135623730951" />
+  <xacro:property name="rotor_drag_coefficient" value="8.06428e-04" />
+  <xacro:property name="rolling_moment_coefficient" value="0.000001" />
+  <xacro:property name="color" value="DarkGrey" />
+
+
+  <!-- inertia of a single rotor, assuming it is a cuboid. Height=3mm, width=15mm -->
+  <xacro:property name="rotor_inertia">
+    <inertia
+    ixx="${1/12 * rotor_mass * (0.015 * 0.015 + 0.003 * 0.003) * rotor_velocity_slowdown_sim}"
+    iyy="${1/12 * rotor_mass * (4 * radius_rotor * radius_rotor + 0.003 * 0.003) * rotor_velocity_slowdown_sim}"
+    izz="${1/12 * rotor_mass * (4 * radius_rotor * radius_rotor + 0.015 * 0.015) * rotor_velocity_slowdown_sim}"
+    ixy="0.0" ixz="0.0"  iyz="0.0" /> <!-- [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] [kg.m^2] -->
+  </xacro:property>
+
+</robot>

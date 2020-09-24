@@ -9,7 +9,7 @@
       <pose>0 0 0 0 0 0</pose>
         <geometry>
           <box>
-            <size>20 20 0.01</size>
+            <size>12 12 0.01</size>
           </box>
         </geometry>
       </collision>
@@ -17,7 +17,7 @@
       <visual name="truss_groundplane">
         <geometry>
           <box>
-            <size>20 20 0.01</size>
+            <size>12 12 0.01</size>
           </box>
         </geometry>
      </visual>
