@@ -9,7 +9,7 @@ import math
 
 from mavros_msgs.srv import CommandBool, CommandTOL, ParamGet, SetMode, WaypointClear, WaypointPush
 from mavros_msgs.msg import Altitude, ExtendedState, HomePosition, State, WaypointList
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Quaternion
 from pymavlink import mavutil
 from sensor_msgs.msg import NavSatFix, Imu
 from six.moves import xrange

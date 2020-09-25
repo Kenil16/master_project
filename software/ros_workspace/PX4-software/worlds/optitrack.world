@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.5">
   <world name="map">
+
     <!-- A global light source -->
     <include>
       <uri>model://sun</uri>
@@ -329,5 +330,13 @@
       <real_time_update_rate>250</real_time_update_rate>
       <magnetic_field>6.0e-6 2.3e-5 -4.2e-5</magnetic_field>
     </physics>
+
+   <!--Change default camera pose-->
+   <gui>
+     <camera name="gzclient_camera">
+       <pose>25 10 3 0 0 -2.356194</pose>
+     </camera>
+   </gui>
+
   </world>
 </sdf>
