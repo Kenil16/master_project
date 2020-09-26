@@ -38,7 +38,7 @@ class marker_detection:
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
         self.parameters = cv2.aruco.DetectorParameters_create()
         self.parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
-        self.camera_matrix = np.array([[277.191356, 0, (320.5/2)], [0, 277.191356, (340.5/2)], [0, 0, 1]], dtype=np.float)
+        self.camera_matrix = np.array([[1108.765426, 0, (1280/2)], [0, 1108.765426, (720/2)], [0, 0, 1]], dtype=np.float)
         self.distortion_coefficients = np.array([[0, 0, 0, 0]], dtype=np.float)
         self.marker_pose = []
         self.bridge = CvBridge()
@@ -119,16 +119,16 @@ class marker_detection:
                 T_drone_aruco = quaternion_matrix([x,y,z,w])
                 #print(euler_from_quaternion([x,y,z,w]))
                 
-                """
+            
                 T_drone_aruco[0][3] = pose[1].pose.position.x
                 T_drone_aruco[1][3] = pose[1].pose.position.y
                 T_drone_aruco[2][3] = pose[1].pose.position.z
-                """
+                
 
                 #T_inverse = np.linalg.inv(T_drone_aruco)
-                #T = T_inverse.dot(np.array([pose[1].pose.position.x,pose[1].pose.position.y,pose[1].pose.position.z,1]))
-                T = T_world_drone.dot(T_drone_aruco)
-                print(T)
+                #T = -T_inverse.dot(np.array([pose[1].pose.position.x,pose[1].pose.position.y,pose[1].pose.position.z,1]))
+                #T = T_world_drone.dot(T_drone_aruco)
+                print(T_drone_aruco)
                 """
                 
                 self.aruco_pose.pose.position.x = T[0][3]
@@ -183,7 +183,7 @@ class marker_detection:
         return R
     
     def timer_callback(self,event):
-        self.estimate_marker_pose(100)
+        self.estimate_marker_pose(101)
         
 
 if __name__ == "__main__":
