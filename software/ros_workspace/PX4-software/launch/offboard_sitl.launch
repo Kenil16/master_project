@@ -56,4 +56,5 @@
     <node name="$(anon vehicle_spawn)" pkg="gazebo_ros" type="spawn_model" output="screen" args="-sdf -file $(arg sdf) -model $(arg vehicle) -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
 
     <node name="offboard_control" pkg="offboard_control" type="offboard_control.py" output="screen"/>
+    <node name="marker_detection" pkg="marker_detection" type="marker_detection.py" output="screen"/>
 </launch>

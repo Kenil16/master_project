@@ -10,9 +10,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from mavlink_msgs.msg import mavlink_lora_command_land
 from uav_flight_modes import*
-from marker_detection import*
 from geometry_msgs.msg import PoseStamped, Quaternion
-
 
 class offboard_control:
 
@@ -21,7 +19,6 @@ class offboard_control:
         rospy.init_node('offboard_control')
 
         self.flight_mode = flight_modes()
-        self.marker_detection = marker_detection()
 
         #Initialize objects for uav commands and status 
         self.uav_local_pose = PoseStamped()
@@ -66,7 +63,6 @@ class offboard_control:
         """
         
         self.publish_local_pose.publish(self.new_uav_local_pose)
-        #self.marker_detection.estimate_marker_pose([100,101,102])
         
         
 if __name__ == "__main__":
