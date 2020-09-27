@@ -8,6 +8,7 @@
 *.aux
 *.out
 *.xml
+!package.xml
 *.toc
 *.synctex.gz
 *.bak
