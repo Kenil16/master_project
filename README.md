@@ -16,7 +16,7 @@ libgstrtspserver-1.0-dev xvfb python-catkin-tools
 
 pip install --user argparse cerberus empy jinja2 numpy packaging pandas
 psutil pygments pyros-genmsg pyserial pyulog pyyaml setuptools six toml
-wheel rosdep
+wheel rosdep opencv-contrib-python
 
 pip3 install --user --upgrade empy jinja2 numpy packaging pyros-genmsg toml
 pyyaml pymavlink

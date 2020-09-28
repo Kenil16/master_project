@@ -32,7 +32,7 @@ class offboard_control:
 
         self.new_uav_local_pose = PoseStamped()
         self.new_uav_local_pose.pose.position.z = 2
-        self.new_uav_local_pose.pose.position.x = -5
+        self.new_uav_local_pose.pose.position.x = -8
         self.new_uav_local_pose.pose.orientation = Quaternion(*quaternion_from_euler(0,0,3.14))
         
         self.marker_img_center_x = 300.

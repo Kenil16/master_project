@@ -6,7 +6,7 @@ import rospy
 from os import system
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-from tf.transformations import quaternion_from_euler, euler_from_quaternion, quaternion_matrix,quaternion_from_matrix
+from tf.transformations import* #quaternion_from_euler, euler_from_quaternion, quaternion_matrix,quaternion_from_matrix
 import tf
 import tf2_ros
 import tf2_geometry_msgs
@@ -87,7 +87,7 @@ class marker_detection:
                 marker_pose.append(marker_id_pose)
                 
                 #Draw detected axis of markers
-                image_markers = cv2.aruco.drawAxis(image_markers, self.camera_matrix, self.distortion_coefficients, _rvec, _tvec, 0.05)
+                image_markers = cv2.aruco.drawAxis(image_markers, self.camera_matrix, self.distortion_coefficients, _rvec, _tvec, 0.1)
 
         self.marker_pose = marker_pose
         img = self.bridge.cv2_to_imgmsg(image_markers,"bgr8")
@@ -99,44 +99,26 @@ class marker_detection:
             
             if pose[0] == marker_id:
                 
-                #Transformation matrix because the drone if shifted 180 (3.16 radi) degress of yaw relative to world
                 x = self.local_position.pose.orientation.x
                 y = self.local_position.pose.orientation.y
                 z = self.local_position.pose.orientation.z
-                w = self.local_position.pose.orientation.w
-            
-                T_world_drone = quaternion_matrix([x,y,z,w])
+                w = -self.local_position.pose.orientation.w
                 
-                T_world_drone[0][3] = self.local_position.pose.position.x
-                T_world_drone[1][3] = self.local_position.pose.position.y
-                T_world_drone[2][3] = self.local_position.pose.position.z
-            
-                x = pose[1].pose.orientation[0]
-                y = pose[1].pose.orientation[1]
-                z = pose[1].pose.orientation[2]
-                w = pose[1].pose.orientation[3]
-                
-                T_drone_aruco = quaternion_matrix([x,y,z,w])
-                #print(euler_from_quaternion([x,y,z,w]))
-                
-            
-                T_drone_aruco[0][3] = pose[1].pose.position.x
-                T_drone_aruco[1][3] = pose[1].pose.position.y
-                T_drone_aruco[2][3] = pose[1].pose.position.z
-                
+                q_world_inv = np.array([x,y,z,w]) 
+                r_1 = np.linalg.inv(quaternion_matrix(self.local_position.pose.orientation))
+                r_2 = quaternion_matrix(*pose[1].pose.orientation)
+                q_r = quaternion_multiply(pose[1].pose.orientation, q_world_inv)
 
-                #T_inverse = np.linalg.inv(T_drone_aruco)
-                #T = -T_inverse.dot(np.array([pose[1].pose.position.x,pose[1].pose.position.y,pose[1].pose.position.z,1]))
-                #T = T_world_drone.dot(T_drone_aruco)
-                print(T_drone_aruco)
-                """
+                r = quaternion_matrix(q_r)
+                r_inverse = np.linalg.inv(r)
+                t = np.array([pose[1].pose.position.x, pose[1].pose.position.y, pose[1].pose.position.z, 1])
+                pos = r_inverse.dot(np.transpose(t))
+
+                #print("Orientation world to drone NEW:" + str(euler_from_quaternion(q_r)))
+                print("Orientation world to drone NEW:" + str(r_r))
+                print("Pos  aruco:" + str(pos))
                 
-                self.aruco_pose.pose.position.x = T[0][3]
-                self.aruco_pose.pose.position.y = T[1][3]
-                self.aruco_pose.pose.position.z = T[2][3]
-                #self.aruco_pose.pose.orientation =  quaternion_from_matrix(T)
-                """
-                self.aruco_marker_pose_pub.publish(self.aruco_pose)
+                #self.aruco_marker_pose_pub.publish(self.aruco_pose)
                 
                 #print("T_world_world: " + T_world_drone)
                 #print(T)
