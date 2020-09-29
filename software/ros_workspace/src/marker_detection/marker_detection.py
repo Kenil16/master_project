@@ -99,55 +99,54 @@ class marker_detection:
             
             if pose[0] == marker_id:
                 
-                #Transformation matrix from world to drone 
-                T_world_drone = quaternion_matrix(self.local_position.pose.orientation)
+                #Transformation matrix from world to drone
+                x = self.local_position.pose.orientation.x
+                y = self.local_position.pose.orientation.y
+                z = self.local_position.pose.orientation.z
+                w = self.local_position.pose.orientation.w
+
+                T_world_drone = quaternion_matrix(np.array([x,y,z,w]))
                 T_world_drone[0][3] = self.local_position.pose.position.x
                 T_world_drone[1][3] = self.local_position.pose.position.y
                 T_world_drone[2][3] = self.local_position.pose.position.z
 
                 #Transformation matrix from drone to camera
-                T_drone_camera = eulerAnglesToRotationMatrix([1.5707,-1.5707,0])
+                T_drone_camera = euler_matrix(-1.5707,1.5707,0)
+                
+                #Transformation matrix from camera to ArUco marker
+                r = quaternion_matrix(pose[1].pose.orientation)
+                T_camera_marker = np.linalg.inv(r)
+                t = np.array([pose[1].pose.position.x, pose[1].pose.position.y, pose[1].pose.position.z, 1])
+                t = -np.dot(t,T_camera_marker)
+
+                T_camera_marker[0][3] = t[0]
+                T_camera_marker[1][3] = t[1]
+                T_camera_marker[2][3] = t[2]
+
+                """
+                T_camera_marker[0][3] = pose[1].pose.position.x
+                T_camera_marker[1][3] = pose[1].pose.position.y
+                T_camera_marker[2][3] = pose[1].pose.position.z
                 
                 #Now find translation of ArUco marker with respect to the camera
-                r = quaternion_matrix(q_r)
+                r = quaternion_matrix(pose[1].pose.orientation)
                 r_inverse = np.linalg.inv(r)
                 t = np.array([pose[1].pose.position.x, pose[1].pose.position.y, pose[1].pose.position.z, 1])
-                t = -np.dot(t,np.linalg.inv(r_2))
+                t = -np.dot(t,r_inverse)
+                #print(t)
 
                 T_drone_camera[0][3] = t[0]
                 T_drone_camera[1][3] = t[1]
                 T_drone_camera[2][3] = t[2]
+                """
 
                 #Transformation matrix from world to camera
-                T_world_camera = T_world_drone.dot(T_drone_camera)
-                
-                """
-                x = self.local_position.pose.orientation.x
-                y = self.local_position.pose.orientation.y
-                z = self.local_position.pose.orientation.z
-                w = self.local_position.pose.orientation.w
-                
-                q_world_inv = np.array([x,y,z,w])
-                q_aruco = np.array([pose[1].pose.orientation[0],pose[1].pose.orientation[1],pose[1].pose.orientation[2],pose[1].pose.orientation[3]])
-                #r_1 = np.linalg.inv(quaternion_matrix(self.local_position.pose.orientation))
-                r_2 = quaternion_matrix(pose[1].pose.orientation)
-                q_r = quaternion_multiply(q_aruco, q_world_inv)
-
-                r = quaternion_matrix(q_r)
-                r_inverse = np.linalg.inv(r)
-                t = np.array([pose[1].pose.position.x, pose[1].pose.position.y, pose[1].pose.position.z, 1])
-                pos = r_inverse.dot(np.transpose(t))
-
-                t_da = -np.dot(t,np.linalg.inv(r_2))
-
-
-                print("Orientation world to drone NEW:" + str(euler_from_quaternion(pose[1].pose.orientation)))
-                #print("Orientation world to drone NEW:" + str(r_r))
-                print("Pos  aruco:" + str(T_world_camera))
+                T_world_marker = np.matmul(np.matmul(T_world_drone,T_drone_camera),T_camera_marker)
+                print "Marker id: {} Orientation: {} x: {} y: {} z: {} \n".format(pose[0],euler_from_matrix(T_world_marker),T_world_marker[0][3],T_world_marker[1][3],T_world_marker[2][3])
                 
                 #self.aruco_marker_pose_pub.publish(self.aruco_pose)
-                """
-                print("T_world_: " + str(T_world_camera))
+                
+                #print("T_world_: " + str(T_world_camera))
                 #print(T)
                 
                 #print "Marker id: {} Position: {} Orientation: {} \n".format(pose[0],pose[1].pose.position,eular_angles)
