@@ -15,6 +15,7 @@
 *.pdf
 __pycache__
 *~
+*.pyc
 !Report.pdf
 
 #ROS enviroment

@@ -13,8 +13,10 @@ import tf2_ros
 import tf2_geometry_msgs
 from geometry_msgs.msg import PoseStamped, Quaternion
 from std_msgs.msg import Float64, Bool
+from mavlink_msgs.msg import mavlink_lora_aruco
 
 from tracking import*
+from graphics_plot import graphics_plot
 
 class marker_detection:
 
@@ -23,11 +25,10 @@ class marker_detection:
         #Init ROS node
         rospy.init_node('marker_detection')
 
-        #Init Kalman filters
-        self.kf_pos = kalman_filter()
-        self.kf_ori = kalman_filter()
+        self.graphics = graphics_plot()
 
         #Init data test plotting
+        self.plot_data = True 
         self.plot_aruco_pos_x = []
         self.plot_aruco_pos_y = []
         self.plot_aruco_pos_z = []
@@ -37,25 +38,30 @@ class marker_detection:
         self.plot_aruco_pos_kf_z = []
 
         self.cycle_time = (1./50.)
-        self.plot_timer = int(((20)/self.cycle_time)) #Set to run 10 seconds before plot
+        self.plot_timer = int(((30)/self.cycle_time)) #Set to run 10 seconds before plot
 
         self.plot_time = []
         
+        #Init Kalman filters
+        self.kf_pos = kalman_filter(self.cycle_time)
+        self.kf_ori = kalman_filter(self.cycle_time)
+
         #Local drone pose
         self.local_position = PoseStamped()
         self.aruco_pose = PoseStamped()
         self.aruco_pose_without_kf = PoseStamped()
+
+        self.aruco_ids = mavlink_lora_aruco()
         
         #Subscribers
         self.image_sub = rospy.Subscriber("/mono_cam/image_raw", Image, self.find_aruco_markers)
         self.local_pose_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
+        self.aruco_ids_sub = rospy.Subscriber('aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
 
         #Publishers
         self.aruco_marker_image_pub = rospy.Publisher("aruco_marker_image", Image, queue_size=1)
         self.aruco_marker_pose_pub = rospy.Publisher("/mavros/vision_pose/pose", PoseStamped, queue_size=1)
-
-        #self.tf_buffer = tf2_ros.Buffer(rospy.Duration(1200.0)) #tf buffer length
-        #self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+        self.aruco_marker_found_pub = rospy.Publisher("aruco_marker_found", Bool, queue_size=1)
 
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
@@ -71,6 +77,9 @@ class marker_detection:
 
     def local_position_callback(self, data):
         self.local_position = data
+ 
+    def aruco_ids_callback(self, data):
+        self.aruco_ids.elements = data.elements
         
     def find_aruco_markers(self,img):
        
@@ -118,9 +127,14 @@ class marker_detection:
 
     def estimate_marker_pose(self, marker_id):
 
+        if not marker_id:
+            return
+        else:
+            _id = marker_id.elements
+
         for pose in self.marker_pose:
             
-            if pose[0] == marker_id:
+            if pose[0] == _id:
                 
                 """
                 #Transformation matrix from world to drone
@@ -130,10 +144,8 @@ class marker_detection:
                 w = self.local_position.pose.orientation.w
                 
                 T_world_drone = quaternion_matrix(np.array([x,y,z,w]))
-                
-                T_world_drone = euler_matrix(0,0,np.pi,'rxyz')
-                
-                T_world_drone[0][3] = self.local_position.pose.position.x
+                 
+                T_world_drone[0][3] = self.local_position.pose.position.x + 20 #Drone shiftet 20 meters wrt the world origin
                 T_world_drone[1][3] = self.local_position.pose.position.y
                 T_world_drone[2][3] = self.local_position.pose.position.z
                 """
@@ -155,6 +167,8 @@ class marker_detection:
                 #Transformation matrix from drone to camera
                 T_drone_marker = np.dot(T_drone_camera, T_camera_marker)
                 
+                #T_drone_marker = np.dot(np.dot(T_world_drone,T_drone_camera), T_camera_marker)
+
                 #Get euler for and update Kalman filter
                 euler = euler_from_matrix(T_drone_marker,'rxyz')
 
@@ -169,7 +183,7 @@ class marker_detection:
                 self.aruco_marker_pose_pub.publish(self.aruco_pose)
 
                 #Plot position data (Just for testing)
-                if self.plot_timer > 0:
+                if self.plot_data and self.plot_timer > 0:
                     self.plot_timer -= 1
 
                     self.plot_aruco_pos_x.append(T_drone_marker[0][3])
@@ -186,11 +200,13 @@ class marker_detection:
                         self.plot_time.append(self.cycle_time + self.plot_time[-1])
 
                     if not self.plot_timer:
-                        self.plot_data(self.plot_aruco_pos_x,self.plot_aruco_pos_kf_x,self.plot_time,'Estimated ArUco marker position','Time [s]','x [m]','../../../../data/plots/kf_pos_x.png')
-                        self.plot_data(self.plot_aruco_pos_y,self.plot_aruco_pos_kf_y,self.plot_time,'Estimated ArUco marker position','Time [s]','y [m]','../../../../data/plots/kf_pos_y.png')
-                        self.plot_data(self.plot_aruco_pos_z,self.plot_aruco_pos_kf_z,self.plot_time,'Estimated ArUco marker position','Time [s]','z [m]','../../../../data/plots/kf_pos_z.png')
-
+                        self.graphics.plot_kf_data(self.plot_aruco_pos_x,self.plot_aruco_pos_kf_x,self.plot_time,'Estimated ArUco marker position','Time [s]','x [m]','../../../../data/plots/kf_pos_x.png')
+                        self.graphics.plot_kf_data(self.plot_aruco_pos_y,self.plot_aruco_pos_kf_y,self.plot_time,'Estimated ArUco marker position','Time [s]','y [m]','../../../../data/plots/kf_pos_y.png')
+                        self.graphics.plot_kf_data(self.plot_aruco_pos_z,self.plot_aruco_pos_kf_z,self.plot_time,'Estimated ArUco marker position','Time [s]','z [m]','../../../../data/plots/kf_pos_z.png')
                 print "Marker id: {} Ori: {} x: {} y: {} z: {} \n".format(pose[0],euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
+                self.aruco_marker_found_pub.publish(True)
+            else:
+                self.aruco_marker_found_pub.publish(False)
             
 
     def rodrigues_to_euler_angles(self, rvec):
@@ -210,54 +226,8 @@ class marker_detection:
             
         return np.array([roll, pitch, yaw])
     
-    
-    def eulerAnglesToRotationMatrix(self,theta):
-        
-        R_x = np.array([[1,0,0],
-                        [0,math.cos(theta[0]),-math.sin(theta[0]) ],
-                        [0,math.sin(theta[0]),math.cos(theta[0])]])
-        
-        R_y = np.array([[math.cos(theta[1]),0,math.sin(theta[1])],
-                        [0,1,0],
-                        [-math.sin(theta[1]),0,math.cos(theta[1])]])
-        
-        R_z = np.array([[math.cos(theta[2]),-math.sin(theta[2]),0],
-                        [math.sin(theta[2]),math.cos(theta[2]),0],
-                        [0,0,1]])
-        
-        R = np.dot(R_z, np.dot( R_y, R_x ))
-        
-        return R
-
-    def plot_data(self,without_kf,with_kf,time,title,xlabel,ylabel,fig_path_name):
-        
-        fig, ax = plt.subplots()
-        ax.set_axisbelow(True)
-        ax.set_facecolor('#E6E6E6')
-        plt.grid(color='w', linestyle='solid')
-
-        for spine in ax.spines.values():
-            spine.set_visible(False)
-
-        ax.xaxis.tick_bottom()
-        ax.yaxis.tick_left()
-        ax.tick_params(colors='gray', direction='out')
-        
-        for tick in ax.get_xticklabels():
-            tick.set_color('gray')
-        for tick in ax.get_yticklabels():
-            tick.set_color('gray')
-
-        ax.scatter(time,without_kf,label='Data points')
-        ax.plot(time,with_kf,label='Kalman filter',color='red',markersize=2)
-        ax.set_title(title)
-        ax.legend()
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.savefig(fig_path_name)
-    
     def timer_callback(self,event):
-        self.estimate_marker_pose(100)
+        self.estimate_marker_pose(self.aruco_ids)
         
 
 if __name__ == "__main__":

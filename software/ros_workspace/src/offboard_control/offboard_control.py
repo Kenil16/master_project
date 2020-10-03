@@ -11,6 +11,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from mavlink_msgs.msg import mavlink_lora_command_land
 from uav_flight_modes import*
 from geometry_msgs.msg import PoseStamped, Quaternion
+from pid import*
+
 
 class offboard_control:
 
@@ -18,7 +20,14 @@ class offboard_control:
         
         rospy.init_node('offboard_control')
 
+        #Init flight modes 
         self.flight_mode = flight_modes()
+        
+        #Init PID controllers
+        self.pid_x = PID(1.,1.,1.,1,-1)
+        self.pid_y = PID(1.,1.,1.,1,-1)
+        self.pid_z = PID(1.,1.,1.,1,-1)
+        self.pid_yaw = PID(1.,1.,1.,1,-1)
 
         #Initialize objects for uav commands and status 
         self.uav_local_pose = PoseStamped()
@@ -26,20 +35,11 @@ class offboard_control:
         #Initialize publishers
         self.publish_local_pose = rospy.Publisher("/mavros/setpoint_position/local", PoseStamped, queue_size=10)
 
-        
-        #Initiate Kalman filter
-        #self.kf = kalman_filter()
-
         self.new_uav_local_pose = PoseStamped()
         self.new_uav_local_pose.pose.position.z = 2
         self.new_uav_local_pose.pose.position.x = -8
         self.new_uav_local_pose.pose.orientation = Quaternion(*quaternion_from_euler(0,0,3.14))
-        
-        self.marker_img_center_x = 300.
-        self.marker_img_center_y = 300.
-        self.perform_landing = False
-        self.landing_pose = PoseStamped()
-        
+         
         rospy.Timer(rospy.Duration(1./100.), self.timer_callback)
 
         #Initialize uav flightmodes

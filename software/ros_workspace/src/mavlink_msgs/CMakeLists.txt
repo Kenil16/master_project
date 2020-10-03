@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS std_msgs message_generation)
 add_message_files(
         DIRECTORY msg
         FILES
+	mavlink_lora_aruco.msg
         mavlink_lora_msg.msg
         mavlink_lora_status.msg
         mavlink_lora_pos.msg

@@ -12,16 +12,16 @@ from filterpy import*
 
 class kalman_filter:
 
-    def __init__(self):
+    def __init__(self, cycle_time):
         
         #Kalman filter 
         self.is_state_initialized = False
 
-        self.R_std = 0.34#30 #0.35
+        self.R_std = 1.5#0.34
         self.Q_std = 0.04 #0.04
 
         self.tracker = KalmanFilter(dim_x=6,dim_z=3)
-        self.dt = 0.2#Five frames each second
+        self.dt = cycle_time #Five frames each second
         self.tracker.F = np.array([[1,0,0,self.dt,0,0],[0,1,0,0,self.dt,0],[0,0,1,0,0,self.dt],[0,0,0,1,0,0],[0,0,0,0,1,0],[0,0,0,0,0,1]])
         
         self.tracker.R = np.eye(3) * self.R_std**2
