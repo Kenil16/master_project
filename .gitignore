@@ -16,6 +16,7 @@
 __pycache__
 *~
 *.pyc
+*.swp
 !Report.pdf
 
 #ROS enviroment
