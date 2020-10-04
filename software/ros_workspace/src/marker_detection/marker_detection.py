@@ -43,8 +43,13 @@ class marker_detection:
         self.plot_time = []
         
         #Init Kalman filters
-        self.kf_pos = kalman_filter(self.cycle_time)
-        self.kf_ori = kalman_filter(self.cycle_time)
+        self.kf_x = kalman_filter(self.cycle_time)
+        self.kf_y = kalman_filter(self.cycle_time)
+        self.kf_z = kalman_filter(self.cycle_time)
+        
+        self.kf_roll = kalman_filter(self.cycle_time)
+        self.kf_pitch = kalman_filter(self.cycle_time)
+        self.kf_yaw = kalman_filter(self.cycle_time)
 
         #Local drone pose
         self.local_position = PoseStamped()
@@ -169,17 +174,23 @@ class marker_detection:
                 
                 #T_drone_marker = np.dot(np.dot(T_world_drone,T_drone_camera), T_camera_marker)
 
-                #Get euler for and update Kalman filter
+                #Get euler and update Kalman filter
                 euler = euler_from_matrix(T_drone_marker,'rxyz')
 
-                self.kf_pos.get_measurement([T_drone_marker[0][3],T_drone_marker[1][3],T_drone_marker[2][3]])
-                self.kf_ori.get_measurement([euler[0],euler[1],euler[2]])
+                self.kf_x.get_measurement(T_drone_marker[0][3])
+                self.kf_y.get_measurement(T_drone_marker[1][3])
+                self.kf_z.get_measurement(T_drone_marker[2][3])
+                
+                self.kf_roll.get_measurement(euler[0])
+                self.kf_pitch.get_measurement(euler[1])
+                self.kf_yaw.get_measurement(euler[2])
                  
-                self.aruco_pose.pose.position.x = self.kf_pos.tracker.x[0]
-                self.aruco_pose.pose.position.y = self.kf_pos.tracker.x[1]
-                self.aruco_pose.pose.position.z = self.kf_pos.tracker.x[2]
+                self.aruco_pose.pose.position.x = self.kf_x.tracker.x[0]
+                self.aruco_pose.pose.position.y = self.kf_y.tracker.x[0]
+                self.aruco_pose.pose.position.z = self.kf_z.tracker.x[0]
 
-                self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(self.kf_ori.tracker.x[0],self.kf_ori.tracker.x[1],self.kf_ori.tracker.x[2],'rxyz'))
+                self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(self.kf_roll.tracker.x[0],self.kf_pitch.tracker.x[0],self.kf_yaw.tracker.x[0],'rxyz'))
+                
                 self.aruco_marker_pose_pub.publish(self.aruco_pose)
 
                 #Plot position data (Just for testing)
@@ -190,9 +201,9 @@ class marker_detection:
                     self.plot_aruco_pos_y.append(T_drone_marker[1][3])
                     self.plot_aruco_pos_z.append(T_drone_marker[2][3])
 
-                    self.plot_aruco_pos_kf_x.append(self.kf_pos.tracker.x[0])
-                    self.plot_aruco_pos_kf_y.append(self.kf_pos.tracker.x[1])
-                    self.plot_aruco_pos_kf_z.append(self.kf_pos.tracker.x[2])
+                    self.plot_aruco_pos_kf_x.append(self.kf_x.tracker.x[0])
+                    self.plot_aruco_pos_kf_y.append(self.kf_y.tracker.x[0])
+                    self.plot_aruco_pos_kf_z.append(self.kf_z.tracker.x[0])
                     
                     if not self.plot_time:
                         self.plot_time.append(self.cycle_time)
