@@ -13,3 +13,5 @@ set MIXER hexa_x_sdu
 param set NAV_DLL_ACT 0
 param set NAV_RCL_ACT 0
 param set COM_OBL_ACT 0
+param set EKF2_AID_MASK 24
+param set EKF2_HGT_MODE 3

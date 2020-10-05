@@ -16,6 +16,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from mavlink_msgs.msg import mavlink_lora_aruco
 from geometry_msgs.msg import PoseStamped, Quaternion
 from std_msgs.msg import Float64, Bool
+from mavros_msgs.msg import Altitude, ExtendedState, HomePosition, State, WaypointList, ParamValue
+from mavros_msgs.srv import CommandBool, CommandTOL, ParamGet, SetMode, WaypointClear, WaypointPush, ParamSet
 
 class machine_learning_testing:
 
@@ -50,7 +52,7 @@ class machine_learning_testing:
         #Set initial uav pose
         self.new_uav_local_pose = PoseStamped()
         self.new_uav_local_pose.pose.position.z = 2
-        self.new_uav_local_pose.pose.position.x = -8
+        self.new_uav_local_pose.pose.position.x = 0#-8
         self.new_uav_local_pose.pose.orientation = Quaternion(*quaternion_from_euler(0,0,3.14))
 
         self.aruco_marker_pose = PoseStamped()
@@ -90,7 +92,8 @@ class machine_learning_testing:
         
         self.publish_aruco_ids.publish(self.aruco_ids)
         self.publish_local_pose.publish(self.new_uav_local_pose)
-        
+        param_id = ParamValue(integer=1, real=0.0)
+        self.flight_mode.set_param(param_id='EKF2_AID_MASK',value=param_id)
         
 if __name__ == "__main__":
     node = machine_learning_testing()

@@ -7,8 +7,8 @@ import unittest
 import rospy
 import math
 
-from mavros_msgs.srv import CommandBool, CommandTOL, ParamGet, SetMode, WaypointClear, WaypointPush
-from mavros_msgs.msg import Altitude, ExtendedState, HomePosition, State, WaypointList
+from mavros_msgs.srv import CommandBool, CommandTOL, ParamGet, SetMode, WaypointClear, WaypointPush, ParamSet
+from mavros_msgs.msg import Altitude, ExtendedState, HomePosition, State, WaypointList, ParamValue
 from geometry_msgs.msg import PoseStamped, Quaternion
 from pymavlink import mavutil
 from sensor_msgs.msg import NavSatFix, Imu
@@ -27,12 +27,13 @@ class flight_modes:
         self.home_position = HomePosition()
         self.local_position = PoseStamped()
         self.state = State()
+        self.param_value = ParamValue()
         
         #Initialize list of subscribed topics ready to be false
         self.sub_topics_ready = {
             key: False
             for key in [
-                'alt', 'global_pos', 'home_pos', 'local_pos','state', 'imu'
+                'alt', 'global_pos', 'home_pos', 'local_pos','state', 'imu', 'param_value'
                 ]
         }
         
@@ -40,6 +41,7 @@ class flight_modes:
         service_timeout = 30
         rospy.loginfo("waiting for ROS services")
         try:
+            rospy.wait_for_service('/mavros/param/set',service_timeout)
             rospy.wait_for_service('/mavros/param/get', service_timeout)
             rospy.wait_for_service('/mavros/cmd/arming', service_timeout)
             rospy.wait_for_service('/mavros/set_mode', service_timeout)
@@ -50,6 +52,8 @@ class flight_modes:
         #Initialize services
         self.set_arming_uav = rospy.ServiceProxy('/mavros/cmd/arming', CommandBool)
         self.set_mode_uav = rospy.ServiceProxy('/mavros/set_mode', SetMode)
+        self.set_param = rospy.ServiceProxy('/mavros/param/set', ParamSet)
+        self.get_param = rospy.ServiceProxy('/mavros/param/get', ParamGet)
         
         #Initialize subscribers
         self.alt_sub = rospy.Subscriber('/mavros/altitude', Altitude, self.altitude_callback)
@@ -58,7 +62,7 @@ class flight_modes:
         self.home_pos_sub = rospy.Subscriber('/mavros/home_position/home', HomePosition, self.home_position_callback)
         self.local_pose_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
         self.state_sub = rospy.Subscriber('/mavros/state', State, self.state_callback)
- 
+
     def altitude_callback(self, data):
         self.altitude = data
         
@@ -72,7 +76,7 @@ class flight_modes:
         
         if not self.sub_topics_ready['global_pos']:
             self.sub_topics_ready['global_pos'] = True
-            
+ 
     def imu_data_callback(self, data):
         self.imu_data = data
         
@@ -112,10 +116,11 @@ class flight_modes:
         # Mavros publishes a disconnected state message on init
         if not self.sub_topics_ready['state'] and data.connected:
             self.sub_topics_ready['state'] = True
-            
+
+    """
     def set_arm(self, arm, timeout):
         
-        """arm: True to arm or False to disarm, timeout(int): seconds"""
+        #arm: True to arm or False to disarm, timeout(int): seconds
         rospy.loginfo("setting FCU arm: {0}".format(arm))
         old_arm = self.state.armed
         loop_freq = 1  # Hz
@@ -139,12 +144,7 @@ class flight_modes:
                 rate.sleep()
             except rospy.ROSException as e:
                 rospy.logerr(e)
-        """        
-        self.assertTrue(arm_set, (
-            "failed to set arm | new arm: {0}, old arm: {1} | timeout(seconds): {2}".
-            format(arm, old_arm, timeout)))
-        """
-        
+    """ 
     def set_mode(self, mode, timeout):
         
         """mode: PX4 mode string, timeout(int): seconds"""
@@ -178,6 +178,39 @@ class flight_modes:
             format(mode, old_mode, timeout)))
         """
 
+    def set_param(self, param_id, param, timeout):
+        
+        """mode: PX4 mode string, timeout(int): seconds"""
+        rospy.loginfo("setting FCU mode: {0}".format(param))
+        old_value = self.get_param(param_id)
+        old_value = old_value.value.integer
+        loop_freq = 1  # Hz
+        rate = rospy.Rate(loopi_freq)
+        mode_set = False
+        
+        for i in xrange(timeout * loop_freq):
+            if old_value == param_id:
+                param_set = True
+                rospy.loginfo("set mode success | seconds: {0} of {1}".format(
+                    i / loop_freq, timeout))
+                break
+            else:
+                try:
+                    res = self.set_param('param', param_id)  # 0 is custom mode
+                    if not res.mode_sent:
+                        rospy.logerr("failed to send parameter command")
+                except rospy.ServiceException as e:
+                    rospy.logerr(e)
+                    
+            try:
+                rate.sleep()
+            except rospy.ROSException as e:
+                rospy.logerr(e)
+        """     
+        self.assertTrue(mode_set, (
+            "failed to set mode | new mode: {0}, old mode: {1} | timeout(seconds): {2}".
+            format(mode, old_mode, timeout)))
+        """
     def wait_for_topics(self, timeout):
         
         """wait for simulation to be ready, make sure we're getting topic info

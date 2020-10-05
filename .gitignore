@@ -17,7 +17,10 @@ __pycache__
 *~
 *.pyc
 *.swp
-!Report.pdf
+*.pdf
+
+#Include PDFs in litterature
+!literature/*
 
 #ROS enviroment
 software/ros_workspace/build*
@@ -25,6 +28,4 @@ software/ros_workspace/devel*
 software/ros_workspace/logs*
 software/ros_workspace/.catkin_tools*
 
-# Exceptions
-!.pdf
 

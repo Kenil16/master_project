@@ -189,8 +189,10 @@ class marker_detection:
                 self.aruco_pose.pose.position.y = self.kf_y.tracker.x[0]
                 self.aruco_pose.pose.position.z = self.kf_z.tracker.x[0]
 
-                self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(self.kf_roll.tracker.x[0],self.kf_pitch.tracker.x[0],self.kf_yaw.tracker.x[0],'rxyz'))
-                
+                #self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(self.kf_roll.tracker.x[0],self.kf_pitch.tracker.x[0],self.kf_yaw.tracker.x[0],'rxyz'))
+                self.aruco_pose.pose.orientation = self.local_position.pose.orientation
+
+                #print(euler_from_quaternion(*self.aruco_pose.pose.orientation))
                 self.aruco_marker_pose_pub.publish(self.aruco_pose)
 
                 #Plot position data (Just for testing)
@@ -214,7 +216,7 @@ class marker_detection:
                         self.graphics.plot_kf_data(self.plot_aruco_pos_x,self.plot_aruco_pos_kf_x,self.plot_time,'Estimated ArUco marker position','Time [s]','x [m]','../../../../data/plots/kf_pos_x.png')
                         self.graphics.plot_kf_data(self.plot_aruco_pos_y,self.plot_aruco_pos_kf_y,self.plot_time,'Estimated ArUco marker position','Time [s]','y [m]','../../../../data/plots/kf_pos_y.png')
                         self.graphics.plot_kf_data(self.plot_aruco_pos_z,self.plot_aruco_pos_kf_z,self.plot_time,'Estimated ArUco marker position','Time [s]','z [m]','../../../../data/plots/kf_pos_z.png')
-                print "Marker id: {} Ori: {} x: {} y: {} z: {} \n".format(pose[0],euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
+                #print "Marker id: {} Ori: {} x: {} y: {} z: {} \n".format(pose[0],euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
                 self.aruco_marker_found_pub.publish(True)
             else:
                 self.aruco_marker_found_pub.publish(False)
