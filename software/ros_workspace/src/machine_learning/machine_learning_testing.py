@@ -40,6 +40,7 @@ class machine_learning_testing:
         self.vision_based_navigation = False
         self.aruco_marker_found = False
         self.distance_to_marker = 100
+        self.set_mode_param = rospy.ServiceProxy('/mavros/param/set', ParamSet)
         
         #Initialize publishers
         self.publish_local_pose = rospy.Publisher("/mavros/setpoint_position/local", PoseStamped, queue_size=10)
@@ -52,13 +53,10 @@ class machine_learning_testing:
         #Set initial uav pose
         self.new_uav_local_pose = PoseStamped()
         self.new_uav_local_pose.pose.position.z = 2
-        self.new_uav_local_pose.pose.position.x = 0#-8
+        self.new_uav_local_pose.pose.position.x = -8
         self.new_uav_local_pose.pose.orientation = Quaternion(*quaternion_from_euler(0,0,3.14))
 
         self.aruco_marker_pose = PoseStamped()
-
-        self.cycle_time = (1./100.)
-        rospy.Timer(rospy.Duration(self.cycle_time), self.timer_callback)
 
         #Initialize uav flightmodes
         self.flight_mode.wait_for_topics(60)
@@ -68,7 +66,9 @@ class machine_learning_testing:
         
         self.flight_mode.set_mode("OFFBOARD",5)
         self.flight_mode.set_arm(True,5)
-
+        
+        self.cycle_time = (1./100.)
+        rospy.Timer(rospy.Duration(self.cycle_time), self.timer_callback)
         rospy.spin()
 
     def aruco_marker_pose_callback(self, data):
@@ -83,17 +83,25 @@ class machine_learning_testing:
             x = np.power(self.aruco_marker_pose.pose.position.x,2)
             y = np.power(self.aruco_marker_pose.pose.position.y,2)
             z = np.power(self.aruco_marker_pose.pose.position.z,2)
-            self.distance_to_marker= np.sqrt((x+y+z))
+            self.distance_to_marker = np.sqrt((x+y+z))
             
         #Go from GPS to vision based navigation
-        if not self.vision_based_navigation and (self.distance_to_marker < 3):
+        if not self.vision_based_navigation and (self.distance_to_marker > 0.0) and (self.distance_to_marker < 5):
+            
+            #self.set_mode_param("SIM_GPS_BLOCK",ParamValue(integer=1, real=0.0))
+            self.set_mode_param("EKF2_AID_MASK",ParamValue(integer=24, real=0.0))
+            #self.flight_mode.set_mode_param("EKF2_HGT_MODE",ParamValue(integer=3, real=0.0),10)
             self.vision_based_navigation = True
-            print "Aruco FOund"
+            print "Aruco Found"
         
         self.publish_aruco_ids.publish(self.aruco_ids)
-        self.publish_local_pose.publish(self.new_uav_local_pose)
-        param_id = ParamValue(integer=1, real=0.0)
-        self.flight_mode.set_param(param_id='EKF2_AID_MASK',value=param_id)
+
+        if self.vision_based_navigation:
+            self.new_uav_local_pose.pose.position.z = 2
+            self.new_uav_local_pose.pose.position.x = -8
+            self.publish_local_pose.publish(self.new_uav_local_pose)
+        else:
+            self.publish_local_pose.publish(self.new_uav_local_pose)
         
 if __name__ == "__main__":
     node = machine_learning_testing()

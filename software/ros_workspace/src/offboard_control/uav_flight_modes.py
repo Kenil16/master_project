@@ -33,7 +33,7 @@ class flight_modes:
         self.sub_topics_ready = {
             key: False
             for key in [
-                'alt', 'global_pos', 'home_pos', 'local_pos','state', 'imu', 'param_value'
+                'alt', 'global_pos', 'home_pos', 'local_pos','state', 'imu'
                 ]
         }
         
@@ -117,7 +117,7 @@ class flight_modes:
         if not self.sub_topics_ready['state'] and data.connected:
             self.sub_topics_ready['state'] = True
 
-    """
+    
     def set_arm(self, arm, timeout):
         
         #arm: True to arm or False to disarm, timeout(int): seconds
@@ -144,10 +144,10 @@ class flight_modes:
                 rate.sleep()
             except rospy.ROSException as e:
                 rospy.logerr(e)
-    """ 
+     
     def set_mode(self, mode, timeout):
         
-        """mode: PX4 mode string, timeout(int): seconds"""
+        # mode: PX4 mode string, timeout(int): seconds
         rospy.loginfo("setting FCU mode: {0}".format(mode))
         old_mode = self.state.mode
         loop_freq = 1  # Hz
@@ -177,15 +177,15 @@ class flight_modes:
             "failed to set mode | new mode: {0}, old mode: {1} | timeout(seconds): {2}".
             format(mode, old_mode, timeout)))
         """
-
-    def set_param(self, param_id, param, timeout):
+    
+    def set_mode_param(self, param_id, param, timeout):
         
-        """mode: PX4 mode string, timeout(int): seconds"""
+        #mode: PX4 mode string, timeout(int): seconds
         rospy.loginfo("setting FCU mode: {0}".format(param))
         old_value = self.get_param(param_id)
         old_value = old_value.value.integer
         loop_freq = 1  # Hz
-        rate = rospy.Rate(loopi_freq)
+        rate = rospy.Rate(loop_freq)
         mode_set = False
         
         for i in xrange(timeout * loop_freq):
@@ -195,22 +195,12 @@ class flight_modes:
                     i / loop_freq, timeout))
                 break
             else:
-                try:
-                    res = self.set_param('param', param_id)  # 0 is custom mode
-                    if not res.mode_sent:
-                        rospy.logerr("failed to send parameter command")
-                except rospy.ServiceException as e:
-                    rospy.logerr(e)
-                    
+                res = self.set_param(param_id, param) 
             try:
                 rate.sleep()
             except rospy.ROSException as e:
                 rospy.logerr(e)
-        """     
-        self.assertTrue(mode_set, (
-            "failed to set mode | new mode: {0}, old mode: {1} | timeout(seconds): {2}".
-            format(mode, old_mode, timeout)))
-        """
+              
     def wait_for_topics(self, timeout):
         
         """wait for simulation to be ready, make sure we're getting topic info
