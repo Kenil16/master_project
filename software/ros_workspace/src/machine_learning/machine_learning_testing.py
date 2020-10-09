@@ -45,19 +45,21 @@ class machine_learning_testing:
         #Initialize publishers
         self.publish_local_pose = rospy.Publisher("/mavros/setpoint_position/local", PoseStamped, queue_size=10)
         self.publish_aruco_ids = rospy.Publisher("aruco_ids", mavlink_lora_aruco, queue_size=10)
-
+        self.vision_pose_pub = rospy.Publisher("/mavros/vision_pose/pose", PoseStamped, queue_size=10)
+        
         #Initialize suscribers
-        self.subscibe_aruco_pose = rospy.Subscriber("/mavros/vision_pose/pose", PoseStamped, self.aruco_marker_pose_callback)
-        self.aruco_marker_found_sub = rospy.Subscriber("aruco_marker_found", Bool, self.aruco_marker_found_callback)
+        self.subscibe_aruco_pose = rospy.Subscriber("/aruco_marker_pose", PoseStamped, self.aruco_marker_pose_callback)
+        self.aruco_marker_found_sub = rospy.Subscriber("/aruco_marker_found", Bool, self.aruco_marker_found_callback)
 
         #Set initial uav pose
         self.new_uav_local_pose = PoseStamped()
-        self.new_uav_local_pose.pose.position.z = 2
-        self.new_uav_local_pose.pose.position.x = -8
+        self.new_uav_local_pose.pose.position.z = 0
+        self.new_uav_local_pose.pose.position.y = 0
+        self.new_uav_local_pose.pose.position.x = -7
         self.new_uav_local_pose.pose.orientation = Quaternion(*quaternion_from_euler(0,0,3.14))
 
         self.aruco_marker_pose = PoseStamped()
-
+        
         #Initialize uav flightmodes
         self.flight_mode.wait_for_topics(60)
         
@@ -67,10 +69,12 @@ class machine_learning_testing:
         self.flight_mode.set_mode("OFFBOARD",5)
         self.flight_mode.set_arm(True,5)
         
-        self.cycle_time = (1./100.)
+        self.cycle_time = (1./50.)
+        self.gps_block_timer = int(((15)/self.cycle_time)) #Set to run 15 seconds before GPS disabled 
+        
         rospy.Timer(rospy.Duration(self.cycle_time), self.timer_callback)
         rospy.spin()
-
+    
     def aruco_marker_pose_callback(self, data):
         self.aruco_marker_pose = data
         
@@ -88,20 +92,28 @@ class machine_learning_testing:
         #Go from GPS to vision based navigation
         if not self.vision_based_navigation and (self.distance_to_marker > 0.0) and (self.distance_to_marker < 5):
             
-            #self.set_mode_param("SIM_GPS_BLOCK",ParamValue(integer=1, real=0.0))
-            self.set_mode_param("EKF2_AID_MASK",ParamValue(integer=24, real=0.0))
-            #self.flight_mode.set_mode_param("EKF2_HGT_MODE",ParamValue(integer=3, real=0.0),10)
+            #self.new_uav_local_pose.pose.position.x = 3
+            #self.new_uav_local_pose.pose.position.y = 0
+            #self.new_uav_local_pose.pose.position.z = 0
             self.vision_based_navigation = True
             print "Aruco Found"
+
+        if self.vision_based_navigation and self.gps_block_timer > 0:
+            self.gps_block_timer -= 1
+            if not self.gps_block_timer:
+                #self.set_mode_param("SIM_GPS_BLOCK",ParamValue(integer=1, real=0.0))
+                #self.set_mode_param("EKF2_AID_MASK",ParamValue(integer=24, real=0.0))
+                #self.set_mode_param("EKF2_HGT_MODE",ParamValue(integer=3, real=0.0))
+                print "GPS block enabled"
         
         self.publish_aruco_ids.publish(self.aruco_ids)
-
-        if self.vision_based_navigation:
-            self.new_uav_local_pose.pose.position.z = 2
-            self.new_uav_local_pose.pose.position.x = -8
-            self.publish_local_pose.publish(self.new_uav_local_pose)
-        else:
-            self.publish_local_pose.publish(self.new_uav_local_pose)
+        
+        self.new_uav_local_pose.pose.position.x += 0.001*(self.new_uav_local_pose.pose.position.x - self.aruco_marker_pose.pose.position.x)
+        self.new_uav_local_pose.pose.position.y += 0.001*(self.new_uav_local_pose.pose.position.y - self.aruco_marker_pose.pose.position.y)
+        self.new_uav_local_pose.pose.position.z += 0.001*(self.new_uav_local_pose.pose.position.z - self.aruco_marker_pose.pose.position.z)
+        
+        self.publish_local_pose.publish(self.new_uav_local_pose)
+        #self.vision_pose_pub.publish(self.vision)
         
 if __name__ == "__main__":
     node = machine_learning_testing()

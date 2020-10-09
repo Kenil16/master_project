@@ -61,12 +61,12 @@ class marker_detection:
         #Subscribers
         self.image_sub = rospy.Subscriber("/mono_cam/image_raw", Image, self.find_aruco_markers)
         self.local_pose_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
-        self.aruco_ids_sub = rospy.Subscriber('aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
+        self.aruco_ids_sub = rospy.Subscriber('/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
 
         #Publishers
-        self.aruco_marker_image_pub = rospy.Publisher("aruco_marker_image", Image, queue_size=1)
-        self.aruco_marker_pose_pub = rospy.Publisher("/mavros/vision_pose/pose", PoseStamped, queue_size=1)
-        self.aruco_marker_found_pub = rospy.Publisher("aruco_marker_found", Bool, queue_size=1)
+        self.aruco_marker_image_pub = rospy.Publisher("/aruco_marker_image", Image, queue_size=1)
+        self.aruco_marker_pose_pub = rospy.Publisher("/aruco_marker_pose", PoseStamped, queue_size=1)
+        self.aruco_marker_found_pub = rospy.Publisher("/aruco_marker_found", Bool, queue_size=1)
 
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
@@ -159,15 +159,15 @@ class marker_detection:
                 T_drone_camera = euler_matrix(-np.pi/2, np.pi/2,0,'rxyz')
 
                 #Transformation matrix from camera to ArUco marker
-                r = quaternion_matrix(pose[1].pose.orientation)
-                T_camera_marker = np.linalg.inv(r)
+                #r = quaternion_matrix(pose[1].pose.orientation)
+                #T_camera_marker = np.linalg.inv(r)
                 t = np.array([pose[1].pose.position.x, pose[1].pose.position.y, pose[1].pose.position.z, 1])
-                t = -np.dot(t,T_camera_marker)
+                #t = -np.dot(t,T_camera_marker)
 
                 T_camera_marker = euler_matrix(0,0,0,'rxyz')
-                T_camera_marker[0][3] = t[0]
-                T_camera_marker[1][3] = t[1]
-                T_camera_marker[2][3] = t[2]
+                T_camera_marker[0][3] =  t[0]
+                T_camera_marker[1][3] =  t[1]
+                T_camera_marker[2][3] =  t[2]
 
                 #Transformation matrix from drone to camera
                 T_drone_marker = np.dot(T_drone_camera, T_camera_marker)
@@ -185,9 +185,9 @@ class marker_detection:
                 self.kf_pitch.get_measurement(euler[1])
                 self.kf_yaw.get_measurement(euler[2])
                  
-                self.aruco_pose.pose.position.x = self.kf_x.tracker.x[0]
+                self.aruco_pose.pose.position.x = -self.kf_x.tracker.x[0]
                 self.aruco_pose.pose.position.y = self.kf_y.tracker.x[0]
-                self.aruco_pose.pose.position.z = self.kf_z.tracker.x[0]
+                self.aruco_pose.pose.position.z = -self.kf_z.tracker.x[0]
 
                 #self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(self.kf_roll.tracker.x[0],self.kf_pitch.tracker.x[0],self.kf_yaw.tracker.x[0],'rxyz'))
                 self.aruco_pose.pose.orientation = self.local_position.pose.orientation

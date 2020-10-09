@@ -3,7 +3,7 @@
     <!-- Posix SITL environment launch script -->
     <!-- launches PX4 SITL, Gazebo environment, and spawns vehicle -->
     <!-- vehicle pose -->
-    <arg name="x" default="20"/>
+    <arg name="x" default="15"/>
     <arg name="y" default="0"/>
     <arg name="z" default="0"/>
     <arg name="R" default="0"/>
@@ -56,6 +56,7 @@
     <node name="$(anon vehicle_spawn)" pkg="gazebo_ros" type="spawn_model" output="screen" args="-sdf -file $(arg sdf) -model $(arg vehicle) -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
 
     <node name="machine_learning" pkg="machine_learning" type="machine_learning_testing.py" output="screen" cwd="node"/>
+    <node name="relay_server" pkg="machine_learning" type="relay_server.py" output="screen" cwd="node"/>
     <node name="marker_detection" pkg="marker_detection" type="marker_detection.py" output="screen" cwd="node"/>
 
 </launch>
