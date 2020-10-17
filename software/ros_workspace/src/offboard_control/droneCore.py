@@ -173,12 +173,12 @@ class droneCore():
             
             #self._setState('takeoff')
             self.isAirbourne = True
+            rospy.loginfo('DroneCore: UAV is airbourne')
 
-            #wait until takeoff has occurred
+            #Wait until takeoff has occurred
             while(not self.waypointCheck()):
                 self._pubMsg(preArmMsgs, self.spLocalPub)
 
-            rospy.loginfo('DroneCore: UAV is airbourne')
             self.enableMHPub.publish(self.isAirbourne)
             rospy.loginfo('DroneCore: Takeoff complete')
     
@@ -212,7 +212,6 @@ class droneCore():
         while not rospy.is_shutdown():
             self.wpCompletePub.publish(self.waypointCheck())
             self.rate.sleep()
-        pass
 
 if __name__ == "__main__":
     dc = droneCore()

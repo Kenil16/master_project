@@ -3,6 +3,9 @@
 import math
 import utm
 import rospy
+import sys
+import termios
+import tty
 
 import mavros.utils
 import mavros.setpoint as mavSP
@@ -17,17 +20,19 @@ from sensor_msgs.msg import NavSatFix
 
 mavros.set_namespace('mavros')
 
+mavlink_lora_keypress_pub_topic = '/gcs/command'
 onboard_state_sub = '/onboard/state'
 onboard_substate_sub = '/onboard/substate'
 loiter_sub = '/onboard/setpoint/loiter'
 marker_detection_mission_sub = '/onboard/setpoint/marker_position_mission'
+onboard_message_sub = '/onboard/message'
 
 class msgControl():
     def __init__(self):
 
         #Init ROS
-        rospy.init_node('msgControl')
-        self.rate = rospy.Rate(20)
+        rospy.init_node('msgControl', disable_signals = True)
+        rospy.Timer(rospy.Duration(1./20.), self.timer_callback)
         
         #Variables
         self.enable = False
@@ -45,7 +50,8 @@ class msgControl():
         #Publishers
         self.setpointLocalPub = mavSP.get_pub_position_local(queue_size=1)
         self.setpointATTIPub = mavSP.get_pub_attitude_pose(queue_size=1)
-        
+        self.keypress_pub = rospy.Publisher(mavlink_lora_keypress_pub_topic, Int8, queue_size=0)
+
         #Subscribers
         rospy.Subscriber(onboard_state_sub, String, self.onStateChange)
         rospy.Subscriber(onboard_substate_sub, String, self.onSubStateChange)
@@ -55,18 +61,19 @@ class msgControl():
         rospy.Subscriber(mavros.get_topic('home_position', 'home'), mavros_msgs.msg.HomePosition, self.onHomeUpdate)
         rospy.Subscriber(loiter_sub, mavSP.PoseStamped, self.pilot_loiterMsg)
         rospy.Subscriber(marker_detection_mission_sub, mavSP.PoseStamped, self.pilot_marker_detection_mission_sub)
+        rospy.Subscriber(onboard_message_sub, String, self.onMessage)
         
         #Services 
         self.setMode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)
 
         self._mavrosHandshake()
+        rospy.spin()
 
     def _mavrosHandshake(self):
         rospy.loginfo('MessageHandler: Waiting for MAVROS Connection.')
         i = 0
         time = rospy.Time.now()
         for i in range(0, 3):
-            print'.',
             if self.MAVROS_State.connected:
                 rospy.loginfo("MessageHandler: MAVROS Connected!")
                 break
@@ -95,7 +102,7 @@ class msgControl():
         msg.header.stamp = rospy.Time.now()
         topic.publish(msg)
         self.rate.sleep()
-
+        
     def onStateChange(self, msg):
         if msg.data == 'idle':
             self.enable = False
@@ -105,6 +112,9 @@ class msgControl():
 
     def onSubStateChange(self,msg):
         self.sysSubState = msg
+
+    def onMessage(self,msg):
+        self.on_message = msg
 
     def localPosUpdate(self, msg):
         self.curLocalPos = msg
@@ -131,6 +141,9 @@ class msgControl():
     def get_pilotMsg(self):
         
         outwardMsg = None
+
+        
+        #if not self.on_message == None:
 
         if self.sysState == 'loiter':
             outwardMsg = self.loiterMsg
@@ -165,7 +178,7 @@ class msgControl():
         try:
             outMsg = self.get_pilotMsg()
             if (outMsg._type == "geometry_msgs/PoseStamped"):
-                self._pubMsg(outMsg, self.setpointGPSPub)
+                self._pubMsg(outMsg, self.setpointLocalPub)
 
             if self.homePos == None:
                 rospy.loginfo_once("unable: no home position")
@@ -193,13 +206,11 @@ class msgControl():
         # print ("Local Point: %.4f, %.4f, %.2f" % (deltaNorth, deltaEast, gpsPos.altitude))
         return deltaNorth, deltaEast, deltaAlt
 
-    def run(self):
-        while not rospy.is_shutdown():
-            if self.enable:
-                self.publishPilotMsg()
-                
-            self.rate.sleep()
+    def timer_callback(self,event):
+        
+        #Enable messagehandler
+        if self.enable:
+            self.publishPilotMsg()
 
 if __name__ == "__main__":
-    LP = msgControl()
-    LP.run()
+    node = msgControl()

@@ -28,15 +28,12 @@ class loiterPilot():
 
         #Variables
         self.enable = False
-        self.uavHead = 0.0
-        self.headingMode = False        
         self.loiterPos = mavSP.PoseStamped()
         self.curPos = mavSP.PoseStamped()
 
         #Variables
         rospy.Subscriber(StateSub, String, self.onStateChange)
         rospy.Subscriber(mavros.get_topic('local_position', 'pose'), mavSP.PoseStamped, self.onPositionChange)
-        rospy.Subscriber(mavros.get_topic('global_position','compass_hdg'), Float64, self.onHeadingUpdate)
         rospy.Subscriber(commandSub, Int8, self.onCommand)
 
         #Publishers
@@ -45,14 +42,8 @@ class loiterPilot():
         rospy.loginfo('Loiter: LoiterPilot Ready')
 
     def _pubMsg(self, msg, topic):
-        if self.headingMode:
-            f_ID="base_link"
-        else:
-            f_ID="att_pose"
-        msg.header = mavros.setpoint.Header(
-            frame_id=f_ID,
-            stamp=rospy.Time.now())
-
+        f_ID="att_pose"
+        msg.header = mavros.setpoint.Header(frame_id=f_ID, stamp=rospy.Time.now())
         topic.publish(msg)
         self.rate.sleep()
 
@@ -73,13 +64,13 @@ class loiterPilot():
         command = str(chr(msg.data))
         command.lower()
         if self.enable:
-            if command == 'w':
-                self.loiterPos.pose.position.x += 0.5 
             if command == 's':
+                self.loiterPos.pose.position.x += 0.5 
+            if command == 'w':
                 self.loiterPos.pose.position.x -= 0.5
-            if command == 'a':
-                self.loiterPos.pose.position.y += 0.5
             if command == 'd':
+                self.loiterPos.pose.position.y += 0.5
+            if command == 'a':
                 self.loiterPos.pose.position.y -= 0.5    
             if command == 'z':
                 self.loiterPos.pose.position.z += 0.5 
@@ -94,24 +85,20 @@ class loiterPilot():
             if command in options: 
                 rospy.logwarn('Loiter: Pilot not enabled') 
                 
-    def onHeadingUpdate(self,msg):
-        self.uavHead = msg.data
-
     def onStateChange(self, msg):
         if msg.data == 'loiter':
-            print('loiter enabled')
+            rospy.loginfo('Loiter: Enabled')
             self.loiterPos = self.curPos
             self.enable = True
         else:
             if self.enable:
-                print('loiter disabled')
+                rospy.loginfo('Loiter: Disabled')
                 self.enable = False
         
     def onPositionChange(self,msg):
         self.curPos = msg
 
     def run(self):
-
         while not rospy.is_shutdown():
             if self.enable:
                 self._pubMsg(self.loiterPos, self.loiterPub)
