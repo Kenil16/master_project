@@ -3,47 +3,35 @@
 import rospy
 from math import pi, radians, degrees, tan, sin, cos
 
-import mavros as mav
-import mavros.utils
-import mavros.setpoint as mavSP
-import mavros_msgs.msg
-import mavros_msgs.srv
-
 from std_msgs.msg import (String, Int8, Float64)
 from tf.transformations import (euler_from_quaternion, quaternion_from_euler)
-from geometry_msgs.msg import Quaternion
+from geometry_msgs.msg import Quaternion, PoseStamped
 
-mavros.set_namespace('mavros')
-StateSub = '/onboard/state'
-targetWP = '/onboard/setpoint/loiter'
-commandSub = '/gcs/command'
-
-debug = True
-class loiterPilot(): 
+class loiter_pilot(): 
     def __init__(self):
 
         #Init ROS
-        rospy.init_node('loiterPilot')
+        rospy.init_node('loiter_pilot')
         self.rate = rospy.Rate(20)
 
         #Variables
         self.enable = False
-        self.loiterPos = mavSP.PoseStamped()
-        self.curPos = mavSP.PoseStamped()
+        self.loiterPos = PoseStamped()
+        self.curPos = PoseStamped()
 
-        #Variables
-        rospy.Subscriber(StateSub, String, self.onStateChange)
-        rospy.Subscriber(mavros.get_topic('local_position', 'pose'), mavSP.PoseStamped, self.onPositionChange)
-        rospy.Subscriber(commandSub, Int8, self.onCommand)
+        #Subscribers
+        rospy.Subscriber('/onboard/state', String, self.onStateChange)
+        rospy.Subscriber('mavros/local_position/pose', PoseStamped, self.onPositionChange)
+        rospy.Subscriber('/gcs/command', Int8, self.onCommand)
 
         #Publishers
-        self.loiterPub = rospy.Publisher(targetWP, mavSP.PoseStamped, queue_size=5)
+        self.pub_loiter_setpoint = rospy.Publisher('/onboard/setpoint/loiter_pilot', PoseStamped, queue_size=5)
       
-        rospy.loginfo('Loiter: LoiterPilot Ready')
+        rospy.loginfo('Loiter: Loiter pilot Ready')
 
     def _pubMsg(self, msg, topic):
-        f_ID="att_pose"
-        msg.header = mavros.setpoint.Header(frame_id=f_ID, stamp=rospy.Time.now())
+        msg.header.frame_id = "att_pose"
+        msg.header.stamp = rospy.Time.now()
         topic.publish(msg)
         self.rate.sleep()
 
@@ -101,9 +89,9 @@ class loiterPilot():
     def run(self):
         while not rospy.is_shutdown():
             if self.enable:
-                self._pubMsg(self.loiterPos, self.loiterPub)
+                self._pubMsg(self.loiterPos, self.pub_loiter_setpoint)
                 self.rate.sleep()
 
 if __name__ == "__main__":
-    LP = loiterPilot()
-    LP.run()
+    node = loiter_pilot()
+    node.run()
