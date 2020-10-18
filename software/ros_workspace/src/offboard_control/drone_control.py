@@ -3,6 +3,7 @@
 import numpy as np
 import rospy
 from  mavros_msgs.msg import State
+from mavros_msgs.srv import SetMode
 
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import (String, Int8, Float64, Bool)
@@ -34,6 +35,8 @@ class drone_control():
         #Publishers
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=1)
         self.pub_local_pose = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=5)
+
+        self.set_mode = rospy.ServiceProxy('/mavros/set_mode', SetMode)
 
         #Perform MAVROS handshake   
         self.mavros_handshake()
@@ -82,8 +85,9 @@ class drone_control():
         
         if command == 't': #Takeoff
             self.set_state('takeoff')
+
         if command == 'h': #Returns the drone to home
-            pass
+            self.set_state('home')
         
         if command == 'm': #Execute mission
             pass
@@ -103,12 +107,15 @@ class drone_control():
             if self.uav_state == 'takeoff':
                 output_msg = self.autonomous_flight_pose_msg
             
+            if self.uav_state == 'home':
+                output_msg = self.autonomous_flight_pose_msg
+            
             if output_msg == None:
                 rospy.logfatal_once("Message control received no message: Has a pilot crashed?")
-                self.setMode(0, "AUTO.LOITER")
+                self.set_mode(0, "AUTO.LOITER")
                 rospy.loginfo('Message_control: PX4 mode = AUTO.LOITER')
-            
-            self.pub_msg(output_msg, self.pub_local_pose)
+            else:
+                self.pub_msg(output_msg, self.pub_local_pose)
 
     def cb_uav_state(self, msg):
         self.mavros_state = msg
