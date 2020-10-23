@@ -39,21 +39,21 @@ class flight_modes:
         
         #ROS services
         service_timeout = 30
-        rospy.loginfo("waiting for ROS services")
+        rospy.loginfo("uav_flight_modes: Waiting for ROS services")
         try:
             rospy.wait_for_service('/mavros/param/set',service_timeout)
             rospy.wait_for_service('/mavros/param/get', service_timeout)
             rospy.wait_for_service('/mavros/cmd/arming', service_timeout)
             rospy.wait_for_service('/mavros/set_mode', service_timeout)
-            rospy.loginfo("ROS services are up")
+            rospy.loginfo("uav_flight_modes: ROS services are up")
         except rospy.ROSException:
-            rospy.logerr("ROS services are NOT up!")
+            rospy.logerr("uav_flight_modes: ROS services are NOT up!")
 
         #Initialize services
         self.set_arming_uav = rospy.ServiceProxy('/mavros/cmd/arming', CommandBool)
         self.set_mode_uav = rospy.ServiceProxy('/mavros/set_mode', SetMode)
-        self.set_param = rospy.ServiceProxy('/mavros/param/set', ParamSet)
-        self.get_param = rospy.ServiceProxy('/mavros/param/get', ParamGet)
+        self.set_param_uav = rospy.ServiceProxy('/mavros/param/set', ParamSet)
+        self.get_param_uav = rospy.ServiceProxy('/mavros/param/get', ParamGet)
         
         #Initialize subscribers
         self.alt_sub = rospy.Subscriber('/mavros/altitude', Altitude, self.altitude_callback)
@@ -97,16 +97,16 @@ class flight_modes:
             
     def state_callback(self, data):
         if self.state.armed != data.armed:
-            rospy.loginfo("armed state changed from {0} to {1}".format(self.state.armed, data.armed))
+            rospy.loginfo("uav_flight_modes: Armed state changed from {0} to {1}".format(self.state.armed, data.armed))
             
         if self.state.connected != data.connected:
-            rospy.loginfo("connected changed from {0} to {1}".format(self.state.connected, data.connected))
+            rospy.loginfo("uav_flight_modes: Connected changed from {0} to {1}".format(self.state.connected, data.connected))
             
         if self.state.mode != data.mode:
-            rospy.loginfo("mode changed from {0} to {1}".format(self.state.mode, data.mode))
+            rospy.loginfo("uav_flight_modes: Mode changed from {0} to {1}".format(self.state.mode, data.mode))
             
         if self.state.system_status != data.system_status:
-            rospy.loginfo("system_status changed from {0} to {1}".format(
+            rospy.loginfo("uav_flight_modes: System_status changed from {0} to {1}".format(
                 mavutil.mavlink.enums['MAV_STATE'][
                     self.state.system_status].name, mavutil.mavlink.enums[
                         'MAV_STATE'][data.system_status].name))
@@ -121,7 +121,7 @@ class flight_modes:
     def set_arm(self, arm, timeout):
         
         #arm: True to arm or False to disarm, timeout(int): seconds
-        rospy.loginfo("setting FCU arm: {0}".format(arm))
+        rospy.loginfo("uav_flight_modes: Setting uav arm: {0}".format(arm))
         old_arm = self.state.armed
         loop_freq = 1  # Hz
         rate = rospy.Rate(loop_freq)
@@ -130,13 +130,13 @@ class flight_modes:
         for i in xrange(timeout * loop_freq):
             if self.state.armed == arm:
                 arm_set = True
-                rospy.loginfo("set arm success | seconds: {0} of {1}".format(i / loop_freq, timeout))
+                rospy.loginfo("uav_flight_modes: Set arm success | seconds: {0} of {1}".format(i / loop_freq, timeout))
                 break
             else:
                 try:
                     res = self.set_arming_uav(arm)
                     if not res.success:
-                        rospy.logerr("failed to send arm command")
+                        rospy.logerr("uav_flight_modes: Failed to send arm command")
                 except rospy.ServiceException as e:
                     rospy.logerr(e)
                     
@@ -148,7 +148,7 @@ class flight_modes:
     def set_mode(self, mode, timeout):
         
         # mode: PX4 mode string, timeout(int): seconds
-        rospy.loginfo("setting FCU mode: {0}".format(mode))
+        rospy.loginfo("uav_flight_modes: Setting FCU mode: {0}".format(mode))
         old_mode = self.state.mode
         loop_freq = 1  # Hz
         rate = rospy.Rate(loop_freq)
@@ -157,14 +157,14 @@ class flight_modes:
         for i in xrange(timeout * loop_freq):
             if self.state.mode == mode:
                 mode_set = True
-                rospy.loginfo("set mode success | seconds: {0} of {1}".format(
+                rospy.loginfo("uav_flight_modes: Set mode success | seconds: {0} of {1}".format(
                     i / loop_freq, timeout))
                 break
             else:
                 try:
                     res = self.set_mode_uav(0, mode)  # 0 is custom mode
                     if not res.mode_sent:
-                        rospy.logerr("failed to send mode command")
+                        rospy.logerr("uav_flight_modes: Failed to send mode command")
                 except rospy.ServiceException as e:
                     rospy.logerr(e)
                     
@@ -178,35 +178,58 @@ class flight_modes:
             format(mode, old_mode, timeout)))
         """
     
-    def set_mode_param(self, param_id, param, timeout):
+    def set_param(self, param_id, value, timeout):
         
-        #mode: PX4 mode string, timeout(int): seconds
-        rospy.loginfo("setting FCU mode: {0}".format(param))
-        old_value = self.get_param(param_id)
-        old_value = old_value.value.integer
+        rospy.loginfo("uav_flight_modes: Setting uav parameters: {0}".format(value))
+        
+        if isinstance(value, float):
+            val = ParamValue(integer=0, real=value)
+        else:
+            val = ParamValue(integer=value, real=0.0)
+
         loop_freq = 1  # Hz
         rate = rospy.Rate(loop_freq)
-        mode_set = False
+        param_set = False
         
         for i in xrange(timeout * loop_freq):
-            if old_value == param_id:
-                param_set = True
-                rospy.loginfo("set mode success | seconds: {0} of {1}".format(
-                    i / loop_freq, timeout))
-                break
-            else:
-                res = self.set_param(param_id, param) 
+            
+            new_value = self.get_param_uav(param_id)
+            
+            if not new_value == None:
+                
+                if not new_value.value.integer == 0:
+                    new_value = new_value.value.integer
+                else:
+                    new_value = new_value.value.real
+
+                if value == new_value:
+                    param_set = True
+                    rospy.loginfo("uav_flight_modes: Set parameters success | seconds: {0} of {1}".format(
+                        i / loop_freq, timeout))
+                    break
+                else:
+                    res = self.set_param_uav(param_id, val) 
             try:
                 rate.sleep()
             except rospy.ROSException as e:
                 rospy.logerr(e)
+                
+    def get_param(self, param_id):
+
+        try:
+            ret = self.get_param_uav(param_id=param_id)
+        except rospy.ServiceException as ex:
+            raise IOError(str(ex))
+    
+        if not ret.success:
+            raise IOError("uav_flight_modes: Request failed.")
               
     def wait_for_topics(self, timeout):
         
         """wait for simulation to be ready, make sure we're getting topic info
         from all topics by checking dictionary of flag values set in callbacks,
         timeout(int): seconds"""
-        rospy.loginfo("waiting for subscribed topics to be ready")
+        rospy.loginfo("uav_flight_modes: waiting for subscribed topics to be ready")
         loop_freq = 1  # Hz
         rate = rospy.Rate(loop_freq)
         simulation_ready = False
@@ -214,7 +237,7 @@ class flight_modes:
         for i in xrange(timeout * loop_freq):
             if all(value for value in self.sub_topics_ready.values()):
                 simulation_ready = True
-                rospy.loginfo("simulation topics ready | seconds: {0} of {1}".
+                rospy.loginfo("uav_flight_modes: Simulation topics ready | seconds: {0} of {1}".
                         format(i / loop_freq, timeout))
                 break
             try:

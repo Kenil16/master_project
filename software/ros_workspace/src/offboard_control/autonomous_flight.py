@@ -12,7 +12,6 @@ from mavlink_msgs.msg import mavlink_lora_command_land
 from uav_flight_modes import*
 from geometry_msgs.msg import PoseStamped, Quaternion
 from pid import*
-
 from std_msgs.msg import (String, Int8, Float64, Bool)
 
 class autonomous_flight():
@@ -89,7 +88,12 @@ class autonomous_flight():
                         self.uav_local_setpoint.pose.position.y,
                         self.uav_local_setpoint.pose.position.z))
 
-        return np.linalg.norm(setpoint - pos) < threshold
+        error = np.sqrt(np.power(pos[0]-setpoint[0],2) + np.power(pos[1]-setpoint[1],2) + np.power(pos[2]-setpoint[2],2))
+        if error < threshold:
+            return True
+        else:
+            return False
+        #return np.linalg.norm(setpoint. - pos) < threshold
 
     def drone_takeoff(self, alt=1.5):
         
@@ -139,7 +143,7 @@ class autonomous_flight():
                 self.flight_mode.set_mode('OFFBOARD',5)
                 waypoints = [[x_cur, y_cur, alt], [x_home, y_home, alt], [0, 0, 0]]
             else:
-                waypoints = [[x_home, y_home, alt], [0, 0, 0]]
+                waypoints = [[x_home, y_home, alt], [0, 0, np.deg2rad(180)]]
 
             rospy.loginfo('Autonomous_flight: UAV returning home')
         
@@ -160,16 +164,23 @@ class autonomous_flight():
             rospy.loginfo('Autonomous_flight: UAV already at home position')
             self.set_state('idle')
 
-    def drone_marker_detection_mission(self):
+    def aruco_pose_estimation_test(self):
 
-        #To change velocity of the drone set the MPC_XY_VEL_MAX, MPC_Z_VEL_MAX_DN and MPC_Z_VEL_MAX_UP parameters
+        #UAV valocity
+        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.5, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.5, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.5, 5)
+
         alt_ = 1
-        self.drone_takeoff(alt = alt_)
+        #self.drone_takeoff(alt = alt_)
 
-        waypoints = [[-5, 0, alt_], [5, 0, alt_], [0, 0, alt_]]
-        angle = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(90)))
+        x = self.uav_home_pose.pose.position.x
+        y = self.uav_home_pose.pose.position.y
 
-        self.set_state('marker_detection_mission')
+        waypoints = [[x, y-5, alt_], [x, y+5, alt_], [5, 5, alt_]]
+        angle = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(180)))
+
+        self.set_state('aruco_pose_estimation_test')
         for waypoint in waypoints:
 
             pre_pose = self.uav_local_pose
@@ -180,10 +191,10 @@ class autonomous_flight():
 
             #wait until waypoint reached
             while(not self.waypoint_check()):
-                self._pub_msg(pre_pose, self.pub_local_pose)
+                self.pub_msg(pre_pose, self.pub_local_pose)
 
-        self.set_state('idle')
-        rospy.loginfo('Autonomous_flight: Marker detection complete')
+        rospy.loginfo('Autonomous_flight: Aruco pose estimation test complete')
+        self.set_state('loiter')
 
     def run(self):
         while not rospy.is_shutdown():
@@ -191,6 +202,8 @@ class autonomous_flight():
                 self.drone_takeoff()
             elif self.uav_state == 'home':
                 self.drone_return_home()
+            elif self.uav_state == 'aruco_pose_estimation_test':
+                self.aruco_pose_estimation_test()
 
             self.rate.sleep()
 

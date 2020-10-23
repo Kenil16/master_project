@@ -66,7 +66,7 @@ class drone_control():
     def set_state(self, state):
         self.uav_state = state
         self.pub_state.publish(state)
-        rospy.loginfo('DroneCore: state = {}'.format(state))
+        rospy.loginfo('Drone_control: state = {}'.format(state))
 
     def af_setpoint_change(self,msg):
         self.autonomous_flight_pose_msg = msg
@@ -93,7 +93,11 @@ class drone_control():
             pass
 
         if command == 'k': # Kill drone
-            self._setState('idle')       
+            self.setState('idle')
+
+        #Execute a number of mission tests
+        if command == '1':
+            self.set_state('aruco_pose_estimation_test')
 
     def message_control(self):
 
@@ -110,10 +114,13 @@ class drone_control():
             if self.uav_state == 'home':
                 output_msg = self.autonomous_flight_pose_msg
             
+            if self.uav_state == 'aruco_pose_estimation_test':
+                output_msg = self.autonomous_flight_pose_msg
+            
             if output_msg == None:
-                rospy.logfatal_once("Message control received no message: Has a pilot crashed?")
+                rospy.logfatal_once("Drone control received no message: Has a pilot crashed?")
                 self.set_mode(0, "AUTO.LOITER")
-                rospy.loginfo('Message_control: PX4 mode = AUTO.LOITER')
+                rospy.loginfo('Drone_control: PX4 mode = AUTO.LOITER')
             else:
                 self.pub_msg(output_msg, self.pub_local_pose)
 
