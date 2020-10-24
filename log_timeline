@@ -13,3 +13,6 @@ This was due to the transformation matrices were not calculated correctly. The R
 This caused the caulculations to be done wrongly. Also T_drone_camera = euler_matrix(-np.pi/2, np.pi/2,0,'rxyz') np.pi/2 was used instaed of 1.5 which also was a problem. 
 Kalman Filters have been implemented for the pose. Maybe better choices of VAR could be found for even better tracking. 
 
+24/10/2020:
+Waypoint check fixed. For some reason subcribing to setpoint_local does not work. Strange errors were seen when the local pose of the uav where set to be equal to the wanted setpoint which resultet in that the waypoint check where accomplished strait away. Here changing the waypoint check where the wanted pos where given as input fixed the problem. 
+
