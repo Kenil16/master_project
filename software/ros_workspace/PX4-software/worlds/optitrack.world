@@ -21,7 +21,7 @@
 
     <!-- A aruco marker track for the drone to follow -->
     <model name="wall_with_markers">
-      <pose>8 0 0.0 0 0 0</pose>
+      <pose> 0 0 0 0 0 3.16</pose>
       <include>
         <uri>model://wall_with_markers</uri>
       </include>
@@ -309,6 +309,13 @@
       <shadows>0</shadows>
     </scene>
 
+    <light type="directional" name="some_light">
+      <diffuse>0.7 0.7 0.7 0</diffuse>
+      <specular>1 1 1 0</specular>
+      <direction>-1 -1 -1</direction>
+      <pose>-10 0 0 0 0 3.16</pose>
+    </light>
+
     <physics name='default_physics' default='0' type='ode'>
       <gravity>0 0 -9.8066</gravity>
       <ode>
@@ -334,7 +341,7 @@
    <!--Change default camera pose-->
    <gui>
      <camera name="gzclient_camera">
-       <pose>25 10 3 0 0 -2.356194</pose>
+       <pose>-15 -10 3 0 0 0.785398</pose>
      </camera>
    </gui>
 

@@ -52,13 +52,13 @@ class loiter_pilot():
         command = str(chr(msg.data))
         command.lower()
         if self.enable:
-            if command == 's':
-                self.loiterPos.pose.position.x += 0.5 
             if command == 'w':
+                self.loiterPos.pose.position.x += 0.5 
+            if command == 's':
                 self.loiterPos.pose.position.x -= 0.5
-            if command == 'd':
-                self.loiterPos.pose.position.y += 0.5
             if command == 'a':
+                self.loiterPos.pose.position.y += 0.5
+            if command == 'd':
                 self.loiterPos.pose.position.y -= 0.5    
             if command == 'z':
                 self.loiterPos.pose.position.z += 0.5 

@@ -3,12 +3,12 @@
     <!-- Posix SITL environment launch script -->
     <!-- launches PX4 SITL, Gazebo environment, and spawns vehicle -->
     <!-- vehicle pose -->
-    <arg name="x" default="20"/>
+    <arg name="x" default="-4"/>
     <arg name="y" default="0"/>
     <arg name="z" default="0"/>
     <arg name="R" default="0"/>
     <arg name="P" default="0"/>
-    <arg name="Y" default="3.14"/>
+    <arg name="Y" default="0"/>
     <!-- vehicle model and world -->
     <arg name="est" default="ekf2"/>
     <arg name="vehicle" default="sdu_drone_mono_cam"/>
@@ -59,4 +59,5 @@
     <node pkg="offboard_control" type="ground_control.py" name="ground_control" launch-prefix="gnome-terminal --command"> </node>
     <node pkg="offboard_control" type="loiter_pilot.py" name="loiter_pilot" output="screen"></node>
     <node pkg="offboard_control" type="autonomous_flight.py" name="autonomous_flight" output="screen"></node>
+    <node pkg="marker_detection" type="marker_detection.py" name="marker_detection" output="screen"></node>
 </launch>

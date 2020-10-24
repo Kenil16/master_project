@@ -28,7 +28,7 @@ class marker_detection:
         self.graphics = graphics_plot()
 
         #Init data test plotting
-        self.plot_data = True 
+        self.plot_data = False
         self.plot_aruco_pos_x = []
         self.plot_aruco_pos_y = []
         self.plot_aruco_pos_z = []
@@ -37,10 +37,12 @@ class marker_detection:
         self.plot_aruco_pos_kf_y = []
         self.plot_aruco_pos_kf_z = []
 
-        self.cycle_time = (1./50.)
+        self.cycle_time = (1./10.)
         self.plot_timer = int(((30)/self.cycle_time)) #Set to run 10 seconds before plot
 
         self.plot_time = []
+
+        self.enable_aruco_detection = False
         
         #Init Kalman filters
         self.kf_x = kalman_filter(self.cycle_time)
@@ -59,14 +61,15 @@ class marker_detection:
         self.aruco_ids = mavlink_lora_aruco()
         
         #Subscribers
-        self.image_sub = rospy.Subscriber("/mono_cam/image_raw", Image, self.find_aruco_markers)
-        self.local_pose_sub = rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
-        self.aruco_ids_sub = rospy.Subscriber('/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
+        rospy.Subscriber("/mono_cam/image_raw", Image, self.find_aruco_markers)
+        rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
+        rospy.Subscriber('/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
+        rospy.Subscriber('/onboard/enable_aruco_detection', Bool, self.enable_aruco_detection_callback)
 
         #Publishers
-        self.aruco_marker_image_pub = rospy.Publisher("/aruco_marker_image", Image, queue_size=1)
-        self.aruco_marker_pose_pub = rospy.Publisher("/aruco_marker_pose", PoseStamped, queue_size=1)
-        self.aruco_marker_found_pub = rospy.Publisher("/aruco_marker_found", Bool, queue_size=1)
+        self.aruco_marker_image_pub = rospy.Publisher('/onboard/aruco_marker_image', Image, queue_size=1)
+        self.aruco_marker_pose_pub = rospy.Publisher('/onboard/aruco_marker_pose', PoseStamped, queue_size=1)
+        self.aruco_marker_found_pub = rospy.Publisher('/onboard/aruco_marker_found', Bool, queue_size=1)
 
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
@@ -85,6 +88,9 @@ class marker_detection:
  
     def aruco_ids_callback(self, data):
         self.aruco_ids.elements = data.elements
+
+    def enable_aruco_detection_callback(self,data):
+        self.enable_aruco_detection = data
         
     def find_aruco_markers(self,img):
        
@@ -132,39 +138,26 @@ class marker_detection:
 
     def estimate_marker_pose(self, marker_id):
 
+        """
         if not marker_id:
             return
         else:
             _id = marker_id.elements
-
+        """
+        _id = marker_id
         for pose in self.marker_pose:
             
             if pose[0] == _id:
                 
-                """
-                #Transformation matrix from world to drone
-                x = self.local_position.pose.orientation.x
-                y = self.local_position.pose.orientation.y
-                z = self.local_position.pose.orientation.z
-                w = self.local_position.pose.orientation.w
-                
-                T_world_drone = quaternion_matrix(np.array([x,y,z,w]))
-                 
-                T_world_drone[0][3] = self.local_position.pose.position.x + 20 #Drone shiftet 20 meters wrt the world origin
-                T_world_drone[1][3] = self.local_position.pose.position.y
-                T_world_drone[2][3] = self.local_position.pose.position.z
-                """
-
                 #Transformation matrix from drone to camera
                 T_drone_camera = euler_matrix(-np.pi/2, np.pi/2,0,'rxyz')
 
                 #Transformation matrix from camera to ArUco marker
-                #r = quaternion_matrix(pose[1].pose.orientation)
-                #T_camera_marker = np.linalg.inv(r)
+                r = quaternion_matrix(pose[1].pose.orientation)
+                T_camera_marker = np.linalg.inv(r)
                 t = np.array([pose[1].pose.position.x, pose[1].pose.position.y, pose[1].pose.position.z, 1])
-                #t = -np.dot(t,T_camera_marker)
+                t = -np.dot(t,T_camera_marker)
 
-                T_camera_marker = euler_matrix(0,0,0,'rxyz')
                 T_camera_marker[0][3] =  t[0]
                 T_camera_marker[1][3] =  t[1]
                 T_camera_marker[2][3] =  t[2]
@@ -172,8 +165,6 @@ class marker_detection:
                 #Transformation matrix from drone to camera
                 T_drone_marker = np.dot(T_drone_camera, T_camera_marker)
                 
-                #T_drone_marker = np.dot(np.dot(T_world_drone,T_drone_camera), T_camera_marker)
-
                 #Get euler and update Kalman filter
                 euler = euler_from_matrix(T_drone_marker,'rxyz')
 
@@ -240,7 +231,8 @@ class marker_detection:
         return np.array([roll, pitch, yaw])
     
     def timer_callback(self,event):
-        self.estimate_marker_pose(self.aruco_ids)
+        #if enable_aruco_detection:
+        self.estimate_marker_pose(101)
         
 
 if __name__ == "__main__":

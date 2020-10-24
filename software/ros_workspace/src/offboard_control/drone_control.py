@@ -22,6 +22,7 @@ class drone_control():
         self.mavros_state = State()
         
         self.autonomous_flight_pose_msg = PoseStamped()
+        self.aruco_marker_pose_msg = PoseStamped()
         self.autonomous_fligt_state_msg = None
         self.loiter_pilot_msg = PoseStamped()
 
@@ -31,10 +32,12 @@ class drone_control():
         rospy.Subscriber('/onboard/setpoint/autonomous_flight', PoseStamped, self.af_setpoint_change)
         rospy.Subscriber('/onboard/state', String, self.on_uav_state)
         rospy.Subscriber('/onboard/setpoint/loiter_pilot', PoseStamped, self.lp_setpoint_change)
+        rospy.Subscriber('/onboard/aruco_marker_pose', PoseStamped, self.amp_change)
 
         #Publishers
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=1)
         self.pub_local_pose = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=5)
+        self.pub_vision_pose = rospy.Publisher('/mavros/vision_pose/pose', PoseStamped, queue_size=1)
 
         self.set_mode = rospy.ServiceProxy('/mavros/set_mode', SetMode)
 
@@ -77,6 +80,9 @@ class drone_control():
     def lp_setpoint_change(self,msg):
         self.loiter_pilot_msg = msg
 
+    def amp_change(self,msg):
+        self.aruco_marker_pose_msg = msg
+
     def on_command(self, msg):
         command = str(chr(msg.data))
         command.lower()
@@ -89,15 +95,18 @@ class drone_control():
         if command == 'h': #Returns the drone to home
             self.set_state('home')
         
-        if command == 'm': #Execute mission
-            pass
+        if command == 'l': #Execute mission
+            self.set_state('loiter')
 
         if command == 'k': # Kill drone
-            self.setState('idle')
+            self.set_state('idle')
 
         #Execute a number of mission tests
         if command == '1':
             self.set_state('aruco_pose_estimation_test')
+
+        if command == '2':
+            self.set_state('gps_to_vision_test')
 
     def message_control(self):
 
@@ -107,22 +116,29 @@ class drone_control():
 
             if self.uav_state == 'loiter':
                 output_msg = self.loiter_pilot_msg
+                self.pub_msg(output_msg, self.pub_local_pose)
 
             if self.uav_state == 'takeoff':
                 output_msg = self.autonomous_flight_pose_msg
+                self.pub_msg(output_msg, self.pub_local_pose)
             
             if self.uav_state == 'home':
                 output_msg = self.autonomous_flight_pose_msg
+                self.pub_msg(output_msg, self.pub_local_pose)
             
             if self.uav_state == 'aruco_pose_estimation_test':
                 output_msg = self.autonomous_flight_pose_msg
+                self.pub_msg(output_msg, self.pub_local_pose)
+            
+            if self.uav_state == 'gps_to_vision_test':
+                output_msg = self.autonomous_flight_pose_msg
+                self.pub_msg(output_msg, self.pub_local_pose)
+                self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
             
             if output_msg == None:
                 rospy.logfatal_once("Drone control received no message: Has a pilot crashed?")
                 self.set_mode(0, "AUTO.LOITER")
                 rospy.loginfo('Drone_control: PX4 mode = AUTO.LOITER')
-            else:
-                self.pub_msg(output_msg, self.pub_local_pose)
 
     def cb_uav_state(self, msg):
         self.mavros_state = msg

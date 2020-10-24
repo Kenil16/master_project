@@ -10,12 +10,13 @@ from std_msgs.msg import Int8
 import sys
 import termios
 import tty
+import os
 
-class keypress_node:
+class ground_control:
 	def __init__(self):
 
 		#Init ROS
-		rospy.init_node('keypressNode', disable_signals = True)
+		rospy.init_node('ground_control', disable_signals = True)
 		self.rate = rospy.Rate(update_interval)
 
                 #Publishers 
@@ -43,9 +44,14 @@ class keypress_node:
 				rospy.signal_shutdown('User quit')
 			else:
 				self.keypress_pub.publish(msg)
-			
+                        """
+                        nodes = os.popen("rosnode list").readlines()
+                        print(nodes)
+                        for i in range(len(nodes)):
+                            nodes[i] = nodes[i].replace("\n","")
+			"""
                         self.rate.sleep()
 
 if __name__ == '__main__':
-	kbd = keypress_node()
-	kbd.run()
+	gc = ground_control()
+	gc.run()
