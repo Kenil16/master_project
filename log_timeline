@@ -14,5 +14,8 @@ This caused the caulculations to be done wrongly. Also T_drone_camera = euler_ma
 Kalman Filters have been implemented for the pose. Maybe better choices of VAR could be found for even better tracking. 
 
 24/10/2020:
-Waypoint check fixed. For some reason subcribing to setpoint_local does not work. Strange errors were seen when the local pose of the uav where set to be equal to the wanted setpoint which resultet in that the waypoint check where accomplished strait away. Here changing the waypoint check where the wanted pos where given as input fixed the problem. 
+Waypoint check fixed. For some reason subcribing to setpoint_local does not work. Strange errors were seen when the local pose of the uav where set to be equal to the wanted setpoint which resultet in that the waypoint check where accomplished strait away. Here changing the waypoint check where the wanted pos where given as input fixed the problem.
+
+26/10/2020:
+Kalman filter changed to trust new marker poses more to get a more dynamic update of marker poses in respect to the drone. This solved the problem of vision based navigation in PX4. However, the velocity in the z direction is above max. This could be because of the GPS (Vision pose estimate in the z direction) having a too big variance. This could be solved by using a aruco board for higher precision. This is due to the sensor fusion with IMU, GPS etc. 
 
