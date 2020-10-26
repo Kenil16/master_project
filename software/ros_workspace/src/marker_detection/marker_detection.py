@@ -37,8 +37,8 @@ class marker_detection:
         self.plot_aruco_pos_kf_y = []
         self.plot_aruco_pos_kf_z = []
 
-        self.cycle_time = (1./10.)
-        self.plot_timer = int(((30)/self.cycle_time)) #Set to run 10 seconds before plot
+        self.cycle_time = (1./20.)
+        self.plot_timer = int(((10)/self.cycle_time)) #Set to run 10 seconds before plot
 
         self.plot_time = []
 
@@ -58,12 +58,12 @@ class marker_detection:
         self.aruco_pose = PoseStamped()
         self.aruco_pose_without_kf = PoseStamped()
 
-        self.aruco_ids = mavlink_lora_aruco()
+        self.aruco_ids = []
         
         #Subscribers
         rospy.Subscriber("/mono_cam/image_raw", Image, self.find_aruco_markers)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
-        rospy.Subscriber('/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
+        rospy.Subscriber('/onboard/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
         rospy.Subscriber('/onboard/enable_aruco_detection', Bool, self.enable_aruco_detection_callback)
 
         #Publishers
@@ -87,7 +87,7 @@ class marker_detection:
         self.local_position = data
  
     def aruco_ids_callback(self, data):
-        self.aruco_ids.elements = data.elements
+        self.aruco_ids = data.elements
 
     def enable_aruco_detection_callback(self,data):
         self.enable_aruco_detection = data
@@ -136,18 +136,18 @@ class marker_detection:
         img = self.bridge.cv2_to_imgmsg(image_markers,"bgr8")
         self.aruco_marker_image_pub.publish(img)
 
-    def estimate_marker_pose(self, marker_id):
+    def estimate_marker_pose(self):
+
+        #print (self.aruco_ids)
 
         """
-        if not marker_id:
+        if not len(self.aruco_ids):
             return
-        else:
-            _id = marker_id.elements
         """
-        _id = marker_id
+
         for pose in self.marker_pose:
             
-            if pose[0] == _id:
+            if pose[0] == 101: #self.aruco_ids[0]:
                 
                 #Transformation matrix from drone to camera
                 T_drone_camera = euler_matrix(-np.pi/2, np.pi/2,0,'rxyz')
@@ -156,7 +156,7 @@ class marker_detection:
                 r = quaternion_matrix(pose[1].pose.orientation)
                 T_camera_marker = np.linalg.inv(r)
                 t = np.array([pose[1].pose.position.x, pose[1].pose.position.y, pose[1].pose.position.z, 1])
-                t = -np.dot(t,T_camera_marker)
+                t = np.dot(t,T_camera_marker) #-
 
                 T_camera_marker[0][3] =  t[0]
                 T_camera_marker[1][3] =  t[1]
@@ -166,24 +166,30 @@ class marker_detection:
                 T_drone_marker = np.dot(T_drone_camera, T_camera_marker)
                 
                 #Get euler and update Kalman filter
-                euler = euler_from_matrix(T_drone_marker,'rxyz')
+                #euler = euler_from_matrix(T_drone_marker,'rxyz')
+                euler = euler_from_quaternion(pose[1].pose.orientation,'rxyz')
 
                 self.kf_x.get_measurement(T_drone_marker[0][3])
                 self.kf_y.get_measurement(T_drone_marker[1][3])
                 self.kf_z.get_measurement(T_drone_marker[2][3])
                 
-                self.kf_roll.get_measurement(euler[0])
-                self.kf_pitch.get_measurement(euler[1])
-                self.kf_yaw.get_measurement(euler[2])
+                a = np.mod((euler[0]+np.pi),2*np.pi) - np.pi
+                self.kf_roll.get_measurement(a)
+                
+                a = np.mod((euler[1]+np.pi),2*np.pi) - np.pi
+                self.kf_pitch.get_measurement(a)
+                
+                a = np.mod((euler[2]+np.pi),2*np.pi) - np.pi
+                self.kf_yaw.get_measurement(a)
                  
-                self.aruco_pose.pose.position.x = -self.kf_x.tracker.x[0]
-                self.aruco_pose.pose.position.y = self.kf_y.tracker.x[0]
-                self.aruco_pose.pose.position.z = -self.kf_z.tracker.x[0]
+                self.aruco_pose.pose.position.x = self.kf_x.tracker.x[0] #-
+                self.aruco_pose.pose.position.y = -self.kf_y.tracker.x[0]
+                self.aruco_pose.pose.position.z = self.kf_z.tracker.x[0] #-
 
-                #self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(self.kf_roll.tracker.x[0],self.kf_pitch.tracker.x[0],self.kf_yaw.tracker.x[0],'rxyz'))
-                self.aruco_pose.pose.orientation = self.local_position.pose.orientation
-
-                #print(euler_from_quaternion(*self.aruco_pose.pose.orientation))
+                self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, (-self.kf_pitch.tracker.x[0]),'rxyz'))
+                
+                #print("Roll: " + str(self.kf_roll.tracker.x[0]) + " Pitch: " + str(self.kf_pitch.tracker.x[0]+np.pi/2) + " Yaw: " + str(self.kf_yaw.tracker.x[0]))
+                #print("Roll: " + str(self.kf_roll.tracker.x[0]) + " Pitch: " + str(self.kf_pitch.tracker.x[0]) + " Yaw: " + str(self.kf_yaw.tracker.x[0]))
                 self.aruco_marker_pose_pub.publish(self.aruco_pose)
 
                 #Plot position data (Just for testing)
@@ -231,8 +237,8 @@ class marker_detection:
         return np.array([roll, pitch, yaw])
     
     def timer_callback(self,event):
-        #if enable_aruco_detection:
-        self.estimate_marker_pose(101)
+        #if self.enable_aruco_detection:
+        self.estimate_marker_pose()
         
 
 if __name__ == "__main__":

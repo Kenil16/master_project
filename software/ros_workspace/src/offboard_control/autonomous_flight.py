@@ -8,7 +8,7 @@ from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-from mavlink_msgs.msg import mavlink_lora_command_land
+from mavlink_msgs.msg import mavlink_lora_aruco
 from uav_flight_modes import*
 from geometry_msgs.msg import PoseStamped, Quaternion
 from pid import*
@@ -40,7 +40,8 @@ class autonomous_flight():
         #Initialize publishers
         self.pub_local_pose = rospy.Publisher('/onboard/setpoint/autonomous_flight', PoseStamped, queue_size=1)
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=10)
-
+        self.pub_enable_aruco_detection = rospy.Publisher('/onboard/enable_aruco_detection', Bool, queue_size=1)
+        self.pub_aruco_ids = rospy.Publisher('/onboard/aruco_ids', mavlink_lora_aruco, queue_size=1)
         #Subscribers
         rospy.Subscriber('/onboard/state', String, self.on_uav_state)
         #rospy.Subscriber('/mavros/setpoint_position/local', PoseStamped, self.on_setpoint_change)
@@ -207,10 +208,22 @@ class autonomous_flight():
 
     def gps_to_vision_test(self):
 
-        #UAV valocity
-        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.1, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.1, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.1, 5)
+        #Enable aruco detection
+        self.pub_enable_aruco_detection.publish(True)
+        aruco_ids = mavlink_lora_aruco()
+        aruco_ids.elements.append(101)
+        aruco_ids.elements.append(100)
+        self.pub_aruco_ids.publish(aruco_ids)
+
+        
+        #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
+        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.4, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.4, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.4, 5)
+
+        self.flight_mode.set_param('MC_ROLLRATE_MAX', 10.0, 5)
+        self.flight_mode.set_param('MC_PITCHRATE_MAX', 10.0, 5)
+        self.flight_mode.set_param('MC_YAWRATE_MAX', 10.0, 5)
 
         alt_ = 1
         self.drone_takeoff(alt = alt_)
@@ -221,20 +234,28 @@ class autonomous_flight():
         self.flight_mode.set_param('EKF2_AID_MASK', 24, 5)
         self.flight_mode.set_param('EKF2_HGT_MODE', 3, 5)
         self.flight_mode.set_param('EKF2_EV_DELAY', 50., 5)
+        
+        new_pose = PoseStamped()
+        new_pose.pose.position.x = -4
+        new_pose.pose.position.y = 0
+        new_pose.pose.position.z = 0
+        
+        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0), axes='rxyz'))
+
+        aruco_ids = mavlink_lora_aruco()
+        aruco_ids.elements.append(101)
+        aruco_ids.elements.append(100)
 
         while True:
 
             
             if not self.uav_state == 'gps_to_vision_test':
                 rospy.loginfo('Autonomous_flight: Gps to vision test disrupted!')
+                self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
+                self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
                 return
-            
-            new_pose = PoseStamped()
-            
-            new_pose.pose.position.x = -4
-            new_pose.pose.position.y = 0
-            new_pose.pose.position.z = 0
-
+             
+            #self.pub_aruco_ids.publish(aruco_ids)
             self.pub_msg(new_pose, self.pub_local_pose)
         
         rospy.loginfo('Autonomous_flight: Gps to vision test complete')

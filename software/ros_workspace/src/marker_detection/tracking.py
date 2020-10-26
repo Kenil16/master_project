@@ -17,8 +17,8 @@ class kalman_filter:
         self.tracker = KalmanFilter(dim_x=3, dim_z=1)
         self.dt = cycle_time #Five frames each second
         self.tracker.x = np.array([0., 0., 0.]) #State mean
-        self.tracker.P *= np.eye(3) * 0.5 #Variance of the state 0.01
-        self.tracker.R *= 1 #Measurement noise 100
+        self.tracker.P *= np.eye(3) * 0.5 #Variance of the state 0.05
+        self.tracker.R *= 0.01 #Measurement noise 1
         self.tracker.Q = Q_discrete_white_noise(dim=3, dt=self.dt, var=0.01) #Process noise 0.01
         self.tracker.F = np.array([[1, self.dt, 0.5*self.dt*self.dt],[0, 1, self.dt],[0, 0, 1]]) #State transition function
         self.tracker.H = np.array([[1., 0, 0]]) #Measurement function
