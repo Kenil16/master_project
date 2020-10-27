@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from pathlib import Path
 import cv2
 import matplotlib as plt
 import numpy as np
@@ -28,7 +29,7 @@ class marker_detection:
         self.graphics = graphics_plot()
 
         #Init data test plotting
-        self.plot_data = False
+        self.plot_data = True
         self.plot_aruco_pos_x = []
         self.plot_aruco_pos_y = []
         self.plot_aruco_pos_z = []
@@ -46,6 +47,17 @@ class marker_detection:
         self.draw_markers = False
         self.draw_marker_axis = False
         
+        #Init data textfile
+        data = Path('../../../../data/aruco_pos_kf/data.txt')
+        if not data.is_file:
+            data = open('../../../../data/aruco_pos_kf/data.txt','r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open('../../../../data/aruco_pos_kf/data.txt','w+')
+            data.close()
+
+        
         #Init Kalman filters
         self.kf_x = kalman_filter(self.cycle_time)
         self.kf_y = kalman_filter(self.cycle_time)
@@ -54,6 +66,11 @@ class marker_detection:
         self.kf_roll = kalman_filter(self.cycle_time)
         self.kf_pitch = kalman_filter(self.cycle_time)
         self.kf_yaw = kalman_filter(self.cycle_time)
+
+        self.time = 0.0
+        
+        #Transformation matrix from drone to camera
+        self.T_drone_camera = euler_matrix(-np.pi/2, np.pi/2,0,'rxyz')
 
         #Local drone pose
         self.local_position = PoseStamped()
@@ -150,9 +167,6 @@ class marker_detection:
             
             if pose[0] == self.aruco_ids[0]:
                 
-                #Transformation matrix from drone to camera
-                T_drone_camera = euler_matrix(-np.pi/2, np.pi/2,0,'rxyz')
-
                 #Transformation matrix from camera to ArUco marker
                 r = quaternion_matrix(pose[1].pose.orientation)
                 T_camera_marker = np.linalg.inv(r)
@@ -164,24 +178,19 @@ class marker_detection:
                 T_camera_marker[2][3] =  t[2]
 
                 #Transformation matrix from drone to camera
-                T_drone_marker = np.dot(T_drone_camera, T_camera_marker)
+                T_drone_marker = np.dot(self.T_drone_camera, T_camera_marker)
                 
-                #Get euler and update Kalman filter
-                #euler = euler_from_matrix(T_drone_marker,'rxyz')
+                #Update KF
                 euler = euler_from_quaternion(pose[1].pose.orientation,'rxyz')
+                #euler = euler_from_matrix(T_drone_marker,'rxyz')
 
                 self.kf_x.get_measurement(T_drone_marker[0][3])
                 self.kf_y.get_measurement(T_drone_marker[1][3])
                 self.kf_z.get_measurement(T_drone_marker[2][3])
                 
-                a = np.mod((euler[0]+np.pi),2*np.pi) - np.pi
-                self.kf_roll.get_measurement(a)
-                
-                a = np.mod((euler[1]+np.pi),2*np.pi) - np.pi
-                self.kf_pitch.get_measurement(a)
-                
-                a = np.mod((euler[2]+np.pi),2*np.pi) - np.pi
-                self.kf_yaw.get_measurement(a)
+                self.kf_roll.get_measurement(np.mod((euler[0]+np.pi),2*np.pi) - np.pi)
+                self.kf_pitch.get_measurement(np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
+                self.kf_yaw.get_measurement(np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
                  
                 self.aruco_pose.pose.position.x = self.kf_x.tracker.x[0] #-
                 self.aruco_pose.pose.position.y = -self.kf_y.tracker.x[0]
@@ -193,32 +202,30 @@ class marker_detection:
                 #print("Roll: " + str(self.kf_roll.tracker.x[0]) + " Pitch: " + str(self.kf_pitch.tracker.x[0]) + " Yaw: " + str(self.kf_yaw.tracker.x[0]))
                 self.aruco_marker_pose_pub.publish(self.aruco_pose)
 
-                #Plot position data (Just for testing)
                 if self.plot_data and self.plot_timer > 0:
+                    
                     self.plot_timer -= 1
 
-                    self.plot_aruco_pos_x.append(T_drone_marker[0][3])
-                    self.plot_aruco_pos_y.append(T_drone_marker[1][3])
-                    self.plot_aruco_pos_z.append(T_drone_marker[2][3])
+                    x = T_drone_marker[0][3]
+                    y = T_drone_marker[1][3]
+                    z = T_drone_marker[2][3]
+                    kf_x = self.kf_x.tracker.x[0]
+                    kf_y = self.kf_y.tracker.x[0]
+                    kf_z = self.kf_z.tracker.x[0]
 
-                    self.plot_aruco_pos_kf_x.append(self.kf_x.tracker.x[0])
-                    self.plot_aruco_pos_kf_y.append(self.kf_y.tracker.x[0])
-                    self.plot_aruco_pos_kf_z.append(self.kf_z.tracker.x[0])
-                    
-                    if not self.plot_time:
-                        self.plot_time.append(self.cycle_time)
-                    else:
-                        self.plot_time.append(self.cycle_time + self.plot_time[-1])
-
-                    if not self.plot_timer:
-                        self.graphics.plot_kf_data(self.plot_aruco_pos_x,self.plot_aruco_pos_kf_x,self.plot_time,'Estimated ArUco marker position','Time [s]','x [m]','../../../../data/plots/kf_pos_x.png')
-                        self.graphics.plot_kf_data(self.plot_aruco_pos_y,self.plot_aruco_pos_kf_y,self.plot_time,'Estimated ArUco marker position','Time [s]','y [m]','../../../../data/plots/kf_pos_y.png')
-                        self.graphics.plot_kf_data(self.plot_aruco_pos_z,self.plot_aruco_pos_kf_z,self.plot_time,'Estimated ArUco marker position','Time [s]','z [m]','../../../../data/plots/kf_pos_z.png')
+                    self.write_aruco_pos(x, y, z, kf_x, kf_y, kf_z, self.time)
+                    self.time = self.time + self.cycle_time
                 #print "Marker id: {} Ori: {} x: {} y: {} z: {} \n".format(pose[0],euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
                 self.aruco_marker_found_pub.publish(True)
             else:
                 self.aruco_marker_found_pub.publish(False)
-            
+
+    def write_aruco_pos(self, x, y, z, kf_x, kf_y, kf_z, time):
+        
+        data = open('../../../../data/aruco_pos_kf/data.txt','a')
+        data.write(str(x) + " " + str(y) + " " + str(z) + " " + str(kf_x) + " " + str(kf_y) + " " + str(kf_z) + " " + str(time))
+        data.write('\n')
+        data.close()
 
     def rodrigues_to_euler_angles(self, rvec):
         #https://www.programcreek.com/python/example/89450/cv2.Rodrigues
