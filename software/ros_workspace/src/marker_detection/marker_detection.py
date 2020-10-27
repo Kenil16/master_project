@@ -43,6 +43,8 @@ class marker_detection:
         self.plot_time = []
 
         self.enable_aruco_detection = False
+        self.draw_markers = False
+        self.draw_marker_axis = False
         
         #Init Kalman filters
         self.kf_x = kalman_filter(self.cycle_time)
@@ -112,7 +114,8 @@ class marker_detection:
             rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(marker_corners, 0.2, self.camera_matrix, self.distortion_coefficients)
 
             #Draw markers
-            image_markers = cv2.aruco.drawDetectedMarkers(cv_img, marker_corners, marker_ids)
+            if self.draw_markers:
+                image_markers = cv2.aruco.drawDetectedMarkers(cv_img, marker_corners, marker_ids)
             
             #Find marker pose
             for (_rvec,_tvec,marker_id) in zip(rvec,tvec,marker_ids):
@@ -128,9 +131,10 @@ class marker_detection:
                 marker_id_pose.append(marker_id)
                 marker_id_pose.append(pose)
                 marker_pose.append(marker_id_pose)
-                
+
                 #Draw detected axis of markers
-                image_markers = cv2.aruco.drawAxis(image_markers, self.camera_matrix, self.distortion_coefficients, _rvec, _tvec, 0.1)
+                if self.draw_marker_axis:
+                    image_markers = cv2.aruco.drawAxis(image_markers, self.camera_matrix, self.distortion_coefficients, _rvec, _tvec, 0.1)
 
         self.marker_pose = marker_pose
         img = self.bridge.cv2_to_imgmsg(image_markers,"bgr8")
@@ -138,16 +142,13 @@ class marker_detection:
 
     def estimate_marker_pose(self):
 
-        #print (self.aruco_ids)
-
-        """
+        
         if not len(self.aruco_ids):
             return
-        """
 
         for pose in self.marker_pose:
             
-            if pose[0] == 101: #self.aruco_ids[0]:
+            if pose[0] == self.aruco_ids[0]:
                 
                 #Transformation matrix from drone to camera
                 T_drone_camera = euler_matrix(-np.pi/2, np.pi/2,0,'rxyz')

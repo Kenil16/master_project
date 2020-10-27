@@ -58,6 +58,6 @@
     <node pkg="offboard_control" type="drone_control.py" name="drone_control" output="screen"></node>
     <node pkg="offboard_control" type="ground_control.py" name="ground_control" launch-prefix="gnome-terminal --command"> </node>
     <node pkg="offboard_control" type="loiter_pilot.py" name="loiter_pilot" output="screen"></node>
-    <node pkg="offboard_control" type="autonomous_flight.py" name="autonomous_flight" output="screen"></node>
+    <node pkg="offboard_control" type="autonomous_flight.py" name="autonomous_flight" output="screen" cwd="node"></node>
     <node pkg="marker_detection" type="marker_detection.py" name="marker_detection" output="screen" cwd="node"></node>
 </launch>
