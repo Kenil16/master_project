@@ -94,7 +94,7 @@ class marker_detection:
 
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
-        self.aruco_board = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.02, dictionary=self.dictionary)
+        self.aruco_board = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.02, dictionary=self.dictionary,firstMarker=200)
         self.parameters = cv2.aruco.DetectorParameters_create()
         self.parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         self.camera_matrix = np.array([[1108.765426, 0, (1280/2)], [0, 1108.765426, (720/2)], [0, 0, 1]], dtype=np.float)
@@ -135,7 +135,7 @@ class marker_detection:
                 rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(marker_corners, 0.2, self.camera_matrix, self.distortion_coefficients)
             else:
                 rvec, tvec, _ = cv2.aruco.estimatePoseBoard(marker_corners, marker_ids, self.aruco_board, self.camera_matrix, self.distortion_coefficients)
-
+                #corners, ids, rejectedImgPoints, recoveredIds = aruco.refineDetectedMarkers(cv_image,self.aruco_board,marker_corners, marker_ids,self.camera_matrix,self.distortion_coefficients)
             #Draw markers
             if self.draw_markers:
                 image_markers = cv2.aruco.drawDetectedMarkers(cv_img, marker_corners, marker_ids)
