@@ -7,12 +7,36 @@
     </include>
 
     <include>
-      <uri>model://sdu_mono_cam</uri>
+      <uri>model://sdu_mono_cam_bottom</uri>
+      <pose>0 0 -0.05 0 1.57 0</pose>
+    </include>
+
+    <include>
+      <uri>model://sdu_mono_cam_front</uri>
       <pose>0 0 0 0 0 0</pose>
     </include>
 
-    <joint name='sensor_link' type='revolute'>
-      <child>sdu_mono_cam::link</child>
+    <joint name='sensor_link_bottom' type='revolute'>
+      <child>sdu_mono_cam_bottom::link</child>
+      <parent>sdu_drone::base_link</parent>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>0</upper>
+          <effort>0</effort>
+          <velocity>0</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+        <use_parent_model_frame>1</use_parent_model_frame>
+      </axis>
+    </joint>
+
+    <joint name='sensor_link_front' type='revolute'>
+      <child>sdu_mono_cam_front::link</child>
       <parent>sdu_drone::base_link</parent>
       <axis>
         <xyz>1 0 0</xyz>

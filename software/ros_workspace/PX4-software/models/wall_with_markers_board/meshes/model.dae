@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.90.1 commit date:2020-09-23, commit time:06:43, hash:3e85bb34d0d7</authoring_tool>
     </contributor>
-    <created>2020-10-30T11:07:24</created>
-    <modified>2020-10-30T11:07:24</modified>
+    <created>2020-10-31T15:23:10</created>
+    <modified>2020-10-31T15:23:10</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -76,6 +76,33 @@
     </light>
   </library_lights>
   <library_effects>
+    <effect id="grid_board-effect">
+      <profile_COMMON>
+        <newparam sid="grid_board_png-surface">
+          <surface type="2D">
+            <init_from>grid_board_png</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="grid_board_png-sampler">
+          <sampler2D>
+            <source>grid_board_png-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="grid_board_png-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
     <effect id="warning_005-effect">
       <profile_COMMON>
         <newparam sid="warning_png_006-surface">
@@ -230,33 +257,6 @@
             </emission>
             <diffuse>
               <texture texture="warning_png_001-sampler" texcoord="UVMap"/>
-            </diffuse>
-            <index_of_refraction>
-              <float sid="ior">1.45</float>
-            </index_of_refraction>
-          </lambert>
-        </technique>
-      </profile_COMMON>
-    </effect>
-    <effect id="grid_board-effect">
-      <profile_COMMON>
-        <newparam sid="grid_board_png-surface">
-          <surface type="2D">
-            <init_from>grid_board_png</init_from>
-          </surface>
-        </newparam>
-        <newparam sid="grid_board_png-sampler">
-          <sampler2D>
-            <source>grid_board_png-surface</source>
-          </sampler2D>
-        </newparam>
-        <technique sid="common">
-          <lambert>
-            <emission>
-              <color sid="emission">0 0 0 1</color>
-            </emission>
-            <diffuse>
-              <texture texture="grid_board_png-sampler" texcoord="UVMap"/>
             </diffuse>
             <index_of_refraction>
               <float sid="ior">1.45</float>
@@ -907,6 +907,9 @@
     </image>
   </library_images>
   <library_materials>
+    <material id="grid_board-material" name="grid_board">
+      <instance_effect url="#grid_board-effect"/>
+    </material>
     <material id="warning_005-material" name="warning.005">
       <instance_effect url="#warning_005-effect"/>
     </material>
@@ -924,9 +927,6 @@
     </material>
     <material id="warning-material" name="warning">
       <instance_effect url="#warning-effect"/>
-    </material>
-    <material id="grid_board-material" name="grid_board">
-      <instance_effect url="#grid_board-effect"/>
     </material>
     <material id="_x5_1000-18-material" name="5x5_1000-18">
       <instance_effect url="#_x5_1000-18-effect"/>
@@ -993,6 +993,48 @@
     </material>
   </library_materials>
   <library_geometries>
+    <geometry id="grid_board-mesh" name="grid_board">
+      <mesh>
+        <source id="grid_board-mesh-positions">
+          <float_array id="grid_board-mesh-positions-array" count="12">-1.044931 -0.5 0 1.044931 -0.5 0 -1.044931 0.5 0 1.044931 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#grid_board-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board-mesh-normals">
+          <float_array id="grid_board-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board-mesh-map-0">
+          <float_array id="grid_board-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="grid_board-mesh-vertices">
+          <input semantic="POSITION" source="#grid_board-mesh-positions"/>
+        </vertices>
+        <triangles material="grid_board-material" count="2">
+          <input semantic="VERTEX" source="#grid_board-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#grid_board-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#grid_board-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
     <geometry id="warning_006-mesh" name="warning.006">
       <mesh>
         <source id="warning_006-mesh-positions">
@@ -1241,48 +1283,6 @@
           <input semantic="VERTEX" source="#warning_001-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#warning_001-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#warning_001-mesh-map-0" offset="2" set="0"/>
-          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
-        </triangles>
-      </mesh>
-    </geometry>
-    <geometry id="grid_board-mesh" name="grid_board">
-      <mesh>
-        <source id="grid_board-mesh-positions">
-          <float_array id="grid_board-mesh-positions-array" count="12">-1.000301 -0.5 0 1.000301 -0.5 0 -1.000301 0.5 0 1.000301 0.5 0</float_array>
-          <technique_common>
-            <accessor source="#grid_board-mesh-positions-array" count="4" stride="3">
-              <param name="X" type="float"/>
-              <param name="Y" type="float"/>
-              <param name="Z" type="float"/>
-            </accessor>
-          </technique_common>
-        </source>
-        <source id="grid_board-mesh-normals">
-          <float_array id="grid_board-mesh-normals-array" count="3">0 0 1</float_array>
-          <technique_common>
-            <accessor source="#grid_board-mesh-normals-array" count="1" stride="3">
-              <param name="X" type="float"/>
-              <param name="Y" type="float"/>
-              <param name="Z" type="float"/>
-            </accessor>
-          </technique_common>
-        </source>
-        <source id="grid_board-mesh-map-0">
-          <float_array id="grid_board-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
-          <technique_common>
-            <accessor source="#grid_board-mesh-map-0-array" count="6" stride="2">
-              <param name="S" type="float"/>
-              <param name="T" type="float"/>
-            </accessor>
-          </technique_common>
-        </source>
-        <vertices id="grid_board-mesh-vertices">
-          <input semantic="POSITION" source="#grid_board-mesh-positions"/>
-        </vertices>
-        <triangles material="grid_board-material" count="2">
-          <input semantic="VERTEX" source="#grid_board-mesh-vertices" offset="0"/>
-          <input semantic="NORMAL" source="#grid_board-mesh-normals" offset="1"/>
-          <input semantic="TEXCOORD" source="#grid_board-mesh-map-0" offset="2" set="0"/>
           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
         </triangles>
       </mesh>
@@ -2172,6 +2172,18 @@
   </library_geometries>
   <library_visual_scenes>
     <visual_scene id="Scene" name="Scene">
+      <node id="grid_board" name="grid_board" type="NODE">
+        <matrix sid="transform">-2.17526e-8 2.09815e-8 1 0.12 0.4976405 9.17129e-16 4.37114e-8 0 0 0.48 -4.37114e-8 2.175 0 0 0 1</matrix>
+        <instance_geometry url="#grid_board-mesh" name="grid_board">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="grid_board-material" target="#grid_board-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
       <node id="warning_006" name="warning.006" type="NODE">
         <matrix sid="transform">0.123119 0 0 -2.5 0 0.05 0 2.2 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#warning_006-mesh" name="warning.006">
@@ -2238,18 +2250,6 @@
           <bind_material>
             <technique_common>
               <instance_material symbol="warning-material" target="#warning-material">
-                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
-              </instance_material>
-            </technique_common>
-          </bind_material>
-        </instance_geometry>
-      </node>
-      <node id="grid_board" name="grid_board" type="NODE">
-        <matrix sid="transform">-1.87902e-8 1.87959e-8 1 0.12 0.4298707 8.21595e-16 4.37114e-8 0 0 0.43 -4.37114e-8 1.915 0 0 0 1</matrix>
-        <instance_geometry url="#grid_board-mesh" name="grid_board">
-          <bind_material>
-            <technique_common>
-              <instance_material symbol="grid_board-material" target="#grid_board-material">
                 <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
               </instance_material>
             </technique_common>
@@ -2473,7 +2473,7 @@
         </instance_geometry>
       </node>
       <node id="_x5_1000-102" name="5x5_1000-102" type="NODE">
-        <matrix sid="transform">-8.74228e-9 8.74228e-9 1 0.12 0.2 3.82137e-16 4.37114e-8 2 0 0.2 -4.37114e-8 1.9 0 0 0 1</matrix>
+        <matrix sid="transform">-8.74228e-9 8.74228e-9 1 0.12 0.2 3.82137e-16 4.37114e-8 2 0 0.2 -4.37114e-8 2.2 0 0 0 1</matrix>
         <instance_geometry url="#_x5_1000-102-mesh" name="5x5_1000-102">
           <bind_material>
             <technique_common>
@@ -2485,7 +2485,7 @@
         </instance_geometry>
       </node>
       <node id="_x5_1000-100" name="5x5_1000-100" type="NODE">
-        <matrix sid="transform">-8.74228e-9 8.74228e-9 1 0.12 0.2 3.82137e-16 4.37114e-8 -2 0 0.2 -4.37114e-8 1.9 0 0 0 1</matrix>
+        <matrix sid="transform">-8.74228e-9 8.74228e-9 1 0.12 0.2 3.82137e-16 4.37114e-8 -2 0 0.2 -4.37114e-8 2.2 0 0 0 1</matrix>
         <instance_geometry url="#_x5_1000-100-mesh" name="5x5_1000-100">
           <bind_material>
             <technique_common>
@@ -2505,7 +2505,7 @@
         <instance_light url="#Light-light"/>
       </node>
       <node id="Cube" name="Cube" type="NODE">
-        <matrix sid="transform">0.1 0 0 0 0 4 0 0 0 0 1.1 1.1 0 0 0 1</matrix>
+        <matrix sid="transform">0.09999994 0 0 0 0 4 0 0 0 0 1.25 1.25 0 0 0 1</matrix>
         <instance_geometry url="#Cube-mesh" name="Cube">
           <bind_material>
             <technique_common>
