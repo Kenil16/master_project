@@ -20,5 +20,8 @@ Waypoint check fixed. For some reason subcribing to setpoint_local does not work
 Kalman filter changed to trust new marker poses more to get a more dynamic update of marker poses in respect to the drone. This solved the problem of vision based navigation in PX4. However, the velocity in the z direction is above max. This could be because of the GPS (Vision pose estimate in the z direction) having a too big variance. This could be solved by using a aruco board for higher precision. This is due to the sensor fusion with IMU, GPS etc. 
 
 31/10/2020:
-Marker detection is working with aruco board. However, some of the detected markers in the aruco board seems to be hard to detect. Bigger separation between arucos in the board yeilds higher presicion. This can be due to the arrancement of the aruco on the wall model. The top of the world model should be bigger so that a higher difference between the board and background is made. Cameras uses lot of CPU - Try to lower the cam resolution. 
+Marker detection is working with aruco board. However, some of the detected markers in the aruco board seems to be hard to detect. Bigger separation between arucos in the board yeilds higher presicion. This can be due to the arrancement of the aruco on the wall model. The top of the world model should be bigger so that a higher difference between the board and background is made. Cameras uses lot of CPU - Try to lower the cam resolution.
+
+02/10/2020:
+ArUco detection for both front and bottom cam works now. However, there seems to be probelms with the translation vector from pose estimation. Here a opposite sign error in the x direction wa observed. This must be fixed! The problem is from the pose from aruco to camera.
 

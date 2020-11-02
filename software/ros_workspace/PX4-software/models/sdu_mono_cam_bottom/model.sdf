@@ -42,8 +42,8 @@
           <camera name='__default__'>
             <horizontal_fov>1.047</horizontal_fov>
             <image>
-              <width>320</width> <!--320-->
-              <height>240</height> <!--240-->
+              <width>720</width> <!--320-->
+              <height>480</height> <!--240-->
             </image>
             <clip>
               <near>0.1</near>
@@ -72,11 +72,11 @@
             <updateRate>30.0</updateRate>
             <cameraName>mono_cam_bottom</cameraName>
             <frameName>/robot_camera_link</frameName>
-            <CxPrime>320.5</CxPrime> <!--320.5-->
-            <Cx>320.5</Cx> <!--320.5-->
-            <Cy>240.5</Cy> <!--240.5-->
+            <CxPrime>480.5</CxPrime> <!--320.5-->
+            <Cx>720.5</Cx> <!--320.5-->
+            <Cy>480.5</Cy> <!--240.5-->
             <hackBaseline>0</hackBaseline>
-            <focalLength>277.191356</focalLength>
+            <focalLength>623.680552</focalLength>
             <distortionK1>0.0</distortionK1>
             <distortionK2>0.0</distortionK2>
             <distortionK3>0.0</distortionK3>

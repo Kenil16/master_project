@@ -74,14 +74,15 @@ class marker_detection:
         self.time = 0.0
         
         #Transformation matrix from drone to camera
-        self.T_drone_camera = euler_matrix(-np.pi/2, np.pi/2,0,'rxyz')
+        self.camera_config_front = euler_matrix(-np.pi/2, np.pi/2, 0, 'rxyz')
+        self.camera_config_bottom = euler_matrix(0, np.pi, 0, 'rxyz') #180, 0, 90
 
         #Local drone pose
         self.local_position = PoseStamped()
         self.aruco_pose = PoseStamped()
         self.aruco_pose_without_kf = PoseStamped()
 
-        self.use_bottom_cam = False
+        self.use_bottom_cam = True
         
         self.aruco_ids = []
         
@@ -99,7 +100,10 @@ class marker_detection:
 
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
-        self.aruco_board = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.08, dictionary=self.dictionary,firstMarker=500)
+        
+        self.aruco_board_front = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.08, dictionary=self.dictionary,firstMarker=500)
+        self.aruco_board_bottom = cv2.aruco.GridBoard_create(markersX=2, markersY=2, markerLength=0.1, markerSeparation=0.02, dictionary=self.dictionary,firstMarker=100)
+        
         self.parameters = cv2.aruco.DetectorParameters_create()
         self.parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         
@@ -131,7 +135,7 @@ class marker_detection:
     def front_img_callback(self, data):
         self.front_img = data
     
-    def find_aruco_markers(self,img):
+    def find_aruco_markers(self, img, aruco_board, camera_matrix, distortion_coefficients):
        
         #Load in the marker image
         self.aruco_board_found = False
@@ -144,12 +148,6 @@ class marker_detection:
             print(e)
 
         image_markers = cv_img
-        camera_matrix = self.camera_matrix_front
-        distortion_coefficients = self.distortion_coefficients_front
-
-        if self.use_bottom_cam:
-            camera_matrix = self.camera_matrix_bottom
-            distortion_coefficients = self.distortion_coefficients_bottom
         
         #Detect aruco markers in the image
         marker_corners, marker_ids, rejected_candidates = cv2.aruco.detectMarkers(cv_img, self.dictionary, parameters=self.parameters)
@@ -157,7 +155,7 @@ class marker_detection:
         pose = PoseStamped()
         if len(marker_corners) > 0:
 
-            retval, _rvec, _tvec = cv2.aruco.estimatePoseBoard(marker_corners, marker_ids, self.aruco_board, camera_matrix, distortion_coefficients, rvec=None, tvec=None)
+            retval, _rvec, _tvec = cv2.aruco.estimatePoseBoard(marker_corners, marker_ids, aruco_board, camera_matrix, distortion_coefficients, rvec=None, tvec=None)
             
             #Draw markers
             if self.draw_markers:
@@ -165,7 +163,7 @@ class marker_detection:
 
             if retval: 
                 
-                self.aruco_board_found = True 
+                #self.aruco_board_found = True 
                 pose.pose.position.x = _tvec[0]
                 pose.pose.position.y = _tvec[1]
                 pose.pose.position.z = _tvec[2]
@@ -179,7 +177,7 @@ class marker_detection:
         img = self.bridge.cv2_to_imgmsg(image_markers,"bgr8")
         self.aruco_marker_image_pub.publish(img)
 
-    def estimate_marker_pose(self):
+    def estimate_marker_pose(self, T_drone_camera):
 
         
         #if not len(self.aruco_ids):
@@ -195,14 +193,16 @@ class marker_detection:
         r = quaternion_matrix(pose.pose.orientation)
         T_camera_marker = np.linalg.inv(r)
         t = np.array([pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, 1])
-        t = np.dot(t,T_camera_marker) #-
+        #t = np.dot(t,T_camera_marker) #-
 
         T_camera_marker[0][3] =  t[0]
         T_camera_marker[1][3] =  t[1]
         T_camera_marker[2][3] =  t[2]
 
+        print(t)
+
         #Transformation matrix from drone to camera
-        T_drone_marker = np.dot(self.T_drone_camera, T_camera_marker)
+        T_drone_marker = np.dot(T_drone_camera, T_camera_marker)
         
         #Update KF
         euler = euler_from_quaternion(pose.pose.orientation,'rxyz')
@@ -216,11 +216,12 @@ class marker_detection:
         self.kf_pitch.get_measurement(np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
         self.kf_yaw.get_measurement(np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
          
-        self.aruco_pose.pose.position.x = self.kf_x.tracker.x[0] #-
-        self.aruco_pose.pose.position.y = -self.kf_y.tracker.x[0] #
-        self.aruco_pose.pose.position.z = self.kf_z.tracker.x[0] #-
+        self.aruco_pose.pose.position.x = self.kf_x.tracker.x[0] #
+        self.aruco_pose.pose.position.y = (self.kf_y.tracker.x[0]) #-
+        self.aruco_pose.pose.position.z = (self.kf_z.tracker.x[0]) #-
 
-        self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, (-self.kf_pitch.tracker.x[0]),'rxyz'))
+        #self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, (-self.kf_pitch.tracker.x[0]),'rxyz'))
+        self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, -self.kf_yaw.tracker.x[0],'rxyz'))
         
         #print("Roll: " + str(self.kf_roll.tracker.x[0]) + " Pitch: " + str(self.kf_pitch.tracker.x[0]+np.pi/2) + " Yaw: " + str(self.kf_yaw.tracker.x[0]))
         #print("Roll: " + str(self.kf_roll.tracker.x[0]) + " Pitch: " + str(self.kf_pitch.tracker.x[0]) + " Yaw: " + str(self.kf_yaw.tracker.x[0]))
@@ -269,10 +270,12 @@ class marker_detection:
     
     def timer_callback(self,event):
         #if self.enable_aruco_detection:
-        self.find_aruco_markers(self.front_img)
-        self.estimate_marker_pose()
         
-
+        #self.find_aruco_markers(self.front_img, self.aruco_board_front, self.camera_matrix_front, self.distortion_coefficients_front)
+        #self.estimate_marker_pose(self.camera_config_front)
+        
+        self.find_aruco_markers(self.bottom_img, self.aruco_board_bottom, self.camera_matrix_front, self.distortion_coefficients_bottom)
+        self.estimate_marker_pose(self.camera_config_bottom)
 if __name__ == "__main__":
     #rospy.init_node('marker_detection', anonymous=True)
     node = marker_detection()
