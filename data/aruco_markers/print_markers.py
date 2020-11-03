@@ -13,18 +13,18 @@ class print_markers:
         #The scale factor in Blender for x and why are approx 0.86 and 0.43 m
 
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
-        self.markers_x = 2
+        self.markers_x = 3
         self.markers_y = 2
         self.marker_separation_meters = 0.02
         self.marker_length_meters = 0.1
         self.marker_length = 377.95275591 #Approx 0.1 meters in pixels 
         self.marker_separation = 75.590551181 #Approx 0.08 meters in pixels 
-        self.aruco_board = cv2.board = aruco.GridBoard_create(self.markers_x, self.markers_y, self.marker_length, self.marker_separation, self.dictionary, firstMarker=100)
+        self.aruco_board = cv2.board = aruco.GridBoard_create(self.markers_x, self.markers_y, self.marker_length, self.marker_separation, self.dictionary, firstMarker = 31)
 
     def print_aruco_board(self):
         
         image_width = self.markers_x*(self.marker_length + self.marker_separation)
-        image_height = self.markers_y*(self.marker_length + self.marker_separation) 
+        image_height = self.markers_y*(self.marker_length + self.marker_separation) - 27 
         
         length_x = self.markers_x*(self.marker_length_meters) + self.markers_x*(self.marker_separation_meters) - self.marker_separation_meters
         length_y = self.markers_y*(self.marker_length_meters) + self.markers_y*(self.marker_separation_meters) - self.marker_separation_meters 

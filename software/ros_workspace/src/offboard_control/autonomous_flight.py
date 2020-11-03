@@ -37,24 +37,25 @@ class autonomous_flight():
         self.uav_home_pose = PoseStamped()
         self.init_uav_home_pose = False
         self.aruco_pose = PoseStamped()
+        self.next_board_found = Bool()
+        self.aruco_board_found = Bool()
 
-        #Initialize publishers
+        #Publishers
         self.pub_local_pose = rospy.Publisher('/onboard/setpoint/autonomous_flight', PoseStamped, queue_size=1)
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=10)
         self.pub_enable_aruco_detection = rospy.Publisher('/onboard/enable_aruco_detection', Bool, queue_size=1)
         self.pub_aruco_ids = rospy.Publisher('/onboard/aruco_ids', mavlink_lora_aruco, queue_size=1)
+        self.pub_change_aruco_board = rospy.Publisher('/onboard/change_aruco_board', Bool, queue_size=1)
+        self.pub_use_bottom_cam= rospy.Publisher('/onboard/use_bottom_cam', Bool, queue_size=1)
+
         #Subscribers
         rospy.Subscriber('/onboard/state', String, self.on_uav_state)
         rospy.Subscriber('/onboard/aruco_marker_pose', PoseStamped, self.on_aruco_change)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.on_position_change)
-
+        rospy.Subscriber('/onboard/next_board_found', Bool, self.next_board_found_callback)
+        rospy.Subscriber('/onboard/aruco_board_found', Bool, self.aruco_board_found_callback)
         self.new_uav_local_pose = PoseStamped()
-        """
-        self.new_uav_local_pose.pose.position.z = 2
-        self.new_uav_local_pose.pose.position.x = -8
-        self.new_uav_local_pose.pose.orientation = Quaternion(*quaternion_from_euler(0,0,3.14))
-        """
-
+        
         #Initialize uav flightmodes
         self.flight_mode.wait_for_topics(60)
         
@@ -67,6 +68,12 @@ class autonomous_flight():
     def on_setpoint_change(self, msg):
         self.uav_local_setpoint = msg
         pass
+
+    def next_board_found_callback(self, msg):
+        self.next_board_found = msg
+
+    def aruco_board_found_callback(self, msg):
+        self.aruco_board_found = msg
 
     #Fuction for updating onboard state
     def set_state(self, state):
@@ -92,7 +99,7 @@ class autonomous_flight():
         delta_y = self.uav_local_pose.pose.position.y - setpoint[1]
         delta_z = self.uav_local_pose.pose.position.z - setpoint[2]
         error = np.sqrt(np.power(delta_x,2) + np.power(delta_y,2) + np.power(delta_z,2))
-        
+
         if error < threshold:
             return True
         else:
@@ -304,11 +311,19 @@ class autonomous_flight():
 
     def gps_to_vision_test(self):
 
-        #Enable aruco detection
+        #Enable aruco detection, cam use and start index board 
         self.pub_enable_aruco_detection.publish(True)
+        self.pub_use_bottom_cam.publish(True)
+        self.pub_change_aruco_board.publish(True)
+
         aruco_ids = mavlink_lora_aruco()
-        aruco_ids.elements.append(102)
-        aruco_ids.elements.append(100)
+        aruco_ids.elements.append(1)
+        aruco_ids.elements.append(7)
+        aruco_ids.elements.append(13)
+        aruco_ids.elements.append(19)
+        aruco_ids.elements.append(25)
+        aruco_ids.elements.append(31)
+
         self.pub_aruco_ids.publish(aruco_ids)
 
         """
@@ -335,26 +350,25 @@ class autonomous_flight():
         new_pose = PoseStamped()
         new_pose.pose.position.x = 0.5
         new_pose.pose.position.y = 0
-        new_pose.pose.position.z = 1.5
+        new_pose.pose.position.z = 1
         
         new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0), axes='rxyz'))
 
-        aruco_ids = mavlink_lora_aruco()
-        aruco_ids.elements.append(101)
-        aruco_ids.elements.append(100)
+        while not self.aruco_board_found:
+            pass
 
         while True:
-
             
-            if not self.uav_state == 'gps_to_vision_test':
-                rospy.loginfo('Autonomous_flight: Gps to vision test disrupted!')
-                self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
-                self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
-                return
-             
-            #self.pub_aruco_ids.publish(aruco_ids)
-            self.pub_msg(new_pose, self.pub_local_pose)
-        
+            #wait until waypoint reached
+            while(not self.waypoint_check(setpoint=[new_pose.pose.position.x, new_pose.pose.position.y, new_pose.pose.position.z], threshold = 0.25)):
+                self.pub_msg(new_pose, self.pub_local_pose)
+
+            self.pub_change_aruco_board.publish(True)
+            
+            #wait to new target waypoit 
+            while(self.waypoint_check(setpoint=[new_pose.pose.position.x, new_pose.pose.position.y, new_pose.pose.position.z], threshold = 0.25)):
+                self.pub_msg(new_pose, self.pub_local_pose)
+                
         rospy.loginfo('Autonomous_flight: Gps to vision test complete')
         self.set_state('loiter')
 
