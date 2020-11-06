@@ -87,6 +87,8 @@ class marker_detection:
         self.find_next_board = False
         
         self.aruco_ids = []
+
+        self.index = -1
         
         #Subscribers
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)
@@ -177,7 +179,7 @@ class marker_detection:
             if retval: 
                 
                 
-                """
+                
                 #See if next aruco board is visible
                 if self.find_next_board and len(self.aruco_ids) > 0:
                     for id_ in marker_ids:
@@ -185,7 +187,7 @@ class marker_detection:
                             self.find_next_board = False
                             self.next_board_found_pub.publish(True)
                             break
-                """
+                
                 self.aruco_board_found = True 
                 self.aruco_marker_found_pub.publish(True)
 
@@ -247,7 +249,7 @@ class marker_detection:
         self.kf_pitch.get_measurement(np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
         self.kf_yaw.get_measurement(np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
          
-        self.aruco_pose.pose.position.x = 1*(self.kf_x.tracker.x[0]) #
+        self.aruco_pose.pose.position.x = 1*(self.kf_x.tracker.x[0]) + self.index #
         self.aruco_pose.pose.position.y = -1*(self.kf_y.tracker.x[0]) #-
         self.aruco_pose.pose.position.z = -1*(self.kf_z.tracker.x[0]) #-
 
@@ -307,9 +309,10 @@ class marker_detection:
         #Change ArUco board configuration from either bottom or front cam
         if self.change_aruco_board and len(self.aruco_ids) > 0:
             self.change_aruco_board = False
-            #self.find_next_board = True
+            self.find_next_board = True
             id_ = int(self.aruco_ids[0])
             self.aruco_ids.pop(0)
+            self.index += 1
             print(id_)
             if self.use_bottom_cam:
                 self.aruco_board_bottom = cv2.aruco.GridBoard_create(markersX=3, markersY=2, markerLength=0.1, markerSeparation=0.02, dictionary=self.dictionary,firstMarker=id_)

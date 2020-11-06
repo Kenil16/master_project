@@ -326,18 +326,18 @@ class autonomous_flight():
 
         self.pub_aruco_ids.publish(aruco_ids)
 
-        """
+        
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
-        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.3, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.3, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.3, 5)
+        self.flight_mode.set_param('MPC_XY_VEL_MAX', 4.5, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 1.5, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 1.5, 5)
 
         self.flight_mode.set_param('MC_ROLLRATE_MAX', 10.0, 5)
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 10.0, 5)
         self.flight_mode.set_param('MC_YAWRATE_MAX', 10.0, 5)
-        """
+        
 
-        alt_ = 1
+        alt_ = 1.
         self.drone_takeoff(alt = alt_)
 
         self.set_state('gps_to_vision_test')
@@ -357,17 +357,39 @@ class autonomous_flight():
         while not self.aruco_board_found:
             pass
 
+        alt = 1.2
+        i = 0
+        waypoints = [[-0.5, 0, alt], [-0.375, 0, alt], [-0.25, 0, alt], [-0.125, 0, alt], [0, 0, alt], [0.125, 0, alt], [0.25, 0 ,alt], [0.375, 0, alt], [0.5, 0, alt]]
+        waypoints_to_complete = 6
+
         while True:
+
+            #waypoints = [[-0.5+i, 0, alt], [-0.375+i, 0, alt], [-0.25+i, 0, alt], [-0.125+i, 0, alt], [0+i, 0, alt], [0.125+i, 0, alt], [0.25+i, 0 ,alt], [0.375+i, 0, alt], [0.5+i, 0, alt]]
+            waypoints = [[2+i, 0, alt]]
             
             #wait until waypoint reached
-            while(not self.waypoint_check(setpoint=[new_pose.pose.position.x, new_pose.pose.position.y, new_pose.pose.position.z], threshold = 0.25)):
-                self.pub_msg(new_pose, self.pub_local_pose)
+            for waypoint in waypoints:
+                new_pose = PoseStamped()
+                new_pose.pose.position.x = waypoint[0]
+                new_pose.pose.position.y = waypoint[1]
+                new_pose.pose.position.z = waypoint[2]
+                new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0), axes='rxyz'))
+                while not self.next_board_found or (not self.waypoint_check(setpoint=[waypoint[0], waypoint[1], waypoint[2]], threshold = 0.50)):
+                    self.pub_msg(new_pose, self.pub_local_pose)
+
+            self.next_board_found = False
 
             self.pub_change_aruco_board.publish(True)
+            i += 1
+            waypoints_to_complete -= 1
+            if not waypoints_to_complete:
+                self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
+                self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
+                break
             
             #wait to new target waypoit 
-            while(self.waypoint_check(setpoint=[new_pose.pose.position.x, new_pose.pose.position.y, new_pose.pose.position.z], threshold = 0.25)):
-                self.pub_msg(new_pose, self.pub_local_pose)
+            #while(self.waypoint_check(setpoint=[0.5, 0, alt], threshold = 0.25)):
+            #    self.pub_msg(new_pose, self.pub_local_pose)
                 
         rospy.loginfo('Autonomous_flight: Gps to vision test complete')
         self.set_state('loiter')
