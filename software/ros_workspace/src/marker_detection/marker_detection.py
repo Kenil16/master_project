@@ -184,6 +184,7 @@ class marker_detection:
                 if self.find_next_board and len(self.aruco_ids) > 0:
                     for id_ in marker_ids:
                         if id_ > self.aruco_ids[0]:
+                            print('New board')
                             self.find_next_board = False
                             self.next_board_found_pub.publish(True)
                             break
@@ -228,30 +229,30 @@ class marker_detection:
         r = quaternion_matrix(pose.pose.orientation)
         T_camera_marker = np.linalg.inv(r)
         t = np.array([pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, 1])
-        t = -np.dot(t,T_camera_marker) #-
-
+        t = np.dot(t,T_camera_marker) #-
+        #print(t)
         T_camera_marker[0][3] =  t[0]
         T_camera_marker[1][3] =  t[1]
         T_camera_marker[2][3] =  t[2]
 
         #Transformation matrix from drone to camera
-        T_drone_marker = np.dot(T_drone_camera, T_camera_marker)
-        
+        T_drone_marker = np.dot(t,np.linalg.inv(euler_matrix(0, np.pi, 0,axes='rxyz')))
+        print(str(T_drone_marker[0]) + " " + str(T_drone_marker[1]) + " " + str(T_drone_marker[2]))
         #Update KF
         euler = euler_from_quaternion(pose.pose.orientation,'rxyz')
         #euler = euler_from_matrix(T_drone_marker,'rxyz')
 
-        self.kf_x.get_measurement(T_drone_marker[0][3])
-        self.kf_y.get_measurement(T_drone_marker[1][3])
-        self.kf_z.get_measurement(T_drone_marker[2][3])
+        self.kf_x.get_measurement(T_drone_marker[0])
+        self.kf_y.get_measurement(T_drone_marker[1])
+        self.kf_z.get_measurement(T_drone_marker[2])
         
         self.kf_roll.get_measurement(np.mod((euler[0]+np.pi),2*np.pi) - np.pi)
         self.kf_pitch.get_measurement(np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
         self.kf_yaw.get_measurement(np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
          
-        self.aruco_pose.pose.position.x = 1*(self.kf_x.tracker.x[0]) + self.index #
-        self.aruco_pose.pose.position.y = -1*(self.kf_y.tracker.x[0]) #-
-        self.aruco_pose.pose.position.z = -1*(self.kf_z.tracker.x[0]) #-
+        self.aruco_pose.pose.position.x = 1*(self.kf_x.tracker.x[0])# + self.index #
+        self.aruco_pose.pose.position.y = 1*(self.kf_y.tracker.x[0]) #-
+        self.aruco_pose.pose.position.z = 1*(self.kf_z.tracker.x[0]) #-
 
         #To orient drone towards markers from to different configurations 
         if cam == 'bottom':
@@ -277,7 +278,7 @@ class marker_detection:
             self.write_aruco_pos(x, y, z, kf_x, kf_y, kf_z, self.time)
             self.time = self.time + self.cycle_time
 
-        #print "Marker id: {} Ori: {} x: {} y: {} z: {} \n".format(pose[0],euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
+        #print "Ori: {} x: {} y: {} z: {} \n".format(euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
         self.aruco_marker_found_pub.publish(True)
 
     def write_aruco_pos(self, x, y, z, kf_x, kf_y, kf_z, time):

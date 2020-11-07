@@ -19,7 +19,7 @@ class print_markers:
         self.marker_length_meters = 0.1
         self.marker_length = 377.95275591 #Approx 0.1 meters in pixels 
         self.marker_separation = 75.590551181 #Approx 0.08 meters in pixels 
-        self.aruco_board = cv2.board = aruco.GridBoard_create(self.markers_x, self.markers_y, self.marker_length, self.marker_separation, self.dictionary, firstMarker = 31)
+        self.aruco_board = cv2.board = aruco.GridBoard_create(self.markers_x, self.markers_y, self.marker_length, self.marker_separation, self.dictionary, firstMarker = 85)
 
     def print_aruco_board(self):
         

@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.90.1 commit date:2020-09-23, commit time:06:43, hash:3e85bb34d0d7</authoring_tool>
     </contributor>
-    <created>2020-11-06T09:40:02</created>
-    <modified>2020-11-06T09:40:02</modified>
+    <created>2020-11-07T13:21:27</created>
+    <modified>2020-11-07T13:21:27</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -32,6 +32,222 @@
     </camera>
   </library_cameras>
   <library_effects>
+    <effect id="grid_board_new_37-effect">
+      <profile_COMMON>
+        <newparam sid="grid_board_new_37_png-surface">
+          <surface type="2D">
+            <init_from>grid_board_new_37_png</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="grid_board_new_37_png-sampler">
+          <sampler2D>
+            <source>grid_board_new_37_png-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="grid_board_new_37_png-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+    <effect id="grid_board_new_43-effect">
+      <profile_COMMON>
+        <newparam sid="grid_board_new_43_png-surface">
+          <surface type="2D">
+            <init_from>grid_board_new_43_png</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="grid_board_new_43_png-sampler">
+          <sampler2D>
+            <source>grid_board_new_43_png-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="grid_board_new_43_png-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+    <effect id="grid_board_new_49-effect">
+      <profile_COMMON>
+        <newparam sid="grid_board_new_49_png-surface">
+          <surface type="2D">
+            <init_from>grid_board_new_49_png</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="grid_board_new_49_png-sampler">
+          <sampler2D>
+            <source>grid_board_new_49_png-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="grid_board_new_49_png-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+    <effect id="grid_board_new_55-effect">
+      <profile_COMMON>
+        <newparam sid="grid_board_new_55_png-surface">
+          <surface type="2D">
+            <init_from>grid_board_new_55_png</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="grid_board_new_55_png-sampler">
+          <sampler2D>
+            <source>grid_board_new_55_png-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="grid_board_new_55_png-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+    <effect id="grid_board_new_61-effect">
+      <profile_COMMON>
+        <newparam sid="grid_board_new_61_png-surface">
+          <surface type="2D">
+            <init_from>grid_board_new_61_png</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="grid_board_new_61_png-sampler">
+          <sampler2D>
+            <source>grid_board_new_61_png-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="grid_board_new_61_png-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+    <effect id="grid_board_new_67-effect">
+      <profile_COMMON>
+        <newparam sid="grid_board_new_67_png-surface">
+          <surface type="2D">
+            <init_from>grid_board_new_67_png</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="grid_board_new_67_png-sampler">
+          <sampler2D>
+            <source>grid_board_new_67_png-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="grid_board_new_67_png-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+    <effect id="grid_board_new_73-effect">
+      <profile_COMMON>
+        <newparam sid="grid_board_new_73_png-surface">
+          <surface type="2D">
+            <init_from>grid_board_new_73_png</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="grid_board_new_73_png-sampler">
+          <sampler2D>
+            <source>grid_board_new_73_png-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="grid_board_new_73_png-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+    <effect id="grid_board_new_79-effect">
+      <profile_COMMON>
+        <newparam sid="grid_board_new_79_png-surface">
+          <surface type="2D">
+            <init_from>grid_board_new_79_png</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="grid_board_new_79_png-sampler">
+          <sampler2D>
+            <source>grid_board_new_79_png-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="grid_board_new_79_png-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
     <effect id="grid_board_new_1-effect">
       <profile_COMMON>
         <newparam sid="grid_board_new_1_png-surface">
@@ -292,6 +508,30 @@
     <image id="grid_board_new_31_png" name="grid_board_new_31_png">
       <init_from>grid_board_new_31.png</init_from>
     </image>
+    <image id="grid_board_new_37_png" name="grid_board_new_37_png">
+      <init_from>grid_board_new_37.png</init_from>
+    </image>
+    <image id="grid_board_new_43_png" name="grid_board_new_43_png">
+      <init_from>grid_board_new_43.png</init_from>
+    </image>
+    <image id="grid_board_new_49_png" name="grid_board_new_49_png">
+      <init_from>grid_board_new_49.png</init_from>
+    </image>
+    <image id="grid_board_new_55_png" name="grid_board_new_55_png">
+      <init_from>grid_board_new_55.png</init_from>
+    </image>
+    <image id="grid_board_new_61_png" name="grid_board_new_61_png">
+      <init_from>grid_board_new_61.png</init_from>
+    </image>
+    <image id="grid_board_new_67_png" name="grid_board_new_67_png">
+      <init_from>grid_board_new_67.png</init_from>
+    </image>
+    <image id="grid_board_new_73_png" name="grid_board_new_73_png">
+      <init_from>grid_board_new_73.png</init_from>
+    </image>
+    <image id="grid_board_new_79_png" name="grid_board_new_79_png">
+      <init_from>grid_board_new_79.png</init_from>
+    </image>
     <image id="grid_board_new_7_png" name="grid_board_new_7_png">
       <init_from>grid_board_new_7.png</init_from>
     </image>
@@ -306,6 +546,30 @@
     </image>
   </library_images>
   <library_materials>
+    <material id="grid_board_new_37-material" name="grid_board_new_37">
+      <instance_effect url="#grid_board_new_37-effect"/>
+    </material>
+    <material id="grid_board_new_43-material" name="grid_board_new_43">
+      <instance_effect url="#grid_board_new_43-effect"/>
+    </material>
+    <material id="grid_board_new_49-material" name="grid_board_new_49">
+      <instance_effect url="#grid_board_new_49-effect"/>
+    </material>
+    <material id="grid_board_new_55-material" name="grid_board_new_55">
+      <instance_effect url="#grid_board_new_55-effect"/>
+    </material>
+    <material id="grid_board_new_61-material" name="grid_board_new_61">
+      <instance_effect url="#grid_board_new_61-effect"/>
+    </material>
+    <material id="grid_board_new_67-material" name="grid_board_new_67">
+      <instance_effect url="#grid_board_new_67-effect"/>
+    </material>
+    <material id="grid_board_new_73-material" name="grid_board_new_73">
+      <instance_effect url="#grid_board_new_73-effect"/>
+    </material>
+    <material id="grid_board_new_79-material" name="grid_board_new_79">
+      <instance_effect url="#grid_board_new_79-effect"/>
+    </material>
     <material id="grid_board_new_1-material" name="grid_board_new_1">
       <instance_effect url="#grid_board_new_1-effect"/>
     </material>
@@ -335,6 +599,342 @@
     </material>
   </library_materials>
   <library_geometries>
+    <geometry id="grid_board_new_37-mesh" name="grid_board_new_37">
+      <mesh>
+        <source id="grid_board_new_37-mesh-positions">
+          <float_array id="grid_board_new_37-mesh-positions-array" count="12">-0.7727273 -0.5 0 0.7727273 -0.5 0 -0.7727273 0.5 0 0.7727273 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_37-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_37-mesh-normals">
+          <float_array id="grid_board_new_37-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_37-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_37-mesh-map-0">
+          <float_array id="grid_board_new_37-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_37-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="grid_board_new_37-mesh-vertices">
+          <input semantic="POSITION" source="#grid_board_new_37-mesh-positions"/>
+        </vertices>
+        <triangles material="grid_board_new_37-material" count="2">
+          <input semantic="VERTEX" source="#grid_board_new_37-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#grid_board_new_37-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#grid_board_new_37-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
+    <geometry id="grid_board_new_43-mesh" name="grid_board_new_43">
+      <mesh>
+        <source id="grid_board_new_43-mesh-positions">
+          <float_array id="grid_board_new_43-mesh-positions-array" count="12">-0.7727273 -0.5 0 0.7727273 -0.5 0 -0.7727273 0.5 0 0.7727273 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_43-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_43-mesh-normals">
+          <float_array id="grid_board_new_43-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_43-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_43-mesh-map-0">
+          <float_array id="grid_board_new_43-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_43-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="grid_board_new_43-mesh-vertices">
+          <input semantic="POSITION" source="#grid_board_new_43-mesh-positions"/>
+        </vertices>
+        <triangles material="grid_board_new_43-material" count="2">
+          <input semantic="VERTEX" source="#grid_board_new_43-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#grid_board_new_43-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#grid_board_new_43-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
+    <geometry id="grid_board_new_49-mesh" name="grid_board_new_49">
+      <mesh>
+        <source id="grid_board_new_49-mesh-positions">
+          <float_array id="grid_board_new_49-mesh-positions-array" count="12">-0.7727273 -0.5 0 0.7727273 -0.5 0 -0.7727273 0.5 0 0.7727273 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_49-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_49-mesh-normals">
+          <float_array id="grid_board_new_49-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_49-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_49-mesh-map-0">
+          <float_array id="grid_board_new_49-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_49-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="grid_board_new_49-mesh-vertices">
+          <input semantic="POSITION" source="#grid_board_new_49-mesh-positions"/>
+        </vertices>
+        <triangles material="grid_board_new_49-material" count="2">
+          <input semantic="VERTEX" source="#grid_board_new_49-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#grid_board_new_49-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#grid_board_new_49-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
+    <geometry id="grid_board_new_55-mesh" name="grid_board_new_55">
+      <mesh>
+        <source id="grid_board_new_55-mesh-positions">
+          <float_array id="grid_board_new_55-mesh-positions-array" count="12">-0.7727273 -0.5 0 0.7727273 -0.5 0 -0.7727273 0.5 0 0.7727273 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_55-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_55-mesh-normals">
+          <float_array id="grid_board_new_55-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_55-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_55-mesh-map-0">
+          <float_array id="grid_board_new_55-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_55-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="grid_board_new_55-mesh-vertices">
+          <input semantic="POSITION" source="#grid_board_new_55-mesh-positions"/>
+        </vertices>
+        <triangles material="grid_board_new_55-material" count="2">
+          <input semantic="VERTEX" source="#grid_board_new_55-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#grid_board_new_55-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#grid_board_new_55-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
+    <geometry id="grid_board_new_61-mesh" name="grid_board_new_61">
+      <mesh>
+        <source id="grid_board_new_61-mesh-positions">
+          <float_array id="grid_board_new_61-mesh-positions-array" count="12">-0.7727273 -0.5 0 0.7727273 -0.5 0 -0.7727273 0.5 0 0.7727273 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_61-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_61-mesh-normals">
+          <float_array id="grid_board_new_61-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_61-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_61-mesh-map-0">
+          <float_array id="grid_board_new_61-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_61-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="grid_board_new_61-mesh-vertices">
+          <input semantic="POSITION" source="#grid_board_new_61-mesh-positions"/>
+        </vertices>
+        <triangles material="grid_board_new_61-material" count="2">
+          <input semantic="VERTEX" source="#grid_board_new_61-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#grid_board_new_61-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#grid_board_new_61-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
+    <geometry id="grid_board_new_67-mesh" name="grid_board_new_67">
+      <mesh>
+        <source id="grid_board_new_67-mesh-positions">
+          <float_array id="grid_board_new_67-mesh-positions-array" count="12">-0.7727273 -0.5 0 0.7727273 -0.5 0 -0.7727273 0.5 0 0.7727273 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_67-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_67-mesh-normals">
+          <float_array id="grid_board_new_67-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_67-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_67-mesh-map-0">
+          <float_array id="grid_board_new_67-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_67-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="grid_board_new_67-mesh-vertices">
+          <input semantic="POSITION" source="#grid_board_new_67-mesh-positions"/>
+        </vertices>
+        <triangles material="grid_board_new_67-material" count="2">
+          <input semantic="VERTEX" source="#grid_board_new_67-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#grid_board_new_67-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#grid_board_new_67-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
+    <geometry id="grid_board_new_73-mesh" name="grid_board_new_73">
+      <mesh>
+        <source id="grid_board_new_73-mesh-positions">
+          <float_array id="grid_board_new_73-mesh-positions-array" count="12">-0.7727273 -0.5 0 0.7727273 -0.5 0 -0.7727273 0.5 0 0.7727273 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_73-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_73-mesh-normals">
+          <float_array id="grid_board_new_73-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_73-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_73-mesh-map-0">
+          <float_array id="grid_board_new_73-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_73-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="grid_board_new_73-mesh-vertices">
+          <input semantic="POSITION" source="#grid_board_new_73-mesh-positions"/>
+        </vertices>
+        <triangles material="grid_board_new_73-material" count="2">
+          <input semantic="VERTEX" source="#grid_board_new_73-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#grid_board_new_73-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#grid_board_new_73-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
+    <geometry id="grid_board_new_79-mesh" name="grid_board_new_79">
+      <mesh>
+        <source id="grid_board_new_79-mesh-positions">
+          <float_array id="grid_board_new_79-mesh-positions-array" count="12">-0.7727273 -0.5 0 0.7727273 -0.5 0 -0.7727273 0.5 0 0.7727273 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_79-mesh-positions-array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_79-mesh-normals">
+          <float_array id="grid_board_new_79-mesh-normals-array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_79-mesh-normals-array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="grid_board_new_79-mesh-map-0">
+          <float_array id="grid_board_new_79-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+          <technique_common>
+            <accessor source="#grid_board_new_79-mesh-map-0-array" count="6" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="grid_board_new_79-mesh-vertices">
+          <input semantic="POSITION" source="#grid_board_new_79-mesh-positions"/>
+        </vertices>
+        <triangles material="grid_board_new_79-material" count="2">
+          <input semantic="VERTEX" source="#grid_board_new_79-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#grid_board_new_79-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#grid_board_new_79-mesh-map-0" offset="2" set="0"/>
+          <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+        </triangles>
+      </mesh>
+    </geometry>
     <geometry id="grid_board_new_1-mesh" name="grid_board_new_1">
       <mesh>
         <source id="grid_board_new_1-mesh-positions">
@@ -762,6 +1362,102 @@
   </library_geometries>
   <library_visual_scenes>
     <visual_scene id="Scene" name="Scene">
+      <node id="grid_board_new_37" name="grid_board_new_37" type="NODE">
+        <matrix sid="transform">0.22 0 0 -4 0 0.22 0 0 0 0 1 0.02 0 0 0 1</matrix>
+        <instance_geometry url="#grid_board_new_37-mesh" name="grid_board_new_37">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="grid_board_new_37-material" target="#grid_board_new_37-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+      <node id="grid_board_new_43" name="grid_board_new_43" type="NODE">
+        <matrix sid="transform">0.22 0 0 -5 0 0.22 0 0 0 0 1 0.02 0 0 0 1</matrix>
+        <instance_geometry url="#grid_board_new_43-mesh" name="grid_board_new_43">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="grid_board_new_43-material" target="#grid_board_new_43-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+      <node id="grid_board_new_49" name="grid_board_new_49" type="NODE">
+        <matrix sid="transform">0.1555635 -0.1555635 0 -6 0.1555635 0.1555635 0 -0.1 0 0 1 0.02 0 0 0 1</matrix>
+        <instance_geometry url="#grid_board_new_49-mesh" name="grid_board_new_49">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="grid_board_new_49-material" target="#grid_board_new_49-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+      <node id="grid_board_new_55" name="grid_board_new_55" type="NODE">
+        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -1 0 0 1 0.02 0 0 0 1</matrix>
+        <instance_geometry url="#grid_board_new_55-mesh" name="grid_board_new_55">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="grid_board_new_55-material" target="#grid_board_new_55-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+      <node id="grid_board_new_61" name="grid_board_new_61" type="NODE">
+        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -2 0 0 1 0.02 0 0 0 1</matrix>
+        <instance_geometry url="#grid_board_new_61-mesh" name="grid_board_new_61">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="grid_board_new_61-material" target="#grid_board_new_61-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+      <node id="grid_board_new_67" name="grid_board_new_67" type="NODE">
+        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -3 0 0 1 0.02 0 0 0 1</matrix>
+        <instance_geometry url="#grid_board_new_67-mesh" name="grid_board_new_67">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="grid_board_new_67-material" target="#grid_board_new_67-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+      <node id="grid_board_new_73" name="grid_board_new_73" type="NODE">
+        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -4 0 0 1 0.02 0 0 0 1</matrix>
+        <instance_geometry url="#grid_board_new_73-mesh" name="grid_board_new_73">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="grid_board_new_73-material" target="#grid_board_new_73-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+      <node id="grid_board_new_79" name="grid_board_new_79" type="NODE">
+        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -5 0 0 1 0.02 0 0 0 1</matrix>
+        <instance_geometry url="#grid_board_new_79-mesh" name="grid_board_new_79">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="grid_board_new_79-material" target="#grid_board_new_79-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
       <node id="grid_board_new_1" name="grid_board_new_1" type="NODE">
         <matrix sid="transform">0.22 0 0 2 0 0.22 0 0 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#grid_board_new_1-mesh" name="grid_board_new_1">
@@ -787,7 +1483,7 @@
         </instance_geometry>
       </node>
       <node id="grid_board_new_13" name="grid_board_new_13" type="NODE">
-        <matrix sid="transform">0.22 0 0 0 0 0.22 0 0 0 0 1 0.02 0 0 0 1</matrix>
+        <matrix sid="transform">-9.61651e-9 -0.22 0 0 0.22 -9.61651e-9 0 0 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#grid_board_new_13-mesh" name="grid_board_new_13">
           <bind_material>
             <technique_common>

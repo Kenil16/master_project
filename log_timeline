@@ -31,3 +31,5 @@ Pose estimation from aruco to camrera works fine. However, different configurati
 06/11/2020:
 First drone navigation between markers performed. However, a fixed speed must be made which is now varying a lot between waypoints. Now the x coordinate is increased by one meter every time a new marker (local coordinate system) is detected. This is done to insure a smooth transition between waypoints which also yiels better stability for the drone. Maybe another solution should be found. 
 
+07/11/2020:
+Transformation matrix from camera to drone is wrong somehow!This must be fixed
