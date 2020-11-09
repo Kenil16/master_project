@@ -19,7 +19,7 @@ class autonomous_flight():
     def __init__(self):        
         
         rospy.init_node('autonomous_flight')
-        self.rate = rospy.Rate(20)
+        self.rate = rospy.Rate(30)
 
         #Init flight modes 
         self.flight_mode = flight_modes()
@@ -91,7 +91,7 @@ class autonomous_flight():
         msg.header.frame_id = "att_pose"
         msg.header.stamp = rospy.Time.now()
         topic.publish(msg)
-        self.rate.sleep()
+        #self.rate.sleep()
 
     def waypoint_check(self, setpoint, threshold=0.25):
         
@@ -333,17 +333,17 @@ class autonomous_flight():
         aruco_ids.elements.append(79)
         self.pub_aruco_ids.publish(aruco_ids)
 
-        
+        """
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
         self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.2, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.2, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.2, 5)
-
+        """
         self.flight_mode.set_param('MC_ROLLRATE_MAX', 45.0, 5)
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 45.0, 5)
-        self.flight_mode.set_param('MC_YAWRATE_MAX', 10.0, 5)
-        
-        alt_ = 1.2
+        self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
+
+        alt_ = 1.5
         self.drone_takeoff(alt = alt_)
 
         self.set_state('gps_to_vision_test')
@@ -359,28 +359,31 @@ class autonomous_flight():
         alt = 1.5
         i = 0
         step = 3
-        waypoints_to_complete = 11
+        waypoints_to_complete = 14
+
+        angle = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0), axes='rxyz'))
 
         #wait until waypoint reached
         while True:
             
-            waypoint = [0, 0, alt]
+            waypoint = [i, 0, alt]
             new_pose = PoseStamped()
             new_pose.pose.position.x = waypoint[0]
             new_pose.pose.position.y = waypoint[1]
             new_pose.pose.position.z = waypoint[2]
-            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0), axes='rxyz'))
+            new_pose.pose.orientation = angle             
             
-            while True: 
+            while True:
+                if i == 2:
+                    angle = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0), axes='rxyz'))
                 if not i or not waypoints_to_complete:
                     if self.waypoint_check(setpoint=[waypoint[0], waypoint[1], waypoint[2]], threshold = 0.25):
-                        pass
-                        #break
+                        break
                 else:
                     if self.next_board_found:
                         self.next_board_found = False
-                        pass
-                        #break
+                        break
+
                 self.pub_msg(new_pose, self.pub_local_pose)
 
             self.pub_change_aruco_board.publish(True)

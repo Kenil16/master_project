@@ -44,8 +44,8 @@ class marker_detection:
         self.plot_time = []
 
         self.enable_aruco_detection = False
-        self.draw_markers = True
-        self.draw_marker_axis = True
+        self.draw_markers = False
+        self.draw_marker_axis = False
         self.aruco_board_found = False
 
         self.bottom_img = None 
@@ -75,7 +75,7 @@ class marker_detection:
         
         #Transformation matrix from drone to camera
         self.camera_config_front = euler_matrix(-np.pi/2, np.pi/2, 0, 'rxyz')
-        self.camera_config_bottom = euler_matrix(0, np.pi, 0, 'rxyz') #180, 0, 90
+        self.camera_config_bottom = euler_matrix(np.pi, np.pi, 0, 'rxyz') #180, 0, 90
 
         #Local drone pose
         self.local_position = PoseStamped()
@@ -229,26 +229,28 @@ class marker_detection:
         r = quaternion_matrix(pose.pose.orientation)
         T_camera_marker = np.linalg.inv(r)
         t = np.array([pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, 1])
-        t = np.dot(t,T_camera_marker) #-
-        #print(t)
+        t = -np.dot(t,T_camera_marker) #-
+        #print(str(t[0]) +" "+ str(t[1]) +" "+ str(t[2]))
         T_camera_marker[0][3] =  t[0]
         T_camera_marker[1][3] =  t[1]
         T_camera_marker[2][3] =  t[2]
 
         #Transformation matrix from drone to camera
-        T_drone_marker = np.dot(t,np.linalg.inv(euler_matrix(0, np.pi, 0,axes='rxyz')))
-        print(str(T_drone_marker[0]) + " " + str(T_drone_marker[1]) + " " + str(T_drone_marker[2]))
+        #euler = euler_from_matrix(T_camera_marker,'rxyz')
+        #print(euler)
+        T_drone_marker = np.dot(np.transpose(t),self.camera_config_bottom)
+        #print(str(T_drone_marker[0]) + " " + str(T_drone_marker[1]) + " " + str(T_drone_marker[2]))
         #Update KF
-        euler = euler_from_quaternion(pose.pose.orientation,'rxyz')
-        #euler = euler_from_matrix(T_drone_marker,'rxyz')
+        #euler = euler_from_quaternion(pose.pose.orientation,'rxyz')
+        euler = euler_from_matrix(r,'rxyz')
 
-        self.kf_x.get_measurement(T_drone_marker[0])
+        self.kf_x.get_measurement(T_drone_marker[0] + self.index)
         self.kf_y.get_measurement(T_drone_marker[1])
         self.kf_z.get_measurement(T_drone_marker[2])
         
-        self.kf_roll.get_measurement(np.mod((euler[0]+np.pi),2*np.pi) - np.pi)
-        self.kf_pitch.get_measurement(np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
-        self.kf_yaw.get_measurement(np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
+        self.kf_roll.get_measurement(euler[0])#np.mod((euler[0]+np.pi),2*np.pi) - np.pi)
+        self.kf_pitch.get_measurement(euler[1])#np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
+        self.kf_yaw.get_measurement(euler[2])#np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
          
         self.aruco_pose.pose.position.x = 1*(self.kf_x.tracker.x[0])# + self.index #
         self.aruco_pose.pose.position.y = 1*(self.kf_y.tracker.x[0]) #-
