@@ -44,8 +44,8 @@ class marker_detection:
         self.plot_time = []
 
         self.enable_aruco_detection = False
-        self.draw_markers = False
-        self.draw_marker_axis = False
+        self.draw_markers = True
+        self.draw_marker_axis = True
         self.aruco_board_found = False
 
         self.bottom_img = None 
@@ -87,8 +87,13 @@ class marker_detection:
         self.find_next_board = False
         
         self.aruco_ids = []
+        self.aruco_moves = []
 
-        self.index = -1
+        self.offset_x = 0
+        self.offset_y = 0
+        self.offset_z = 0
+        self.aruco_increase = False
+        self.aruco_decrease = False
         
         #Subscribers
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)
@@ -105,6 +110,7 @@ class marker_detection:
         self.aruco_marker_pose_pub = rospy.Publisher('/onboard/aruco_marker_pose', PoseStamped, queue_size=1)
         self.aruco_marker_found_pub = rospy.Publisher('/onboard/aruco_board_found', Bool, queue_size=1)
         self.next_board_found_pub = rospy.Publisher('/onboard/next_board_found', Bool, queue_size=1)
+        self.found_aruco_ids_pub = rospy.Publisher('/onboard/found_aruco_ids', mavlink_lora_aruco, queue_size=1)
 
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
@@ -132,8 +138,9 @@ class marker_detection:
         self.local_position = data
  
     def aruco_ids_callback(self, data):
-        for item in data.elements:
-            self.aruco_ids.append(item)
+        for (id_, move) in zip(data.id, data.moves):
+            self.aruco_ids.append(id_)
+            self.aruco_moves.append(move)
 
     def enable_aruco_detection_callback(self, data):
         self.enable_aruco_detection = data
@@ -176,19 +183,27 @@ class marker_detection:
             if self.draw_markers:
                 image_markers = cv2.aruco.drawDetectedMarkers(cv_img, marker_corners, marker_ids)
 
-            if retval: 
-                
-                
-                
+            if retval:
+
+                #ids_ = mavlink_lora_aruco()
+                #ids_.id = marker_ids
+
                 #See if next aruco board is visible
                 if self.find_next_board and len(self.aruco_ids) > 0:
                     for id_ in marker_ids:
-                        if id_ > self.aruco_ids[0]:
-                            print('New board')
-                            self.find_next_board = False
-                            self.next_board_found_pub.publish(True)
-                            break
-                
+                        if self.aruco_increase:
+                            if id_ > self.aruco_ids[0]:
+                                print('New board')
+                                self.find_next_board = False
+                                self.next_board_found_pub.publish(True)
+                                break
+                        elif self.aruco_decrease:
+                            if id_ <= self.aruco_ids[0]:
+                                print('New board')
+                                self.find_next_board = False
+                                self.next_board_found_pub.publish(True)
+                                break
+
                 self.aruco_board_found = True 
                 self.aruco_marker_found_pub.publish(True)
 
@@ -244,13 +259,13 @@ class marker_detection:
         #euler = euler_from_quaternion(pose.pose.orientation,'rxyz')
         euler = euler_from_matrix(r,'rxyz')
 
-        self.kf_x.get_measurement(T_drone_marker[0] + self.index)
-        self.kf_y.get_measurement(T_drone_marker[1])
-        self.kf_z.get_measurement(T_drone_marker[2])
+        self.kf_x.get_measurement(T_drone_marker[0] + self.offset_x)
+        self.kf_y.get_measurement(T_drone_marker[1] + self.offset_y)
+        self.kf_z.get_measurement(T_drone_marker[2] + self.offset_z)
         
-        self.kf_roll.get_measurement(euler[0])#np.mod((euler[0]+np.pi),2*np.pi) - np.pi)
-        self.kf_pitch.get_measurement(euler[1])#np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
-        self.kf_yaw.get_measurement(euler[2])#np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
+        self.kf_roll.get_measurement(np.mod((euler[0]+np.pi),2*np.pi) - np.pi)
+        self.kf_pitch.get_measurement(np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
+        self.kf_yaw.get_measurement(np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
          
         self.aruco_pose.pose.position.x = 1*(self.kf_x.tracker.x[0])# + self.index #
         self.aruco_pose.pose.position.y = 1*(self.kf_y.tracker.x[0]) #-
@@ -311,11 +326,31 @@ class marker_detection:
 
         #Change ArUco board configuration from either bottom or front cam
         if self.change_aruco_board and len(self.aruco_ids) > 0:
+
+            if not self.aruco_increase and not self.aruco_decrease:
+                if self.aruco_ids[0] < self.aruco_ids[1]:
+                    self.aruco_increase = True
+                else:
+                    self.aruco_decrease = True
+            
             self.change_aruco_board = False
             self.find_next_board = True
+            
             id_ = int(self.aruco_ids[0])
+            print(id_)
+            move = self.aruco_moves[0]
             self.aruco_ids.pop(0)
-            self.index += 1
+            self.aruco_moves.pop(0)
+
+            if move == 'f':
+                self.offset_x += 1
+            elif move == 'd':
+                self.offset_x -= 1
+            elif move == 'l':
+                self.offset_y += 1
+            elif move == 'r':
+                self.offset_y -= 1
+            
             print(id_)
             if self.use_bottom_cam:
                 self.aruco_board_bottom = cv2.aruco.GridBoard_create(markersX=3, markersY=2, markerLength=0.1, markerSeparation=0.02, dictionary=self.dictionary,firstMarker=id_)

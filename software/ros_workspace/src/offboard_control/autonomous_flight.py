@@ -37,7 +37,7 @@ class autonomous_flight():
         self.uav_home_pose = PoseStamped()
         self.init_uav_home_pose = False
         self.aruco_pose = PoseStamped()
-        self.next_board_found = Bool()
+        self.next_board_found = False
         self.aruco_board_found = Bool()
 
         #Publishers
@@ -316,22 +316,40 @@ class autonomous_flight():
         self.pub_use_bottom_cam.publish(True)
         self.pub_change_aruco_board.publish(True)
 
-        aruco_ids = mavlink_lora_aruco()
-        aruco_ids.elements.append(1)
-        aruco_ids.elements.append(7)
-        aruco_ids.elements.append(13)
-        aruco_ids.elements.append(19)
-        aruco_ids.elements.append(25)
-        aruco_ids.elements.append(31)
-        aruco_ids.elements.append(37)
-        aruco_ids.elements.append(43)
-        aruco_ids.elements.append(49)
-        aruco_ids.elements.append(55)
-        aruco_ids.elements.append(61)
-        aruco_ids.elements.append(66)
-        aruco_ids.elements.append(73) 
-        aruco_ids.elements.append(79)
-        self.pub_aruco_ids.publish(aruco_ids)
+        #Route to charging station
+        to_charging_station = mavlink_lora_aruco()
+        to_charging_station.id = [1,7,13,19,25,31,37,43,49,55,61,67,73,79]
+        to_charging_station.moves = ['','f','f','f','f','f','f','f','l','l','l','l','l','l']
+        to_charging_station.yaw = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        
+        #Route back to the world
+        back_to_world = mavlink_lora_aruco()
+        back_to_world.id = to_charging_station.id[::-1]
+        back_to_world.moves = to_charging_station.moves[::-1]
+        back_to_world.moves.insert(0,back_to_world.moves.pop()) #Get '' to start index
+        for i in range(len(back_to_world.moves)):
+            if back_to_world.moves[i] == 'f':
+                back_to_world.moves[i] = 'd'
+            elif back_to_world.moves[i] == 'd':
+                back_to_world.moves[i] = 'f'
+            elif back_to_world.moves[i] == 'l':
+                back_to_world.moves[i] = 'r'
+            elif back_to_world.moves[i] == 'r':
+                back_to_world.moves[i] = 'l'
+        
+        print(back_to_world.moves)
+        print(back_to_world.id)
+        
+        """  
+        self.pub_aruco_ids.publish(to_charging_station)
+        waypoints = self.generate_route(to_charging_station.moves, alt=1.5)
+        waypoints_to_complete = len(waypoints)
+
+        """
+        
+        self.pub_aruco_ids.publish(back_to_world)
+        waypoints = self.generate_route(back_to_world.moves, alt=1.5)
+        waypoints_to_complete = len(waypoints)
 
         """
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
@@ -339,12 +357,12 @@ class autonomous_flight():
         self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.2, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.2, 5)
         """
+
         self.flight_mode.set_param('MC_ROLLRATE_MAX', 45.0, 5)
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 45.0, 5)
         self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
 
-        alt_ = 1.5
-        self.drone_takeoff(alt = alt_)
+        self.drone_takeoff(alt = 1.5)
 
         self.set_state('gps_to_vision_test')
         rospy.loginfo('Autonomous_flight: Gps to vision test startet')
@@ -356,41 +374,31 @@ class autonomous_flight():
         while not self.aruco_board_found:
             pass
 
-        alt = 1.5
-        i = 0
-        step = 3
-        waypoints_to_complete = 14
-
-        angle = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0), axes='rxyz'))
-
         #wait until waypoint reached
         while True:
-            
-            waypoint = [i, 0, alt]
+
+            waypoint = waypoints[0]
             new_pose = PoseStamped()
             new_pose.pose.position.x = waypoint[0]
             new_pose.pose.position.y = waypoint[1]
             new_pose.pose.position.z = waypoint[2]
-            new_pose.pose.orientation = angle             
+            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(90),'rxyz'))       
             
             while True:
-                if i == 2:
-                    angle = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0), axes='rxyz'))
-                if not i or not waypoints_to_complete:
+                if not len(waypoints):
                     if self.waypoint_check(setpoint=[waypoint[0], waypoint[1], waypoint[2]], threshold = 0.25):
                         break
                 else:
                     if self.next_board_found:
+                        waypoints.pop(0)
                         self.next_board_found = False
                         break
 
                 self.pub_msg(new_pose, self.pub_local_pose)
 
             self.pub_change_aruco_board.publish(True)
-            i += 1
-            waypoints_to_complete -= 1
-
-            if not waypoints_to_complete:
+            
+            if not len(waypoints):
                 break
         
         self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
@@ -398,6 +406,33 @@ class autonomous_flight():
             
         rospy.loginfo('Autonomous_flight: Gps to vision test complete')
         self.set_state('loiter')
+
+    #Helper functions
+    def generate_route(self, moves, alt):
+    
+        waypoints = []
+        x = 0
+        y = 0
+        
+        for move in moves:
+            if move == 'f':
+                x += 1
+                yaw = 0
+            elif move == 'd':
+                x -= 1
+                yaw = -180
+            elif move == 'l':
+                y += 1
+                yaw = 90
+            elif move == 'r':
+                y -= 1
+                yaw = -90
+
+            if not move == '':
+                waypoint = [x, y, alt, yaw]
+                waypoints.append(waypoint)
+        
+        return waypoints
 
     def run(self):
         while not rospy.is_shutdown():

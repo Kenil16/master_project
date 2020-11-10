@@ -33,3 +33,9 @@ First drone navigation between markers performed. However, a fixed speed must be
 
 07/11/2020:
 Transformation matrix from camera to drone is wrong somehow!This must be fixed
+
+09/11/2020:
+Transformation matrix fixed. Appranthly, the cam orientaion was inverted in respect to the x axis. Normally x is positive horisontally, y positive vertically and z the depth. Here x is inverted yieldig a rotaion matrix of (180,180,0) instead of (0,180,0) in roll, pitch yaw respectivly in regard of the drone to the cam.
+
+10/11/2020:
+First iteration of moving between waypoints completed. This first approach takes into account the local coordinate system of each aruco marker. When the drone sees a new aruco board the 'global' coordinate system is increased or decreased by the amount of meters which seperates the markers placed on the ground. This effectively insures a smooth transition betweem the markers and there coordinate system. The drone can be set to move forward, backwards, left or right according to the markers placed on the ground. When moving out to the world the list of markers, movements and waypoints is just reverted. However, the regulation must be tuned because the position control works quite bad at the moment. 

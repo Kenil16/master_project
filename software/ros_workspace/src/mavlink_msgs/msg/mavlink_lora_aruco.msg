@@ -1,1 +1,3 @@
-int16[] elements
+int16[] id 
+string[] moves
+int16[] yaw

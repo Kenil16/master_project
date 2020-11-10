@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.90.1 commit date:2020-09-23, commit time:06:43, hash:3e85bb34d0d7</authoring_tool>
     </contributor>
-    <created>2020-11-09T17:41:40</created>
-    <modified>2020-11-09T17:41:40</modified>
+    <created>2020-11-10T11:26:38</created>
+    <modified>2020-11-10T11:26:38</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -1387,7 +1387,7 @@
         </instance_geometry>
       </node>
       <node id="grid_board_new_49" name="grid_board_new_49" type="NODE">
-        <matrix sid="transform">0.1555635 -0.1555635 0 -5.8 0.1555635 0.1555635 0 -0.3 0 0 1 0.02 0 0 0 1</matrix>
+        <matrix sid="transform">0.22 0 0 -5 0 0.22 0 -1 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#grid_board_new_49-mesh" name="grid_board_new_49">
           <bind_material>
             <technique_common>
@@ -1399,7 +1399,7 @@
         </instance_geometry>
       </node>
       <node id="grid_board_new_55" name="grid_board_new_55" type="NODE">
-        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -1 0 0 1 0.02 0 0 0 1</matrix>
+        <matrix sid="transform">0.22 0 0 -5 0 0.22 0 -2 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#grid_board_new_55-mesh" name="grid_board_new_55">
           <bind_material>
             <technique_common>
@@ -1411,7 +1411,7 @@
         </instance_geometry>
       </node>
       <node id="grid_board_new_61" name="grid_board_new_61" type="NODE">
-        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -2 0 0 1 0.02 0 0 0 1</matrix>
+        <matrix sid="transform">0.22 0 0 -5 0 0.22 0 -3 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#grid_board_new_61-mesh" name="grid_board_new_61">
           <bind_material>
             <technique_common>
@@ -1423,7 +1423,7 @@
         </instance_geometry>
       </node>
       <node id="grid_board_new_67" name="grid_board_new_67" type="NODE">
-        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -3 0 0 1 0.02 0 0 0 1</matrix>
+        <matrix sid="transform">0.22 0 0 -5 0 0.22 0 -4 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#grid_board_new_67-mesh" name="grid_board_new_67">
           <bind_material>
             <technique_common>
@@ -1435,7 +1435,7 @@
         </instance_geometry>
       </node>
       <node id="grid_board_new_73" name="grid_board_new_73" type="NODE">
-        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -4 0 0 1 0.02 0 0 0 1</matrix>
+        <matrix sid="transform">0.22 0 0 -5 0 0.22 0 -5 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#grid_board_new_73-mesh" name="grid_board_new_73">
           <bind_material>
             <technique_common>
@@ -1447,7 +1447,7 @@
         </instance_geometry>
       </node>
       <node id="grid_board_new_79" name="grid_board_new_79" type="NODE">
-        <matrix sid="transform">-9.61651e-9 -0.22 0 -6.5 0.22 -9.61651e-9 0 -5 0 0 1 0.02 0 0 0 1</matrix>
+        <matrix sid="transform">0.22 0 0 -5 0 0.22 0 -6 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#grid_board_new_79-mesh" name="grid_board_new_79">
           <bind_material>
             <technique_common>
