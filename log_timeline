@@ -38,4 +38,22 @@ Transformation matrix from camera to drone is wrong somehow!This must be fixed
 Transformation matrix fixed. Appranthly, the cam orientaion was inverted in respect to the x axis. Normally x is positive horisontally, y positive vertically and z the depth. Here x is inverted yieldig a rotaion matrix of (180,180,0) instead of (0,180,0) in roll, pitch yaw respectivly in regard of the drone to the cam.
 
 10/11/2020:
-First iteration of moving between waypoints completed. This first approach takes into account the local coordinate system of each aruco marker. When the drone sees a new aruco board the 'global' coordinate system is increased or decreased by the amount of meters which seperates the markers placed on the ground. This effectively insures a smooth transition betweem the markers and there coordinate system. The drone can be set to move forward, backwards, left or right according to the markers placed on the ground. When moving out to the world the list of markers, movements and waypoints is just reverted. However, the regulation must be tuned because the position control works quite bad at the moment. 
+First iteration of moving between waypoints completed. This first approach takes into account the local coordinate system of each aruco marker. When the drone sees a new aruco board the 'global' coordinate system is increased or decreased by the amount of meters which seperates the markers placed on the ground. This effectively insures a smooth transition betweem the markers and there coordinate system. The drone can be set to move forward, backwards, left or right according to the markers placed on the ground. When moving out to the world the list of markers, movements and waypoints is just reverted. However, the regulation must be tuned because the position control works quite bad at the moment.
+
+Future work:
+	* Use the IMU data for position control of the drone (Remember to take drift of this estimation into account). 
+	* When the IMU data is used the markers can be used to navigate the drone in a giving direction according to the orientation of the marker. 
+	* Moreover, sensor funsion using both IMU and camera data could be used to improve the stabillity of the position control of the drone (Maybe using an Extended Kalman filter).
+	From meeting with Henrik:
+		* Consider to use only a single aruco board as a sort of global coordinate system. This could be a 100*100 aruco board. Using this no shifting between coordinate systems is done. This 		  could insure a more presice pose estimation as well as better estimation in regard to the PX4 flight control.
+		* The test with the error in the pose estimation by the amount of distance from the aruco using interpolation, could also involve how much the aruco board fills out the image of the 			  camera. Here the hypothesis would be, that the more the board occupies in the image frame, the better the pose estimation of the board will be. 
+		* Make tests of using bottom cam along, front cam along and both of them for the pose estimation. Give pros and cons from the methods used to summarize which solution could be the best for 			  a given scenario (maybe from a bunsiness's point of view).        
+	
+Todo:
+	* Remember to fix the transformation matrix between the front camera and the drone for the front camera. 
+	* The methods in regard to the offset for the x,y and z axis in the aruco pos estimation should be moved away from the marker detection scripts to another place e.g. autonoumous flight. 
+	* Hence the detected aruco IDs could be published instead from the marker detection script.
+	* Remember to also make a small function to calculate the wanted angle from the giving movements.
+
+05/01/2021:
+Final first iteration of the simulation map has been completed. Here a 3d map with a one way opening has been made where the road branches in 3 different directions. It has been tested in all directions and it works quite nice. However, the drone has been found to be quite unstable in keeping its pos in the x and y direction when hovering above a board. This can be due to either a bad chosen PID parameters but more likely the estimated pose estimation from aruco board estimation. A bad camera calibration is not posible because the distortion parameters for the camera have been inizialied ti 0. 

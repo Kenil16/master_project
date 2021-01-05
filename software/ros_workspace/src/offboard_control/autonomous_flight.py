@@ -13,6 +13,7 @@ from uav_flight_modes import*
 from geometry_msgs.msg import PoseStamped, Quaternion
 from pid import*
 from std_msgs.msg import (String, Int8, Float64, Bool)
+from timeit import default_timer as timer
 
 class autonomous_flight():
 
@@ -40,6 +41,11 @@ class autonomous_flight():
         self.next_board_found = False
         self.aruco_board_found = Bool()
 
+        self.delta_x = 0.0
+        self.delta_y = 0.0
+        self.delta_z = 0.0
+
+
         #Publishers
         self.pub_local_pose = rospy.Publisher('/onboard/setpoint/autonomous_flight', PoseStamped, queue_size=1)
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=10)
@@ -56,6 +62,8 @@ class autonomous_flight():
         rospy.Subscriber('/onboard/aruco_board_found', Bool, self.aruco_board_found_callback)
         self.new_uav_local_pose = PoseStamped()
         
+        self.init_data_files()
+
         #Initialize uav flightmodes
         self.flight_mode.wait_for_topics(60)
         
@@ -95,10 +103,10 @@ class autonomous_flight():
 
     def waypoint_check(self, setpoint, threshold=0.25):
         
-        delta_x = self.uav_local_pose.pose.position.x - setpoint[0]
-        delta_y = self.uav_local_pose.pose.position.y - setpoint[1]
-        delta_z = self.uav_local_pose.pose.position.z - setpoint[2]
-        error = np.sqrt(np.power(delta_x,2) + np.power(delta_y,2) + np.power(delta_z,2))
+        self.delta_x = self.uav_local_pose.pose.position.x - setpoint[0]
+        self.delta_y = self.uav_local_pose.pose.position.y - setpoint[1]
+        self.delta_z = self.uav_local_pose.pose.position.z - setpoint[2]
+        error = np.sqrt(np.power(self.delta_x,2) + np.power(self.delta_y,2) + np.power(self.delta_z,2))
 
         if error < threshold:
             return True
@@ -203,6 +211,7 @@ class autonomous_flight():
         x = self.uav_home_pose.pose.position.x
         y = self.uav_home_pose.pose.position.y
 
+        """
         #Init data textfile
         data = Path('../../../../data/aruco_pose_estimation_test/data.txt')
         if not data.is_file:
@@ -212,6 +221,8 @@ class autonomous_flight():
         else:
             data = open('../../../../data/aruco_pose_estimation_test/data.txt','w+')
             data.close()
+
+        """
 
         #Initialize waypoints 
         waypoints = []
@@ -316,12 +327,26 @@ class autonomous_flight():
         self.pub_use_bottom_cam.publish(True)
         self.pub_change_aruco_board.publish(True)
 
-        #Route to charging station
+        #Route to charging station (Here three different routes have been specified)
         to_charging_station = mavlink_lora_aruco()
-        to_charging_station.id = [1,7,13,19,25,31,37,43,49,55,61,67,73,79]
-        to_charging_station.moves = ['','f','f','f','f','f','f','f','l','l','l','l','l','l']
-        to_charging_station.yaw = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         
+        """
+        to_charging_station.id = [1,7,13,19,25,31,37,43]
+        to_charging_station.moves = ['','f','f','f','f','f','f','f']
+        to_charging_station.yaw = [0, 0, 0, 0, 0, 0, 0, 0,]   
+        
+        """
+        to_charging_station.id = [1,7,13,19,25,49,55,61,67,73,79,85]
+        to_charging_station.moves = ['','f','f','f','f','l','l','l','l','f','f','f']
+        to_charging_station.yaw = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        
+        
+        """
+        to_charging_station.id = [1,7,13,19,25,91,97,103,109,115,121,127]
+        to_charging_station.moves = ['','f','f','f','f','r','r','r','r','f','f','f']
+        to_charging_station.yaw = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        """
+
         #Route back to the world
         back_to_world = mavlink_lora_aruco()
         back_to_world.id = to_charging_station.id[::-1]
@@ -340,16 +365,16 @@ class autonomous_flight():
         print(back_to_world.moves)
         print(back_to_world.id)
         
-        """  
+         
         self.pub_aruco_ids.publish(to_charging_station)
         waypoints = self.generate_route(to_charging_station.moves, alt=1.5)
         waypoints_to_complete = len(waypoints)
 
         """
-        
         self.pub_aruco_ids.publish(back_to_world)
         waypoints = self.generate_route(back_to_world.moves, alt=1.5)
         waypoints_to_complete = len(waypoints)
+        """
 
         """
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
@@ -374,6 +399,10 @@ class autonomous_flight():
         while not self.aruco_board_found:
             pass
 
+        #See elapsed time
+        start = timer()
+        time_sec = 0.0
+
         #wait until waypoint reached
         while True:
 
@@ -382,20 +411,32 @@ class autonomous_flight():
             new_pose.pose.position.x = waypoint[0]
             new_pose.pose.position.y = waypoint[1]
             new_pose.pose.position.z = waypoint[2]
-            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(90),'rxyz'))       
+            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0),'rxyz'))       
             
             while True:
-                if not len(waypoints):
-                    if self.waypoint_check(setpoint=[waypoint[0], waypoint[1], waypoint[2]], threshold = 0.25):
-                        break
-                else:
-                    if self.next_board_found:
-                        waypoints.pop(0)
-                        self.next_board_found = False
-                        break
+
+                #start = timer()
+                
+                #Write pose error
+                #self.write_pose_error(start,waypoint)
+
+                #if not len(waypoints):
+                #self.waypoint_check(setpoint=[waypoint[0], waypoint[1], waypoint[2]], threshold = 0.25)
+                #        break
+                #else:
+                
+                if self.next_board_found:
+                    waypoints.pop(0)
+                    self.next_board_found = False
+                    break
 
                 self.pub_msg(new_pose, self.pub_local_pose)
 
+                time_sec = timer()-start
+
+                self.write_pose_error(time_sec, waypoint)
+            
+            
             self.pub_change_aruco_board.publish(True)
             
             if not len(waypoints):
@@ -407,6 +448,61 @@ class autonomous_flight():
         rospy.loginfo('Autonomous_flight: Gps to vision test complete')
         self.set_state('loiter')
 
+    def hold_vision_pose_test(self):
+
+        #Enable aruco detection, cam use and start index board 
+        self.pub_enable_aruco_detection.publish(True)
+        self.pub_use_bottom_cam.publish(True)
+        #self.pub_change_aruco_board.publish(True)
+
+        """
+        #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
+        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.2, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.2, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.2, 5)
+
+        self.flight_mode.set_param('MC_ROLLRATE_MAX', 45.0, 5)
+        self.flight_mode.set_param('MC_PITCHRATE_MAX', 45.0, 5)
+        self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
+
+        """
+        
+        alt_ = 1.5
+        self.drone_takeoff(alt = alt_)
+
+        self.set_state('hold_vision_pose_test')
+        rospy.loginfo('Autonomous_flight: Hold vision pose test startet')
+
+        self.flight_mode.set_param('EKF2_AID_MASK', 24, 5)
+        self.flight_mode.set_param('EKF2_HGT_MODE', 3, 5)
+        self.flight_mode.set_param('EKF2_EV_DELAY', 50., 5)
+        
+        while not self.aruco_board_found:
+            pass
+
+        #See elapsed time
+        start = timer()
+        time_sec = 0.0
+
+        #wait until waypoint reached
+        while time_sec <80:
+
+            new_pose = PoseStamped()
+            new_pose.pose.position.x = 0.
+            new_pose.pose.position.y = 0.
+            new_pose.pose.position.z = alt_
+            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(-90),'rxyz'))       
+            
+            self.pub_msg(new_pose, self.pub_local_pose)
+            time_sec = timer()-start
+            self.write_pose_error(time_sec, [new_pose.pose.position.x, new_pose.pose.position.y, new_pose.pose.position.z])
+        
+        self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
+        self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
+            
+        rospy.loginfo('Autonomous_flight: Hold vision pose test complete')
+        self.set_state('loiter')
+    
     #Helper functions
     def generate_route(self, moves, alt):
     
@@ -444,8 +540,44 @@ class autonomous_flight():
                 self.aruco_pose_estimation_test()
             elif self.uav_state == 'gps_to_vision_test': 
                 self.gps_to_vision_test()
-
+            elif self.uav_state == 'hold_vision_pose_test': 
+                self.hold_vision_pose_test()
             self.rate.sleep()
+
+    def write_pose_error(self, time, setpoint):
+        
+        #Write data to file for analyzing 
+        data = open('../../../../data/gps_vision_pose_error/data.txt','a')
+        
+        x = self.uav_local_pose.pose.position.x
+        y = self.uav_local_pose.pose.position.y
+        z = self.uav_local_pose.pose.position.z
+        
+        data.write(str(x) + " " + str(setpoint[0]) + " " + str(y) + " " + str(setpoint[1]) + " " + str(z) + " " + str(setpoint[2]) + " " + str(time))
+        data.write('\n')
+        data.close()
+
+    def init_data_files(self):
+        
+        #Init data textfile for aruco pose etsimation error
+        data = Path('../../../../data/aruco_pose_estimation_test/data.txt')
+        if not data.is_file:
+            data = open('../../../../data/aruco_pose_estimation_test/data.txt','r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open('../../../../data/aruco_pose_estimation_test/data.txt','w+')
+            data.close()
+
+        #Init data textfile for gps to vision navigation pose error
+        data = Path('../../../../data/gps_vision_pose_error/data.txt')
+        if not data.is_file:
+            data = open('../../../../data/gps_vision_pose_error/data.txt','r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open('../../../../data/gps_vision_pose_error/data.txt','w+')
+            data.close()
 
 if __name__ == "__main__":
     af = autonomous_flight()

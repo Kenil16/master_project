@@ -108,6 +108,9 @@ class drone_control():
         if command == '2':
             self.set_state('gps_to_vision_test')
 
+        if command == '3':
+            self.set_state('hold_vision_pose_test')
+    
     def message_control(self):
 
         if not self.uav_state == 'idle':
@@ -131,6 +134,11 @@ class drone_control():
                 self.pub_msg(output_msg, self.pub_local_pose)
             
             if self.uav_state == 'gps_to_vision_test':
+                output_msg = self.autonomous_flight_pose_msg
+                self.pub_msg(output_msg, self.pub_local_pose)
+                self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
+            
+            if self.uav_state == 'hold_vision_pose_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
                 self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)

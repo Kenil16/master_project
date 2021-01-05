@@ -29,7 +29,7 @@ class marker_detection:
         self.graphics = graphics_plot()
 
         #Init data test plotting
-        self.plot_data = False
+        self.plot_data = True
         self.plot_aruco_pos_x = []
         self.plot_aruco_pos_y = []
         self.plot_aruco_pos_z = []
@@ -38,14 +38,14 @@ class marker_detection:
         self.plot_aruco_pos_kf_y = []
         self.plot_aruco_pos_kf_z = []
 
-        self.cycle_time = (1./20.)
+        self.cycle_time = (1./40.)
         self.plot_timer = int(((10)/self.cycle_time)) #Set to run 10 seconds before plot
 
         self.plot_time = []
 
         self.enable_aruco_detection = False
-        self.draw_markers = True
-        self.draw_marker_axis = True
+        self.draw_markers = False
+        self.draw_marker_axis = False
         self.aruco_board_found = False
 
         self.bottom_img = None 
@@ -267,9 +267,9 @@ class marker_detection:
         self.kf_pitch.get_measurement(np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
         self.kf_yaw.get_measurement(np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
          
-        self.aruco_pose.pose.position.x = 1*(self.kf_x.tracker.x[0])# + self.index #
-        self.aruco_pose.pose.position.y = 1*(self.kf_y.tracker.x[0]) #-
-        self.aruco_pose.pose.position.z = 1*(self.kf_z.tracker.x[0]) #-
+        self.aruco_pose.pose.position.x = T_drone_marker[0] + self.offset_x #self.kf_x.tracker.x[0])
+        self.aruco_pose.pose.position.y = T_drone_marker[1] + self.offset_y#self.kf_y.tracker.x[0])
+        self.aruco_pose.pose.position.z = T_drone_marker[2] + self.offset_z#self.kf_z.tracker.x[0])
 
         #To orient drone towards markers from to different configurations 
         if cam == 'bottom':
@@ -285,12 +285,12 @@ class marker_detection:
             
             self.plot_timer -= 1
 
-            x = T_drone_marker[0][3]
-            y = T_drone_marker[1][3]
-            z = T_drone_marker[2][3]
-            kf_x = self.kf_x.tracker.x[0]
-            kf_y = self.kf_y.tracker.x[0]
-            kf_z = self.kf_z.tracker.x[0]
+            x = T_drone_marker[0][0]
+            y = T_drone_marker[1][0]
+            z = T_drone_marker[2][0]
+            kf_x = self.kf_x.tracker.x[0][0]
+            kf_y = self.kf_y.tracker.x[0][0]
+            kf_z = self.kf_z.tracker.x[0][0]
 
             self.write_aruco_pos(x, y, z, kf_x, kf_y, kf_z, self.time)
             self.time = self.time + self.cycle_time
@@ -351,11 +351,11 @@ class marker_detection:
             elif move == 'r':
                 self.offset_y -= 1
             
-            print(id_)
             if self.use_bottom_cam:
                 self.aruco_board_bottom = cv2.aruco.GridBoard_create(markersX=3, markersY=2, markerLength=0.1, markerSeparation=0.02, dictionary=self.dictionary,firstMarker=id_)
             elif self.change_aruco_board:
                 self.aruco_board_front = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.08, dictionary=self.dictionary,firstMarker=id_)
+
 
         #Use either bottom or front cam
         if self.use_bottom_cam:
