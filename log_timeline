@@ -56,4 +56,7 @@ Todo:
 	* Remember to also make a small function to calculate the wanted angle from the giving movements.
 
 05/01/2021:
-Final first iteration of the simulation map has been completed. Here a 3d map with a one way opening has been made where the road branches in 3 different directions. It has been tested in all directions and it works quite nice. However, the drone has been found to be quite unstable in keeping its pos in the x and y direction when hovering above a board. This can be due to either a bad chosen PID parameters but more likely the estimated pose estimation from aruco board estimation. A bad camera calibration is not posible because the distortion parameters for the camera have been inizialied ti 0. 
+Final first iteration of the simulation map has been completed. Here a 3d map with a one way opening has been made where the road branches in 3 different directions. It has been tested in all directions and it works quite nice. However, the drone has been found to be quite unstable in keeping its pos in the x and y direction when hovering above a board. This can be due to either a bad chosen PID parameters but more likely the estimated pose estimation from aruco board estimation. A bad camera calibration is not posible because the distortion parameters for the camera have been inizialied ti 0.
+
+06/01/2020:
+PID for position has been implemented. However, some issues with the GPS to vision test where it does not change pos has been detected. Tests with the resolution of the cam has been made. Higher resolution yeilds better aruco detection but lower FPS which seems to make the pose control unstable. 

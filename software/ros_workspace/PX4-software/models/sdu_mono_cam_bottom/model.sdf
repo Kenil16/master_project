@@ -72,9 +72,9 @@
             <updateRate>30.0</updateRate>
             <cameraName>mono_cam_bottom</cameraName>
             <frameName>/robot_camera_link</frameName>
-            <CxPrime>480.5</CxPrime> <!--320.5-->
-            <Cx>720.5</Cx> <!--320.5-->
-            <Cy>480.5</Cy> <!--240.5-->
+            <CxPrime>480.5</CxPrime> <!--480.5-->
+            <Cx>480.5</Cx> <!--720.5-->
+            <Cy>240.5</Cy> <!--480.5-->
             <hackBaseline>0</hackBaseline>
             <focalLength>623.680552</focalLength>
             <distortionK1>0.0</distortionK1>

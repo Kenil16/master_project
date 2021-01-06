@@ -49,14 +49,14 @@
               <near>0.1</near>
               <far>100</far>
             </clip>
-            <lens>
+            <lens><!--
               <type>custom</type>
               <custom_function>
                 <c1>1.05</c1>
                 <c2>4</c2>
                 <f>1</f>
                 <fun>tan</fun>
-              </custom_function>
+              </custom_function>-->
               <scale_to_hfov>1</scale_to_hfov>
               <cutoff_angle>3.1415</cutoff_angle>
               <env_texture_size>1080</env_texture_size>

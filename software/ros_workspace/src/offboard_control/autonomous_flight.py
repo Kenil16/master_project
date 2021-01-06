@@ -26,10 +26,10 @@ class autonomous_flight():
         self.flight_mode = flight_modes()
         
         #Init PID controllers
-        self.pid_x = PID(1.,1.,1.,1,-1)
-        self.pid_y = PID(1.,1.,1.,1,-1)
-        self.pid_z = PID(1.,1.,1.,1,-1)
-        self.pid_yaw = PID(1.,1.,1.,1,-1)
+        self.pid_x = PID(0.1, 0.0, 1.7, 50, -50) #(0.8, 0.2, 1.3, 50, -50)
+        self.pid_y = PID(0.1, 0.0, 1.7, 50, -50) #(0.8, 0.2, 1.3, 50, -50)
+        self.pid_z = PID(1.0, 0.05, 1.0, 50, -50) # (0.5, 0.5, 0.5, 3, -3)
+        #self.pid_yaw = PID(1.,1.,1.,1,-1)
 
         #Initialize objects for uav commands and status 
         self.uav_local_pose = PoseStamped()
@@ -408,13 +408,16 @@ class autonomous_flight():
 
             waypoint = waypoints[0]
             new_pose = PoseStamped()
-            new_pose.pose.position.x = waypoint[0]
-            new_pose.pose.position.y = waypoint[1]
+            #new_pose.pose.position.x = waypoint[0]
+            #new_pose.pose.position.y = waypoint[1]
             new_pose.pose.position.z = waypoint[2]
+            
             new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0),'rxyz'))       
             
             while True:
 
+                new_pose.pose.position.x = self.pid_x.update_PID(self.uav_local_pose.pose.position.x-waypoint[0])
+                new_pose.pose.position.y = self.pid_y.update_PID(self.uav_local_pose.pose.position.y-waypoint[1])
                 #start = timer()
                 
                 #Write pose error
@@ -488,11 +491,11 @@ class autonomous_flight():
         while time_sec <80:
 
             new_pose = PoseStamped()
-            new_pose.pose.position.x = 0.
-            new_pose.pose.position.y = 0.
-            new_pose.pose.position.z = alt_
-            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(-90),'rxyz'))       
-            
+            new_pose.pose.position.x = self.pid_x.update_PID(self.uav_local_pose.pose.position.x)#+0.10
+            new_pose.pose.position.y = self.pid_y.update_PID(self.uav_local_pose.pose.position.y)#+0.5
+            new_pose.pose.position.z = 1.5 #self.pid_z.update_PID(self.uav_local_pose.pose.position.z-1.5)
+            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(-90),'rxyz'))
+
             self.pub_msg(new_pose, self.pub_local_pose)
             time_sec = timer()-start
             self.write_pose_error(time_sec, [new_pose.pose.position.x, new_pose.pose.position.y, new_pose.pose.position.z])

@@ -29,7 +29,7 @@ class marker_detection:
         self.graphics = graphics_plot()
 
         #Init data test plotting
-        self.plot_data = True
+        self.plot_data = False
         self.plot_aruco_pos_x = []
         self.plot_aruco_pos_y = []
         self.plot_aruco_pos_z = []
@@ -39,13 +39,13 @@ class marker_detection:
         self.plot_aruco_pos_kf_z = []
 
         self.cycle_time = (1./40.)
-        self.plot_timer = int(((10)/self.cycle_time)) #Set to run 10 seconds before plot
+        self.plot_timer = int(((20)/self.cycle_time)) #Set to run 10 seconds before plot
 
         self.plot_time = []
 
         self.enable_aruco_detection = False
-        self.draw_markers = False
-        self.draw_marker_axis = False
+        self.draw_markers = True
+        self.draw_marker_axis = True
         self.aruco_board_found = False
 
         self.bottom_img = None 
@@ -71,6 +71,8 @@ class marker_detection:
         self.kf_pitch = kalman_filter(self.cycle_time)
         self.kf_yaw = kalman_filter(self.cycle_time)
 
+
+        self.kf_pos = kalman_filter(self.cycle_time)
         self.time = 0.0
         
         #Transformation matrix from drone to camera
@@ -122,7 +124,7 @@ class marker_detection:
         self.parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         
         #Bottom camera
-        self.camera_matrix_bottom = np.array([[277.191356, 0, (320/2)], [0, 277.191356, (240/2)], [0, 0, 1]], dtype=np.float)
+        self.camera_matrix_bottom = np.array([[623.680552, 0, (720/2)], [0, 623.680552, (480/2)], [0, 0, 1]], dtype=np.float)
         self.distortion_coefficients_bottom = np.array([[0, 0, 0, 0]], dtype=np.float)
         #Front camera
         self.camera_matrix_front = np.array([[623.680552, 0, (720/2)], [0, 623.680552, (480/2)], [0, 0, 1]], dtype=np.float)
@@ -161,7 +163,7 @@ class marker_detection:
        
         #Load in the marker image
         self.aruco_board_found = False
-        
+
         if img == None:
             return
         try:
@@ -259,6 +261,7 @@ class marker_detection:
         #euler = euler_from_quaternion(pose.pose.orientation,'rxyz')
         euler = euler_from_matrix(r,'rxyz')
 
+        """
         self.kf_x.get_measurement(T_drone_marker[0] + self.offset_x)
         self.kf_y.get_measurement(T_drone_marker[1] + self.offset_y)
         self.kf_z.get_measurement(T_drone_marker[2] + self.offset_z)
@@ -266,16 +269,20 @@ class marker_detection:
         self.kf_roll.get_measurement(np.mod((euler[0]+np.pi),2*np.pi) - np.pi)
         self.kf_pitch.get_measurement(np.mod((euler[1]+np.pi),2*np.pi) - np.pi)
         self.kf_yaw.get_measurement(np.mod((euler[2]+np.pi),2*np.pi) - np.pi) 
-         
-        self.aruco_pose.pose.position.x = T_drone_marker[0] + self.offset_x #self.kf_x.tracker.x[0])
-        self.aruco_pose.pose.position.y = T_drone_marker[1] + self.offset_y#self.kf_y.tracker.x[0])
-        self.aruco_pose.pose.position.z = T_drone_marker[2] + self.offset_z#self.kf_z.tracker.x[0])
+        """
+
+        self.kf_pos.get_measurement([T_drone_marker[0] + self.offset_x, T_drone_marker[1] + self.offset_y, T_drone_marker[2] + self.offset_z])
+
+        #print(self.kf_pos.tracker.x)
+        self.aruco_pose.pose.position.x = self.kf_pos.tracker.x[0][0]
+        self.aruco_pose.pose.position.y = self.kf_pos.tracker.x[3][0]
+        self.aruco_pose.pose.position.z = self.kf_pos.tracker.x[6][0]
 
         #To orient drone towards markers from to different configurations 
         if cam == 'bottom':
-            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, -self.kf_yaw.tracker.x[0],'rxyz'))
+            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, -np.mod((euler[2]+np.pi),2*np.pi) - np.pi,'rxyz'))
         else:
-            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, (-self.kf_pitch.tracker.x[0]),'rxyz'))
+            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, (-np.mod((euler[2]+np.pi),2*np.pi) - np.pi),'rxyz'))
         
         #print("Roll: " + str(self.kf_roll.tracker.x[0]) + " Pitch: " + str(self.kf_pitch.tracker.x[0]+np.pi/2) + " Yaw: " + str(self.kf_yaw.tracker.x[0]))
         #print("Roll: " + str(self.kf_roll.tracker.x[0]) + " Pitch: " + str(self.kf_pitch.tracker.x[0]) + " Yaw: " + str(self.kf_yaw.tracker.x[0]))
@@ -288,9 +295,9 @@ class marker_detection:
             x = T_drone_marker[0][0]
             y = T_drone_marker[1][0]
             z = T_drone_marker[2][0]
-            kf_x = self.kf_x.tracker.x[0][0]
-            kf_y = self.kf_y.tracker.x[0][0]
-            kf_z = self.kf_z.tracker.x[0][0]
+            kf_x = self.kf_pos.tracker.x[0][0]
+            kf_y = self.kf_pos.tracker.x[3][0]
+            kf_z = self.kf_pos.tracker.x[6][0]
 
             self.write_aruco_pos(x, y, z, kf_x, kf_y, kf_z, self.time)
             self.time = self.time + self.cycle_time
@@ -359,7 +366,7 @@ class marker_detection:
 
         #Use either bottom or front cam
         if self.use_bottom_cam:
-            self.find_aruco_markers(self.bottom_img, self.aruco_board_bottom, self.camera_matrix_front, self.distortion_coefficients_bottom)
+            self.find_aruco_markers(self.bottom_img, self.aruco_board_bottom, self.camera_matrix_bottom, self.distortion_coefficients_bottom)
             self.estimate_marker_pose('bottom')
         else:
             self.find_aruco_markers(self.front_img, self.aruco_board_front, self.camera_matrix_front, self.distortion_coefficients_front)
