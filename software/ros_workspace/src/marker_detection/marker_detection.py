@@ -19,6 +19,8 @@ from mavlink_msgs.msg import mavlink_lora_aruco
 from tracking import*
 from graphics_plot import graphics_plot
 
+import time
+
 class marker_detection:
 
     def __init__(self):
@@ -29,7 +31,7 @@ class marker_detection:
         self.graphics = graphics_plot()
 
         #Init data test plotting
-        self.plot_data = False
+        self.plot_data = True
         self.plot_aruco_pos_x = []
         self.plot_aruco_pos_y = []
         self.plot_aruco_pos_z = []
@@ -52,13 +54,13 @@ class marker_detection:
         self.front_img = None
 
         #Init data textfile
-        data = Path('../../../../data/aruco_pos_kf/data.txt')
+        data = Path('../../../../data/estimate_aruco_vs_kf_posedata.txt')
         if not data.is_file:
-            data = open('../../../../data/aruco_pos_kf/data.txt','r+')
+            data = open('../../../../data/estimate_aruco_vs_kf_pose/data.txt','r+')
             data.truncate(0)
             data.close
         else:
-            data = open('../../../../data/aruco_pos_kf/data.txt','w+')
+            data = open('../../../../data/estimate_aruco_vs_kf_pose/data.txt','w+')
             data.close()
 
         
@@ -76,7 +78,7 @@ class marker_detection:
         self.time = 0.0
         
         #Transformation matrix from drone to camera
-        self.camera_config_front = euler_matrix(-np.pi/2, np.pi/2, 0, 'rxyz')
+        self.camera_config_front = euler_matrix(np.pi/2,-np.pi/2, 0, 'rxyz')
         self.camera_config_bottom = euler_matrix(np.pi, np.pi, 0, 'rxyz') #180, 0, 90
 
         #Local drone pose
@@ -84,7 +86,7 @@ class marker_detection:
         self.aruco_pose = PoseStamped()
         self.aruco_pose_without_kf = PoseStamped()
 
-        self.use_bottom_cam = True
+        self.use_bottom_cam = False
         self.change_aruco_board = False
         self.find_next_board = False
         
@@ -246,16 +248,20 @@ class marker_detection:
         r = quaternion_matrix(pose.pose.orientation)
         T_camera_marker = np.linalg.inv(r)
         t = np.array([pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, 1])
-        t = -np.dot(t,T_camera_marker) #-
+        t = -np.dot(T_camera_marker,t) #-
         #print(str(t[0]) +" "+ str(t[1]) +" "+ str(t[2]))
         T_camera_marker[0][3] =  t[0]
         T_camera_marker[1][3] =  t[1]
         T_camera_marker[2][3] =  t[2]
+        print(euler_from_matrix(np.linalg.inv(T_drone_camera),'rxyz'))
 
         #Transformation matrix from drone to camera
         #euler = euler_from_matrix(T_camera_marker,'rxyz')
         #print(euler)
-        T_drone_marker = np.dot(np.transpose(t),self.camera_config_bottom)
+        
+        #T_drone_marker = np.dot(np.transpose(t), T_drone_camera)
+        T_drone_marker = np.dot(T_drone_camera ,t)
+        
         #print(str(T_drone_marker[0]) + " " + str(T_drone_marker[1]) + " " + str(T_drone_marker[2]))
         #Update KF
         #euler = euler_from_quaternion(pose.pose.orientation,'rxyz')
@@ -302,12 +308,12 @@ class marker_detection:
             self.write_aruco_pos(x, y, z, kf_x, kf_y, kf_z, self.time)
             self.time = self.time + self.cycle_time
 
-        #print "Ori: {} x: {} y: {} z: {} \n".format(euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
+        print "Ori: {} x: {} y: {} z: {} \n".format(euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
         self.aruco_marker_found_pub.publish(True)
 
     def write_aruco_pos(self, x, y, z, kf_x, kf_y, kf_z, time):
         
-        data = open('../../../../data/aruco_pos_kf/data.txt','a')
+        data = open('../../../../data/estimate_aruco_vs_kf_pose/data.txt','a')
         data.write(str(x) + " " + str(y) + " " + str(z) + " " + str(kf_x) + " " + str(kf_y) + " " + str(kf_z) + " " + str(time))
         data.write('\n')
         data.close()
@@ -330,6 +336,9 @@ class marker_detection:
         return np.array([roll, pitch, yaw])
     
     def timer_callback(self,event):
+
+        #Measure frames per second FPS
+        #start_time = time.time()
 
         #Change ArUco board configuration from either bottom or front cam
         if self.change_aruco_board and len(self.aruco_ids) > 0:
@@ -371,7 +380,8 @@ class marker_detection:
         else:
             self.find_aruco_markers(self.front_img, self.aruco_board_front, self.camera_matrix_front, self.distortion_coefficients_front)
             self.estimate_marker_pose('front')
-
+            
+        #print("FPS: ", 1.0 / (time.time() - start_time))
  
 if __name__ == "__main__":
     node = marker_detection()

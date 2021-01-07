@@ -49,14 +49,14 @@
               <near>0.1</near>
               <far>100</far>
             </clip>
-            <lens><!--
+            <lens>
               <type>custom</type>
               <custom_function>
                 <c1>1.05</c1>
                 <c2>4</c2>
                 <f>1</f>
                 <fun>tan</fun>
-              </custom_function>-->
+              </custom_function>
               <scale_to_hfov>1</scale_to_hfov>
               <cutoff_angle>3.1415</cutoff_angle>
               <env_texture_size>1080</env_texture_size>
@@ -72,9 +72,9 @@
             <updateRate>30.0</updateRate>
             <cameraName>mono_cam_front</cameraName>
             <frameName>/robot_camera_link</frameName>
-            <CxPrime>720.5</CxPrime> <!--320.5-->
-            <Cx>720.5</Cx> <!--320.5-->
-            <Cy>480.5</Cy> <!--240.5-->
+            <CxPrime>360.5</CxPrime> <!--320.5-->
+            <Cx>360.5</Cx> <!--320.5-->
+            <Cy>240.5</Cy> <!--240.5-->
             <hackBaseline>0</hackBaseline>
             <focalLength>623.680552</focalLength>
             <distortionK1>0.0</distortionK1>

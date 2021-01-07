@@ -85,6 +85,7 @@ class kalman_filter:
             self.tracker.predict()
             self.tracker.update(data)
             
+            """
             #Adaptive filtering
             y, S = self.tracker.y, self.tracker.S
             eps = np.dot(y.T, np.linalg.inv(S)).dot(y)
@@ -94,6 +95,7 @@ class kalman_filter:
             elif self.count > 0:
                 self.tracker.Q /= self.Q_scale_factor
                 self.count -= 1
+            """
 
 if __name__ == "__main__":
 

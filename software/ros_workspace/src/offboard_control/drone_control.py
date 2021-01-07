@@ -103,13 +103,13 @@ class drone_control():
 
         #Execute a number of mission tests
         if command == '1':
-            self.set_state('aruco_pose_estimation_test')
+            self.set_state('estimate_aruco_pose_front_test')
 
         if command == '2':
-            self.set_state('gps_to_vision_test')
+            self.set_state('follow_aruco_pose_bottom_test')
 
         if command == '3':
-            self.set_state('hold_vision_pose_test')
+            self.set_state('hold_aruco_pose_test')
     
     def message_control(self):
 
@@ -129,16 +129,16 @@ class drone_control():
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
             
-            if self.uav_state == 'aruco_pose_estimation_test':
+            if self.uav_state == 'estimate_aruco_pose_front_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
             
-            if self.uav_state == 'gps_to_vision_test':
+            if self.uav_state == 'follow_aruco_pose_bottom_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
                 self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
             
-            if self.uav_state == 'hold_vision_pose_test':
+            if self.uav_state == 'hold_aruco_pose_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
                 self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)

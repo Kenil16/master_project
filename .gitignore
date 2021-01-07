@@ -18,7 +18,7 @@ __pycache__
 *.pyc
 *.swp
 *.pdf
-!.png
+#!.png
 
 #Include PDFs in litterature
 !literature/*

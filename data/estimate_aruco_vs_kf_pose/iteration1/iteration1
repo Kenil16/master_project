@@ -1,0 +1,11 @@
+Appraoch
+This test was made to invastigate the precision of the aruco marker pose estimation. This was utilised by using the bottom camera 
+of the drone from a altitude of 1, 1.5 and 3 meters. Here a resolution of 720*480 was used. Another test with an altitude of 
+3 meters and 1280*720 was made to see the impact the reolution has in regard to the pose estimation of the marker. 
+
+Analysis
+The pose estimation was found to diviate auite a lot when the marker is far way. An altitude of 1-1.5 was proved to be enought
+to have a decent pose estimation with an aruco board of 6 markers of width 0.1 and marker seperation of 0.02 meters. Also the 
+resolution of the camera was important. The higther resolution the better pose estimation. But this comes with the expends of a lower FPS 
+(frame per second) rate. With a 720*480 the FPS was approximatly 30-40 and 1280*720 approximatly 15-25. This can be seen in the images and 
+grapths.   

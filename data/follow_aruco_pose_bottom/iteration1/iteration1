@@ -1,0 +1,12 @@
+Approach
+This test was made to test the initial idea of following the aruco marker pose by utilising the bottom camera. 
+Here the default P position controller and PID velocity controller from PX4 has been used with default values. 
+The drone has been regualrized with a maximum velocity of 0.2 meters in the xy direction to avoid unstable flight
+and a smooth transition between markers.
+
+Analysis
+The drone follows the markers nicely without moving away from the target location. From the images it can be seen 
+that the drone has quite a big error in the position for both x, y and z coordinate. Improvements has to be made 
+to reduce this error. Also the flight time can be seen to be high. This is because the maximum velocity has been 
+set to 0.2 m/s to avoid instabilitis. However, this also has to be improved to reduce the flight time significantly. 
+
