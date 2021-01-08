@@ -332,7 +332,7 @@ class autonomous_flight():
         """
         to_charging_station.id = [1,7,13,19,25,91,97,103,109,115,121,127]
         to_charging_station.moves = ['','f','f','f','f','r','r','r','r','f','f','f']
-        to_charging_station.yaw = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        to_charging_station.yaw = [0, 0, 0, 0, 0, 90, 90, 90, 90, 0, 0, 0]
         
 
         #Route back to the world
@@ -366,15 +366,15 @@ class autonomous_flight():
 
         
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
-        """    
-        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.4, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.4, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.4, 5)
+        
+        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.3, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.3, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.3, 5)
     
         self.flight_mode.set_param('MC_ROLLRATE_MAX', 45.0, 5)
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 45.0, 5)
-        self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
-        """
+        self.flight_mode.set_param('MC_YAWRATE_MAX', 20.0, 5)
+        
 
         self.drone_takeoff(alt = 1.5)
 
@@ -402,11 +402,15 @@ class autonomous_flight():
             new_pose.pose.position.y = waypoint[1]
             new_pose.pose.position.z = waypoint[2]
             
-            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0),'rxyz'))       
+            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(waypoint[3]),'rxyz'))       
             
             while True:
 
-                if self.next_board_found:
+                x = self.uav_local_pose.pose.position.x
+                y = self.uav_local_pose.pose.position.y
+                z = self.uav_local_pose.pose.position.z
+                
+                if self.next_board_found and self.waypoint_check(setpoint = [x, y,z], threshold= 0.1):
                     waypoints.pop(0)
                     self.next_board_found = False
                     break
@@ -414,10 +418,6 @@ class autonomous_flight():
                 self.pub_msg(new_pose, self.pub_local_pose)
                 
                 time_sec = timer()-start
-                
-                x = self.uav_local_pose.pose.position.x
-                y = self.uav_local_pose.pose.position.y
-                z = self.uav_local_pose.pose.position.z
                 
                 data.write(str(x) + " " + str(new_pose.pose.position.x) + " " + str(y) + " " + str(new_pose.pose.position.y) + " " + str(z) + " " + str(new_pose.pose.position.z) + " " + str(time_sec))
                 data.write('\n')
@@ -442,19 +442,19 @@ class autonomous_flight():
 
         
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
-        """
-        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.2, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.2, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.2, 5)
-
         
+        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.5, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.5, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.5, 5)
+
+        """
         self.flight_mode.set_param('MC_ROLLRATE_MAX', 45.0, 5)
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 45.0, 5)
         self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
 
         """
         
-        alt_ = 2
+        alt_ = 1.5
         self.drone_takeoff(alt = alt_)
 
         self.set_state('hold_aruco_pose_test')

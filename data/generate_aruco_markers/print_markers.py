@@ -13,19 +13,19 @@ class print_markers:
         #The scale factor in Blender for x and why are approx 0.86 and 0.43 m
 
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
-        self.markers_x = 3
-        self.markers_y = 2
+        self.markers_x = 25
+        self.markers_y = 25
         self.marker_separation_meters = 0.02
-        self.marker_length_meters = 0.1
-        self.marker_length = 377.95275591 #Approx 0.1 meters in pixels 
-        self.marker_separation = 75.590551181 #Approx 0.08 meters in pixels
-        self.first_marker = 91
+        self.marker_length_meters = 0.2
+        self.marker_length = 755.90551181 #Approx 0.2 meters in pixels 
+        self.marker_separation = 377.95275591 #Approx 0.1 meters in pixels
+        self.first_marker = 200
         self.aruco_board = cv2.board = aruco.GridBoard_create(self.markers_x, self.markers_y, self.marker_length, self.marker_separation, self.dictionary, firstMarker = self.first_marker)
 
     def print_aruco_board(self):
         
         image_width = self.markers_x*(self.marker_length + self.marker_separation)
-        image_height = self.markers_y*(self.marker_length + self.marker_separation) - 27 
+        image_height = self.markers_y*(self.marker_length + self.marker_separation) 
         
         length_x = self.markers_x*(self.marker_length_meters) + self.markers_x*(self.marker_separation_meters) - self.marker_separation_meters
         length_y = self.markers_y*(self.marker_length_meters) + self.markers_y*(self.marker_separation_meters) - self.marker_separation_meters 
@@ -41,20 +41,20 @@ class print_markers:
 
     def print_multible_boards(self):
         
-        first_marker = 1
-        for _ in range(30):
+        first_marker = 200
+        for _ in range(25*25):
             
             self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
-            self.markers_x = 3
-            self.markers_y = 2
+            self.markers_x = 1
+            self.markers_y = 1
             self.marker_separation_meters = 0.02
-            self.marker_length_meters = 0.1
+            self.marker_length_meters = 0.2
             self.marker_length = 377.95275591 #Approx 0.1 meters in pixels 
             self.marker_separation = 75.590551181 #Approx 0.08 meters in pixels
             self.aruco_board = cv2.board = aruco.GridBoard_create(self.markers_x, self.markers_y, self.marker_length, self.marker_separation, self.dictionary, firstMarker = first_marker)
             
             image_width = self.markers_x*(self.marker_length + self.marker_separation)
-            image_height = self.markers_y*(self.marker_length + self.marker_separation) - 27 
+            image_height = self.markers_y*(self.marker_length + self.marker_separation)
             
             length_x = self.markers_x*(self.marker_length_meters) + self.markers_x*(self.marker_separation_meters) - self.marker_separation_meters
             length_y = self.markers_y*(self.marker_length_meters) + self.markers_y*(self.marker_separation_meters) - self.marker_separation_meters 
@@ -65,11 +65,11 @@ class print_markers:
             print("Pixels in x: " + str(image_width))
             
             img = self.aruco_board.draw((int(image_width),int(image_height)))
-            cv2.imwrite('grid_board_new_' + str(first_marker) +'.png',img)
-            first_marker += 6
+            cv2.imwrite('big_board/grid_board_new_' + str(first_marker) +'.png',img)
+            first_marker += 1
 if __name__ == "__main__":
 
     pm = print_markers()
-    #pm.print_aruco_board()
-    pm.print_multible_boards()
+    pm.print_aruco_board()
+    #pm.print_multible_boards()
 
