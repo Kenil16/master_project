@@ -119,7 +119,7 @@ class marker_detection:
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
         
-        self.aruco_board_front = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.08, dictionary=self.dictionary,firstMarker=500)
+        self.aruco_board_front = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.08, dictionary=self.dictionary,firstMarker=1)
         self.aruco_board_bottom = cv2.aruco.GridBoard_create(markersX=25, markersY=25, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=200)
         
         self.parameters = cv2.aruco.DetectorParameters_create()
@@ -189,6 +189,7 @@ class marker_detection:
 
             if retval:
 
+                """
                 #See if next aruco board is visible
                 if self.find_next_board and len(self.aruco_ids) > 0:
                     for id_ in marker_ids:
@@ -205,6 +206,7 @@ class marker_detection:
                                 self.next_board_found_pub.publish(True)
                                 break
 
+                """
                 self.aruco_board_found = True 
                 self.aruco_marker_found_pub.publish(True)
 
@@ -235,7 +237,7 @@ class marker_detection:
         T_drone_marker = np.dot(T_drone_camera ,t)
         
         #Update Kalman filter for position 
-        self.kf_pos.get_measurement([T_drone_marker[0] + self.offset_x, T_drone_marker[1] + self.offset_y, T_drone_marker[2]])
+        self.kf_pos.get_measurement([T_drone_marker[0], T_drone_marker[1], T_drone_marker[2]])
         
         #Get euler from rotation matrix
         euler = euler_from_matrix(r,'rxyz')
@@ -266,7 +268,7 @@ class marker_detection:
             self.write_aruco_pos(x, y, z, kf_x, kf_y, kf_z, self.time)
             self.time = self.time + self.cycle_time
 
-        print "Ori: {} x: {} y: {} z: {} \n".format(euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
+        #print "Ori: {} x: {} y: {} z: {} \n".format(euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
         self.aruco_marker_found_pub.publish(True)
         self.aruco_marker_pose_pub.publish(self.aruco_pose)
     
@@ -296,6 +298,7 @@ class marker_detection:
     
     def timer_callback(self,event):
 
+        """
         #Change ArUco board configuration from either bottom or front cam
         if self.change_aruco_board and len(self.aruco_ids) > 0:
 
@@ -328,6 +331,7 @@ class marker_detection:
             elif self.change_aruco_board:
                 self.aruco_board_front = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.08, dictionary=self.dictionary, firstMarker=id_)
 
+        """
 
         #Use either bottom or front cam
         if self.use_bottom_cam:

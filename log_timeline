@@ -65,4 +65,18 @@ PID for position has been implemented. However, some issues with the GPS to visi
 Test for pose estimation with bottom camera and aruco marker pose follwoing done. Camera matrix for front cam must be made correct and camera matrix for bottom cam must be understood.
 
 08/01/2021:
-The transformation matrix from drone to bottom and front camera is now fixed. The reluzation seems to be quite robust in a number of settings. The transformation matrix and hence the rotation from the bottom and front cam must be studied to be perfectly understood. It must however be because I am looking at the settings wrongly. A new model has been made where ONE big aruco board will be used for pose estimation. this will be compared to the other method where each board has its own coordinate system. 
+The transformation matrix from drone to bottom and front camera is now fixed. The reluzation seems to be quite robust in a number of settings. The transformation matrix and hence the rotation from the bottom and front cam must be studied to be perfectly understood. It must however be because I am looking at the settings wrongly. A new model has been made where ONE big aruco board will be used for pose estimation. this will be compared to the other method where each board has its own coordinate system. This concludes the first iteration of where the drone has to follow markers. This iretation has has
+been given in detail in the file initial ideas in the data section. 
+
+09/01/2021:
+Second iteration where the drone has to follows the markers is now complete. Now instaed of using each marker board as a local coordinate system, a big board is now used which has increased the pose
+estimation precision. Moreover, to accommodate for the unstable controller when the local coordinate system of the drone goes from using GPS/local optitrac coordinates to vision based estimation, the 
+horizontal and vertical speed as well as the angular velocities of the drone have been set to a minimum of 0.1. This insures that the drone does not become unstable when the transition is made e.g before the new target waypoiont is updated after the transition between local coordinate systems is performed. Futhermore, a small delay of 1 second has been used to insure the new waypoint has been published (maybe this can be neglected). 
+
+Three new final (hopefully) 3D models has been made with a full marker board, threee patterns board and one patterns board. This can be used to see if the pose estimation is decreased if the number of markers in the image is reduced. So far, the drone seems to perform very well even in the one pattern model. 
+
+The third iteration of the follow marker procedure involves better tracking of markers and speed e.g better tuning of the pose controller could be performed and testing of this.   
+
+New todos
+	1: Use the IMU data to insure the drone do not fly away if it loses track of the markers. Hence, an estimate of the local position where the IMU data is used must be made. Here, the last known 	    direction of flight could be used to make the drone fly backwards in this direction so the drone can find the markers and contiunes its flightplpan. 
+	2: The IMU data can be used to estimate the velocities. If this goes above a limit the drone must switch to using GPS or optitrac to take into account sudden errors in the pose estimation of the 		   markers.   

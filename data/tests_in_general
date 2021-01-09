@@ -1,0 +1,23 @@
+Initial ide where the drone uses markers as waypoints
+In regard to the marker pose following approach the initial idea was to make a small aruco board  of size 2*3 (six markers)
+and make them behave as a local coordinate system where the drone could shift betweem these local coordinate systems
+to be able to follow a giving predefined route. Here the target pose would be the center of the aruco board (origin) where 
+the system would shift between aruco boards everytime a new board was seen in order to be able to generate a trajectory between aruco boards.
+An add-on to this approach was to give an offset in the direction were the drone had to go e.g plus one meter if forward, -1 backwards etc. This 
+means that the drone would always move in a curtain direction with smooth movements. However, a number of issues were related to this approach 
+
+Issuies:
+	1: Everytime a shift between aruco boards were performed, the system became shortly unstable because the local coordinate system was changed.
+	   This caused a rapid change in the estimation of the acruco marker in the local coordinate system which effected the Kalman filter and yielded
+	   the controller to perform quite purly. 
+	2: To enable a stable flight, an offset was giving to the target position in the direction where the drone had to navigate. This means that the 
+	   route had to be preconfigured e.g flight (forward, yaw, aruco_id), (forward, yaw, start aruco id), (left, yaw, aruco_id) etc. This was not scalable.
+
+Gains:
+	1: Using this approach a very large path could be generated because the aruco board could be reused during flight. This is a gain of using this approach 
+	   because the aruco board dicionary of the aruco boards only got a max size of 1000 markers e.g. max dimentions of 30*30 - 40*40 in size. Ofcause the size 
+	   of the marker can be made bigger to enable flight over larger areas, but this comes with a cost of a larger altitude in order to detect the markers and 
+	   hence to make the pose estimation.
+
+Maybe this approach could used together with a big aruco board if one wants to cover a very larger area where shifts/transitions between markers are only performed
+a few number of times. 
