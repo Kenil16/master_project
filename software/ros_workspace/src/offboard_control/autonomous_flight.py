@@ -52,7 +52,7 @@ class autonomous_flight():
         self.pub_enable_aruco_detection = rospy.Publisher('/onboard/enable_aruco_detection', Bool, queue_size=1)
         self.pub_aruco_ids = rospy.Publisher('/onboard/aruco_ids', mavlink_lora_aruco, queue_size=1)
         self.pub_change_aruco_board = rospy.Publisher('/onboard/change_aruco_board', Bool, queue_size=1)
-        self.pub_use_bottom_cam= rospy.Publisher('/onboard/use_bottom_cam', Bool, queue_size=1)
+        self.pub_use_bottom_cam= rospy.Publisher('/onboard/use_bottom_camera', Bool, queue_size=1)
 
         #Subscribers
         rospy.Subscriber('/onboard/state', String, self.on_uav_state)
@@ -315,61 +315,8 @@ class autonomous_flight():
         #Enable aruco detection, cam use and start index board 
         self.pub_enable_aruco_detection.publish(True)
         self.pub_use_bottom_cam.publish(True)
-        #self.pub_change_aruco_board.publish(True)
-
-        """
-        #Route to charging station (Here three different routes have been specified)
-        to_charging_station = mavlink_lora_aruco()
         
-        
-        to_charging_station.id = [1,7,13,19,25,31,37,43]
-        to_charging_station.moves = ['','f','f','f','f','f','f','f']
-        to_charging_station.yaw = [0, 0, 0, 0, 0, 0, 0, 0,]   
-        
-        
-        
-        to_charging_station.id = [1,7,13,19,25,49,55,61,67,73,79,85]
-        to_charging_station.moves = ['','f','f','f','f','l','l','l','l','f','f','f']
-        to_charging_station.yaw = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        
-        
-        
-        to_charging_station.id = [1,7,13,19,25,91,97,103,109,115,121,127]
-        to_charging_station.moves = ['','f','f','f','f','r','r','r','r','f','f','f']
-        to_charging_station.yaw = [0, 0, 0, 0, 0, 90, 90, 90, 90, 0, 0, 0]
-        
-
-        #Route back to the world
-        back_to_world = mavlink_lora_aruco()
-        back_to_world.id = to_charging_station.id[::-1]
-        back_to_world.moves = to_charging_station.moves[::-1]
-        back_to_world.moves.insert(0,back_to_world.moves.pop()) #Get '' to start index
-        for i in range(len(back_to_world.moves)):
-            if back_to_world.moves[i] == 'f':
-                back_to_world.moves[i] = 'd'
-            elif back_to_world.moves[i] == 'd':
-                back_to_world.moves[i] = 'f'
-            elif back_to_world.moves[i] == 'l':
-                back_to_world.moves[i] = 'r'
-            elif back_to_world.moves[i] == 'r':
-                back_to_world.moves[i] = 'l'
-        
-        print(back_to_world.moves)
-        print(back_to_world.id)
-        
-         
-        self.pub_aruco_ids.publish(to_charging_station)
-        waypoints = self.generate_route(to_charging_station.moves, alt=1.5)
-        waypoints_to_complete = len(waypoints)
-
-    
-        self.pub_aruco_ids.publish(back_to_world)
-        waypoints = self.generate_route(back_to_world.moves, alt=1.5)
-        waypoints_to_complete = len(waypoints)
-        """
-
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
-        
         self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.1, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.1, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.1, 5)
@@ -470,21 +417,18 @@ class autonomous_flight():
         self.pub_enable_aruco_detection.publish(True)
         self.pub_use_bottom_cam.publish(False)
 
-        
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
         
-        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.5, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.5, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.5, 5)
+        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.1, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.1, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.1, 5)
 
-        """
-        self.flight_mode.set_param('MC_ROLLRATE_MAX', 45.0, 5)
-        self.flight_mode.set_param('MC_PITCHRATE_MAX', 45.0, 5)
-        self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
-
-        """
         
-        alt_ = 1.5
+        self.flight_mode.set_param('MC_ROLLRATE_MAX', 0.1, 5)
+        self.flight_mode.set_param('MC_PITCHRATE_MAX', 0.1, 5)
+        self.flight_mode.set_param('MC_YAWRATE_MAX', 0.1, 5)
+
+        alt_ = 2.5
         self.drone_takeoff(alt = alt_)
 
         self.set_state('hold_aruco_pose_test')
@@ -497,6 +441,28 @@ class autonomous_flight():
         while not self.aruco_board_found:
             pass
 
+        start_time = rospy.get_rostime()
+        timeout = rospy.Duration(1)
+
+        new_pose = PoseStamped()
+        new_pose.pose.position.x = -3
+        new_pose.pose.position.y = 0
+        new_pose.pose.position.z = 0
+        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0),'rxyz'))
+
+        while (rospy.get_rostime() - start_time) < timeout:
+            self.pub_use_bottom_cam.publish(False)
+            self.pub_msg(new_pose, self.pub_local_pose)
+
+        self.flight_mode.set_param('MPC_XY_VEL_MAX', 1.0, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 1.0, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 1.0, 5)
+
+        self.flight_mode.set_param('MC_ROLLRATE_MAX', 9.0, 5)
+        self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)
+        self.flight_mode.set_param('MC_YAWRATE_MAX', 135.0, 5)
+
+
         #See elapsed time
         start = timer()
         time_sec = 0.0
@@ -506,10 +472,10 @@ class autonomous_flight():
         while time_sec <80: #Run test for n seconds 
 
             new_pose = PoseStamped()
-            new_pose.pose.position.x = -3.65 #self.pid_x.update_PID(self.uav_local_pose.pose.position.x)#+0.10
-            new_pose.pose.position.y = -1.10 #self.pid_y.update_PID(self.uav_local_pose.pose.position.y)#+0.5
-            new_pose.pose.position.z = alt_ #self.pid_z.update_PID(self.uav_local_pose.pose.position.z-1.5)
-            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(-90),'rxyz'))
+            new_pose.pose.position.x = -3 #self.pid_x.update_PID(self.uav_local_pose.pose.position.x)#+0.10
+            new_pose.pose.position.y = 0 #self.pid_y.update_PID(self.uav_local_pose.pose.position.y)#+0.5
+            new_pose.pose.position.z = 0 #alt_ #self.pid_z.update_PID(self.uav_local_pose.pose.position.z-1.5)
+            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0),'rxyz'))
 
             self.pub_msg(new_pose, self.pub_local_pose)
             

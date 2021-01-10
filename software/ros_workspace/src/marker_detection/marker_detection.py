@@ -103,23 +103,23 @@ class marker_detection:
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)
         rospy.Subscriber("/mono_cam_front/image_raw", Image, self.front_img_callback)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
-        rospy.Subscriber('/onboard/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
+        #rospy.Subscriber('/onboard/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
         
         rospy.Subscriber('/onboard/enable_aruco_detection', Bool, self.enable_aruco_detection_callback)
-        rospy.Subscriber('/onboard/use_bottom_cam', Bool, self.use_bottom_cam_callback)
-        rospy.Subscriber('/onboard/change_aruco_board', Bool, self.change_aruco_board_callback)
+        rospy.Subscriber('/onboard/use_bottom_camera', Bool, self.use_bottom_cam_callback)
+        #rospy.Subscriber('/onboard/change_aruco_board', Bool, self.change_aruco_board_callback)
 
         #Publishers
         self.aruco_marker_image_pub = rospy.Publisher('/onboard/aruco_marker_image', Image, queue_size=1)
         self.aruco_marker_pose_pub = rospy.Publisher('/onboard/aruco_marker_pose', PoseStamped, queue_size=1)
         self.aruco_marker_found_pub = rospy.Publisher('/onboard/aruco_board_found', Bool, queue_size=1)
-        self.next_board_found_pub = rospy.Publisher('/onboard/next_board_found', Bool, queue_size=1)
-        self.found_aruco_ids_pub = rospy.Publisher('/onboard/found_aruco_ids', mavlink_lora_aruco, queue_size=1)
+        #self.next_board_found_pub = rospy.Publisher('/onboard/next_board_found', Bool, queue_size=1)
+        #self.found_aruco_ids_pub = rospy.Publisher('/onboard/found_aruco_ids', mavlink_lora_aruco, queue_size=1)
 
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
         
-        self.aruco_board_front = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.08, dictionary=self.dictionary,firstMarker=1)
+        self.aruco_board_front = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=100)
         self.aruco_board_bottom = cv2.aruco.GridBoard_create(markersX=25, markersY=25, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=200)
         
         self.parameters = cv2.aruco.DetectorParameters_create()
@@ -128,6 +128,7 @@ class marker_detection:
         #Bottom camera
         self.camera_matrix_bottom = np.array([[623.680552, 0, (720/2)], [0, 623.680552, (480/2)], [0, 0, 1]], dtype=np.float)
         self.distortion_coefficients_bottom = np.array([[0, 0, 0, 0]], dtype=np.float)
+        
         #Front camera
         self.camera_matrix_front = np.array([[623.680552, 0, (720/2)], [0, 623.680552, (480/2)], [0, 0, 1]], dtype=np.float)
         self.distortion_coefficients_front = np.array([[0, 0, 0, 0]], dtype=np.float)
@@ -141,20 +142,24 @@ class marker_detection:
     def local_position_callback(self, data):
         self.local_position = data
  
+    """
     def aruco_ids_callback(self, data):
         for (id_, move) in zip(data.id, data.moves):
             self.aruco_ids.append(id_)
             self.aruco_moves.append(move)
+    """
 
     def enable_aruco_detection_callback(self, data):
-        self.enable_aruco_detection = data
+        self.enable_aruco_detection = data.data
 
     def use_bottom_cam_callback(self, data):
-        self.use_bottom_cam = data
+        self.use_bottom_cam = data.data
 
+    """
     def change_aruco_board_callback(self, data):
         self.change_aruco_board = data
     
+    """
     def bottom_img_callback(self, data):
         self.bottom_img = data
 
@@ -189,24 +194,6 @@ class marker_detection:
 
             if retval:
 
-                """
-                #See if next aruco board is visible
-                if self.find_next_board and len(self.aruco_ids) > 0:
-                    for id_ in marker_ids:
-                        if self.aruco_increase:
-                            if id_ > self.aruco_ids[0]:
-                                print('New board')
-                                self.find_next_board = False
-                                self.next_board_found_pub.publish(True)
-                                break
-                        elif self.aruco_decrease:
-                            if id_ <= self.aruco_ids[0]:
-                                print('New board')
-                                self.find_next_board = False
-                                self.next_board_found_pub.publish(True)
-                                break
-
-                """
                 self.aruco_board_found = True 
                 self.aruco_marker_found_pub.publish(True)
 
@@ -297,42 +284,6 @@ class marker_detection:
         return np.array([roll, pitch, yaw])
     
     def timer_callback(self,event):
-
-        """
-        #Change ArUco board configuration from either bottom or front cam
-        if self.change_aruco_board and len(self.aruco_ids) > 0:
-
-            if not self.aruco_increase and not self.aruco_decrease:
-                if self.aruco_ids[0] < self.aruco_ids[1]:
-                    self.aruco_increase = True
-                else:
-                    self.aruco_decrease = True
-            
-            self.change_aruco_board = False
-            self.find_next_board = True
-            
-            id_ = int(self.aruco_ids[0])
-            print(id_)
-            move = self.aruco_moves[0]
-            self.aruco_ids.pop(0)
-            self.aruco_moves.pop(0)
-
-            if move == 'f':
-                self.offset_x += 1
-            elif move == 'd':
-                self.offset_x -= 1
-            elif move == 'l':
-                self.offset_y += 1
-            elif move == 'r':
-                self.offset_y -= 1
-            
-            if self.use_bottom_cam:
-                self.aruco_board_bottom = cv2.aruco.GridBoard_create(markersX=3, markersY=2, markerLength=0.1, markerSeparation=0.02, dictionary=self.dictionary, firstMarker=id_)
-            elif self.change_aruco_board:
-                self.aruco_board_front = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.08, dictionary=self.dictionary, firstMarker=id_)
-
-        """
-
         #Use either bottom or front cam
         if self.use_bottom_cam:
             self.find_aruco_markers(self.bottom_img, self.aruco_board_bottom, self.camera_matrix_bottom, self.distortion_coefficients_bottom)

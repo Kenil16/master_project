@@ -79,4 +79,9 @@ The third iteration of the follow marker procedure involves better tracking of m
 
 New todos
 	1: Use the IMU data to insure the drone do not fly away if it loses track of the markers. Hence, an estimate of the local position where the IMU data is used must be made. Here, the last known 	    direction of flight could be used to make the drone fly backwards in this direction so the drone can find the markers and contiunes its flightplpan. 
-	2: The IMU data can be used to estimate the velocities. If this goes above a limit the drone must switch to using GPS or optitrac to take into account sudden errors in the pose estimation of the 		   markers.   
+	2: The IMU data can be used to estimate the velocities. If this goes above a limit the drone must switch to using GPS or optitrac to take into account sudden errors in the pose estimation of the 		   markers.
+
+10/01/2021:
+New 3D models have been made with aruco going from ID 1 for landing, 100 for wall and 200 for ground markers. Now a landing marker site has been made to initiate a possible landing of the drone with high precision.
+
+ 
