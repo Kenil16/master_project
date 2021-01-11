@@ -25,7 +25,7 @@ class print_markers:
     def print_aruco_board(self):
         
         image_width = self.markers_x*(self.marker_length + self.marker_separation)
-        image_height = self.markers_y*(self.marker_length + self.marker_separation)-205
+        image_height = self.markers_y*(self.marker_length + self.marker_separation) -205
         
         length_x = self.markers_x*(self.marker_length_meters) + self.markers_x*(self.marker_separation_meters) - self.marker_separation_meters
         length_y = self.markers_y*(self.marker_length_meters) + self.markers_y*(self.marker_separation_meters) - self.marker_separation_meters 

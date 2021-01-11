@@ -84,4 +84,7 @@ New todos
 10/01/2021:
 New 3D models have been made with aruco going from ID 1 for landing, 100 for wall and 200 for ground markers. Now a landing marker site has been made to initiate a possible landing of the drone with high precision.
 
+11/01/2021:
+Different routes frpm gps to landing created. However, there are problems with the transitions from the different marker boards. No problems seems to be by shifting from IMU to camera data when using vision. Maybe it has something to do with a update rate of the imu data being faster then vision. 
+
  

@@ -13,7 +13,7 @@ import tf
 import tf2_ros
 import tf2_geometry_msgs
 from geometry_msgs.msg import PoseStamped, Quaternion
-from std_msgs.msg import Float64, Bool
+from std_msgs.msg import Float64, Bool, Int8
 from mavlink_msgs.msg import mavlink_lora_aruco
 
 from tracking import*
@@ -40,12 +40,12 @@ class marker_detection:
         self.plot_aruco_pos_kf_y = []
         self.plot_aruco_pos_kf_z = []
 
-        self.cycle_time = (1./40.)
+        self.cycle_time = (1./40.) #1./40.
         self.plot_timer = int(((20)/self.cycle_time)) #Set to run 10 seconds before plot
 
         self.plot_time = []
 
-        self.enable_aruco_detection = False
+        #self.enable_aruco_detection = False
         self.draw_markers = True
         self.draw_marker_axis = True
         self.aruco_board_found = False
@@ -86,10 +86,12 @@ class marker_detection:
         self.aruco_pose = PoseStamped()
         self.aruco_pose_without_kf = PoseStamped()
 
-        self.use_bottom_cam = True
-        self.change_aruco_board = False
-        self.find_next_board = False
+        #self.use_bottom_cam = False
+        self.aruco_board = 2
+        #self.change_aruco_board = False
+        #self.find_next_board = False
         
+        """
         self.aruco_ids = []
         self.aruco_moves = []
 
@@ -98,15 +100,16 @@ class marker_detection:
         self.offset_z = 0
         self.aruco_increase = False
         self.aruco_decrease = False
-        
+        """
+
         #Subscribers
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)
         rospy.Subscriber("/mono_cam_front/image_raw", Image, self.front_img_callback)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
         #rospy.Subscriber('/onboard/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
         
-        rospy.Subscriber('/onboard/enable_aruco_detection', Bool, self.enable_aruco_detection_callback)
-        rospy.Subscriber('/onboard/use_bottom_camera', Bool, self.use_bottom_cam_callback)
+        #rospy.Subscriber('/onboard/enable_aruco_detection', Bool, self.enable_aruco_detection_callback)
+        rospy.Subscriber('/onboard/aruco_board', Int8, self.aruco_board_callback)
         #rospy.Subscriber('/onboard/change_aruco_board', Bool, self.change_aruco_board_callback)
 
         #Publishers
@@ -119,8 +122,9 @@ class marker_detection:
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
         
-        self.aruco_board_front = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=100)
-        self.aruco_board_bottom = cv2.aruco.GridBoard_create(markersX=25, markersY=25, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=200)
+        self.aruco_board_gps2vision = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.08, dictionary=self.dictionary,firstMarker=100)
+        self.aruco_board_vision = cv2.aruco.GridBoard_create(markersX=25, markersY=25, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=200)
+        self.aruco_board_landing = cv2.aruco.GridBoard_create(markersX=2, markersY=4, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=1)
         
         self.parameters = cv2.aruco.DetectorParameters_create()
         self.parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
@@ -147,13 +151,14 @@ class marker_detection:
         for (id_, move) in zip(data.id, data.moves):
             self.aruco_ids.append(id_)
             self.aruco_moves.append(move)
-    """
-
+    
+    
     def enable_aruco_detection_callback(self, data):
         self.enable_aruco_detection = data.data
+    """
 
-    def use_bottom_cam_callback(self, data):
-        self.use_bottom_cam = data.data
+    def aruco_board_callback(self, data):
+        self.aruco_board = data.data
 
     """
     def change_aruco_board_callback(self, data):
@@ -230,9 +235,9 @@ class marker_detection:
         euler = euler_from_matrix(r,'rxyz')
 
         #Update ArUco marker position based on Kalman filter
-        self.aruco_pose.pose.position.x = self.kf_pos.tracker.x[0][0]
-        self.aruco_pose.pose.position.y = self.kf_pos.tracker.x[3][0]
-        self.aruco_pose.pose.position.z = self.kf_pos.tracker.x[6][0]
+        self.aruco_pose.pose.position.x = T_drone_marker[0][0] #self.kf_pos.tracker.x[0][0]
+        self.aruco_pose.pose.position.y = T_drone_marker[1][0] #self.kf_pos.tracker.x[3][0]
+        self.aruco_pose.pose.position.z = T_drone_marker[2][0] #self.kf_pos.tracker.x[6][0]
 
         #We want the orientation to be zero for  
         if cam == 'bottom':
@@ -284,13 +289,19 @@ class marker_detection:
         return np.array([roll, pitch, yaw])
     
     def timer_callback(self,event):
-        #Use either bottom or front cam
-        if self.use_bottom_cam:
-            self.find_aruco_markers(self.bottom_img, self.aruco_board_bottom, self.camera_matrix_bottom, self.distortion_coefficients_bottom)
+        
+        #print(self.aruco_board)
+        #Either go from GPS to vision, navigate through ground markers or perform a landing (1, 2, 3) all using vision. Zero means do not detect markers
+        if self.aruco_board == 1:
+            self.find_aruco_markers(self.front_img, self.aruco_board_gps2vision, self.camera_matrix_front, self.distortion_coefficients_front)
+            if self.aruco_board_found:
+                self.estimate_marker_pose('front', self.T_drone_camera_front)
+        elif self.aruco_board == 2:
+            self.find_aruco_markers(self.bottom_img, self.aruco_board_vision, self.camera_matrix_bottom, self.distortion_coefficients_bottom)
             if self.aruco_board_found:
                 self.estimate_marker_pose('bottom', self.T_drone_camera_bottom)
-        else:
-            self.find_aruco_markers(self.front_img, self.aruco_board_front, self.camera_matrix_front, self.distortion_coefficients_front)
+        elif self.aruco_board == 3:
+            self.find_aruco_markers(self.front_img, self.aruco_board_landing, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
                 self.estimate_marker_pose('front', self.T_drone_camera_front)
 

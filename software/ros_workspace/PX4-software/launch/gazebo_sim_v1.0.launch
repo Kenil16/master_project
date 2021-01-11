@@ -2,8 +2,8 @@
 <launch>
     <!-- Posix SITL environment launch script -->
     <!-- launches PX4 SITL, Gazebo environment, and spawns vehicle -->
-    <!-- vehicle pose -->
-    <arg name="x" default="-3"/>
+    <!-- vehicle pose landing route 1 pos <2.5, 3.5, 0> start pos <-3,0,0> --> 
+    <arg name="x" default="-3"/> 
     <arg name="y" default="0"/>
     <arg name="z" default="0"/>
     <arg name="R" default="0"/>
