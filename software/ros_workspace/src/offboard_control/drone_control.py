@@ -15,7 +15,7 @@ class drone_control():
         
         #Init ROS
         rospy.init_node('drone_control')
-        self.rate = rospy.Rate(20)
+        self.rate = rospy.Rate(10)
         
         #Variables
         self.uav_state = 'idle' 
@@ -36,7 +36,7 @@ class drone_control():
 
         #Publishers
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=1)
-        self.pub_local_pose = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=5)
+        self.pub_local_pose = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=1)
         self.pub_vision_pose = rospy.Publisher('/mavros/vision_pose/pose', PoseStamped, queue_size=1)
 
         self.set_mode = rospy.ServiceProxy('/mavros/set_mode', SetMode)

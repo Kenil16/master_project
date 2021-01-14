@@ -313,12 +313,37 @@ class autonomous_flight():
 
     def follow_aruco_pose_bottom_test(self):
 
+        #The three different routes the drone can fly in the simulation 
+        gps2vision = [[-3.55, -1.123, 2.36, -90]]
+        
+        vision1 = [[-3.65,-1.10,1.5,-90], [-3.65,-4.25,1.5,-90], [-3.65,-4.25,1.5, -90], [-0.4,-4.25,1.5, -90], [-0.4,-4.25,1.5,-90], [-0.4,-7.1,1.5,-90], [-0.4,-7.1, 1.0,-90]]
+        vision_back1 = [[-0.4,-7.0, 1.0,-90], [-0.4,-7.0,1.5, 90], [-0.4,-4.25,1.5, 90], [-0.4,-4.25,1.5, -180], [-3.65,-4.25,1.5, -180], [-3.65,-4.25,1.5, 90], [-3.65,-1.10,1.5,90]]
+
+        vision2 = [[-3.65,-1.10,1.5,-90], [-3.65,-7.1,1.5, -90], [-3.65,-7.1, 1.0,-90]]
+        vision_back2 = [[-3.65,-7.1, 1.0,-90], [-3.65,-7.1,1.5, 90], [-3.65,-1.10,1.5,90]]
+        
+        vision3 = [[-3.65,-1.10,1.5,-90], [-3.65,-4.25,1.5,-90], [-3.65,-4.25,1.5, -90], [-7.1,-4.25,1.5,-90], [-7.1,-4.25,1.5,-90], [-7.1,-7.1,1.5,-90], [-7.1,-7.1, 1.0,-90]]
+        vision_back3 = [[-7.1,-7.1, 1.0,-90], [-7.1,-7.1,1.5, 90], [-7.1,-4.25,1.5, 90], [-7.1,-4.25,1.5, 90], [-3.65,-4.25,1.5, 90], [-3.65,-4.25,1.5, 90], [-3.65,-1.10,1.5,90]]
+        
+        #Landing route one
+        land1 = [[-0.4,-7.1,0.5,-90], [-0.4,-7.1,0.1,-90]]
+        land_back1 = [[-0.4,-7.1,0.5,-90]]
+
+        #Landing route two
+        land2 = [[-3.75,-7.1,0.5,-90], [-3.75,-7.1,0.1,-90]]
+        land_back2 = [[-3.75,-7.1,0.5,-90]]
+        
+        #Landing route three
+        land3 = [[-7.1,-7.1,0.5,-90], [-7.1,-7.1,0.1,-90]]
+        land_back3 = [[-7.1,-7.1,0.5,-90]]
+        
+        waypoints = [gps2vision, vision3, land3, land_back3, vision_back3]
+        route = 'route3'
+        
         #Enable aruco detection, cam use and start index board 
-        #self.pub_enable_aruco_detection.publish(True)
         self.pub_aruco_board.publish(1)
         
-        #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
-        
+        #Set UAV maximum linear and angular velocities in m/s and deg/s respectively 
         self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.1, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.1, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.1, 5)
@@ -326,7 +351,7 @@ class autonomous_flight():
         self.flight_mode.set_param('MC_ROLLRATE_MAX', 0.1, 5)
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 0.1, 5)
         self.flight_mode.set_param('MC_YAWRATE_MAX', 0.1, 5)
-
+        
         self.drone_takeoff(alt = 2.5)
 
         self.set_state('follow_aruco_pose_bottom_test')
@@ -334,7 +359,7 @@ class autonomous_flight():
 
         self.flight_mode.set_param('EKF2_AID_MASK', 24, 5)
         self.flight_mode.set_param('EKF2_HGT_MODE', 3, 5)
-        self.flight_mode.set_param('EKF2_EV_DELAY', 50., 5)
+        self.flight_mode.set_param('EKF2_EV_DELAY', 20., 5)
         
         while not self.aruco_board_found:
             pass
@@ -344,42 +369,26 @@ class autonomous_flight():
         time_sec = 0.0
 
         data = open('../../../../data/follow_aruco_pose_bottom/data.txt','a')
-
-        #The three different routes the drone can fly in the simulation 
-        gps2vision = [[-2,0,0,0]]
-        vision = [[-3.65,-1.10,1.5,-0], [-3.65,-4.25,1.5,-90], [-3.65,-4.25,1.5, -90], [-0.5,-4.25,1.5, -90], [-0.5,-4.25,1.5,-90], [-0.5,-7.0,1.5,-90], [-0.5,-7.0, 1.0,-90]]
-        land = [[-1.5,-0.25,0.5,-90], [-1.5,-0.25,0.2,-90]]
-        land_back = [[-1.5,-0.25,0.5,-90]]
-        vision_back = [[-0.5,-7.0, 1.0,-90], [-0.5,-7.0,1.5, 90], [-0.5,-4.25,1.5, 90], [-0.5,-4.25,1.5, -180], [-3.65,-4.25,1.5, -180], [-3.65,-4.25,1.5, 90], [-3.65,-1.10,1.5,90]]
-
-        route1 = [gps2vision, vision, land, land_back, vision_back]
         
-        route2 = [[-3.65,-1.10,1.5,-90], [-3.65,-4.25,1.5,-90], [-3.65,-4.25,1.5,-90], [-3.65,-7.0,1.5,-90]]
-        route3 = [[-3.65,-1.10,1.5,-90], [-3.65,-4.25,1.5,-90], [-3.65,-4.25,1.5,-180], [-7.0,-4.25,1.5,-180], [-7.0,-4.25,1.5,-90], [-7.0,-7.0,1.5,-90]]
-
-        waypoints = route1
-
         for sub_route in range(len(waypoints)):
-
+            
             if not len(waypoints[sub_route]):
                 continue
-
-            if sub_route == 1 or sub_route == 2 or sub_route == 3:
-                self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.1, 5)
-                self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.1, 5)
-                self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.1, 5)
-
-                self.flight_mode.set_param('MC_ROLLRATE_MAX', 0.1, 5)
-                self.flight_mode.set_param('MC_PITCHRATE_MAX', 0.1, 5)
-                self.flight_mode.set_param('MC_YAWRATE_MAX', 0.1, 5)
             
-            if sub_route == 1 or sub_route == 4:
+            if sub_route == 1:
                 self.pub_aruco_board.publish(2)
-            elif sub_route == 2 or sub_route == 3: 
-                self.pub_aruco_board.publish(3)
+            elif sub_route == 2:
+                if route == 'route1':
+                    self.pub_aruco_board.publish(3)
+                if route == 'route2':
+                    self.pub_aruco_board.publish(4)
+                if route == 'route3':
+                    self.pub_aruco_board.publish(5)
+            elif sub_route == 4: 
+                self.pub_aruco_board.publish(2)
             
             start_time = rospy.get_rostime()
-            timeout = rospy.Duration(3)
+            timeout = rospy.Duration(1)
             
             new_pose = PoseStamped()
             new_pose.pose.position.x = waypoints[sub_route][0][0]
@@ -387,19 +396,20 @@ class autonomous_flight():
             new_pose.pose.position.z = waypoints[sub_route][0][2]
             new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(waypoints[sub_route][0][3]),'rxyz'))
 
-            print(waypoints[sub_route][0])
             while(rospy.get_rostime() - start_time) < timeout:
                 self.pub_msg(new_pose, self.pub_local_pose)
-
-            self.flight_mode.set_param('MPC_XY_VEL_MAX', 1.0, 5)
-            self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 1.0, 5)
-            self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 1.0, 5)
+                
+            #if sub_route == 0:
+            self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.5, 5)
+            self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.5, 5)
+            self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.5, 5)
         
             self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)
             self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)
             self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
             
             for waypoint in waypoints[sub_route]:
+                print(waypoint)
                 while True:
                 
                     new_pose.pose.position.x = waypoint[0]
@@ -418,7 +428,7 @@ class autonomous_flight():
                     time_sec = timer()-start
                     data.write(str(x) + " " + str(waypoint[0]) + " " + str(y) + " " + str(waypoint[1]) + " " + str(z) + " " + str(waypoint[2]) + " " + str(time_sec))
                     data.write('\n')
-       
+            
 
         data.close()
         self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
@@ -431,7 +441,7 @@ class autonomous_flight():
 
         #Enable aruco detection, cam use and start index board 
         #self.pub_enable_aruco_detection.publish(True)
-        self.pub_aruco_board.publish(2)
+        self.pub_aruco_board.publish(1)
 
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
         
@@ -446,7 +456,6 @@ class autonomous_flight():
 
         alt_ = 2.5
         self.drone_takeoff(alt = alt_)
-        self.pub_aruco_board.publish(1)
 
         self.set_state('hold_aruco_pose_test')
         rospy.loginfo('Autonomous_flight: Hold position by using the aruco marker test startet')
@@ -462,10 +471,10 @@ class autonomous_flight():
         timeout = rospy.Duration(1)
 
         new_pose = PoseStamped()
-        new_pose.pose.position.x = -2
-        new_pose.pose.position.y = -0
-        new_pose.pose.position.z = 0
-        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0),'rxyz'))
+        new_pose.pose.position.x = -3.65 #-3.65
+        new_pose.pose.position.y = -1.10 #-1.10
+        new_pose.pose.position.z = 2.36 #1.5
+        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(-90),'rxyz'))
 
         while (rospy.get_rostime() - start_time) < timeout:
             self.pub_msg(new_pose, self.pub_local_pose)
@@ -488,10 +497,10 @@ class autonomous_flight():
         while time_sec <80: #Run test for n seconds 
 
             new_pose = PoseStamped()
-            new_pose.pose.position.x = -2 #self.pid_x.update_PID(self.uav_local_pose.pose.position.x)#+0.10
-            new_pose.pose.position.y = -0 #self.pid_y.update_PID(self.uav_local_pose.pose.position.y)#+0.5
-            new_pose.pose.position.z =  0 #alt_ #self.pid_z.update_PID(self.uav_local_pose.pose.position.z-1.5)
-            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(0),'rxyz'))
+            new_pose.pose.position.x = -3.65 #self.pid_x.update_PID(self.uav_local_pose.pose.position.x)#+0.10
+            new_pose.pose.position.y = -1.10 #self.pid_y.update_PID(self.uav_local_pose.pose.position.y)#+0.5
+            new_pose.pose.position.z =  2.36 #1.5 #alt_ #self.pid_z.update_PID(self.uav_local_pose.pose.position.z-1.5)
+            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(-90),'rxyz'))
 
             self.pub_msg(new_pose, self.pub_local_pose)
             
