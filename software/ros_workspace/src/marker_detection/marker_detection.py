@@ -16,8 +16,8 @@ from geometry_msgs.msg import PoseStamped, Quaternion
 from std_msgs.msg import Float64, Bool, Int8
 from mavlink_msgs.msg import mavlink_lora_aruco
 
-from tracking import*
-from graphics_plot import graphics_plot
+from sensor_fusion import*
+#from graphics_plot import graphics_plot
 
 import time
 
@@ -28,10 +28,11 @@ class marker_detection:
         #Init ROS node
         rospy.init_node('marker_detection')
 
-        self.graphics = graphics_plot()
+        #self.graphics = graphics_plot()
 
         #Init data test plotting
         self.plot_data = True
+        """
         self.plot_aruco_pos_x = []
         self.plot_aruco_pos_y = []
         self.plot_aruco_pos_z = []
@@ -39,7 +40,7 @@ class marker_detection:
         self.plot_aruco_pos_kf_x = []
         self.plot_aruco_pos_kf_y = []
         self.plot_aruco_pos_kf_z = []
-
+        """
         self.cycle_time = (1./40.) #1./40.
         self.plot_timer = int(((20)/self.cycle_time)) #Set to run 10 seconds before plot
 
@@ -64,6 +65,7 @@ class marker_detection:
             data.close()
 
         
+        """
         #Init Kalman filters
         self.kf_x = kalman_filter(self.cycle_time)
         self.kf_y = kalman_filter(self.cycle_time)
@@ -75,6 +77,7 @@ class marker_detection:
 
 
         self.kf_pos = kalman_filter(self.cycle_time)
+        """
         self.time = 0.0
         
         #Transformation matrix from drone to camera
@@ -115,7 +118,7 @@ class marker_detection:
         self.aruco_pose_without_kf = PoseStamped()
 
         #self.use_bottom_cam = False
-        self.aruco_board = 3
+        self.aruco_board = 2
         #self.change_aruco_board = False
         #self.find_next_board = False
         
@@ -269,23 +272,30 @@ class marker_detection:
             T_drone_marker = np.dot(T_front_to_ground, T_drone_marker)
         
         #Update Kalman filter for position 
-        self.kf_pos.get_measurement([T_drone_marker[0], T_drone_marker[1], T_drone_marker[2]])
+        #self.kf_pos.get_measurement([T_drone_marker[0], T_drone_marker[1], T_drone_marker[2]])
         
         #Get euler from rotation matrix
         euler = euler_from_matrix(r,'rxyz')
 
         #Update ArUco marker position based on Kalman filter
-        self.aruco_pose.pose.position.x = self.kf_pos.tracker.x[0][0]# + offset[0]
-        self.aruco_pose.pose.position.y = self.kf_pos.tracker.x[3][0]# + offset[1]
-        self.aruco_pose.pose.position.z = self.kf_pos.tracker.x[6][0]# + offset[2]
-        #print(euler[2])
+        self.aruco_pose.pose.position.x = T_drone_marker[0][0] #self.kf_pos.tracker.x[0][0]
+        self.aruco_pose.pose.position.y = T_drone_marker[1][0] #self.kf_pos.tracker.x[3][0]
+        self.aruco_pose.pose.position.z = T_drone_marker[2][0] #self.kf_pos.tracker.x[6][0]
 
-        #We want the orientation to be zero for  
-        if cam == 'bottom':
-            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, -euler[2],'rxyz'))
+        #Because roll angle is offset 180 degress with respect to the camera 
+        euler = list(euler)
+        if euler[0] > 0:
+            euler[0] = euler[0] - np.pi
         else:
-            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, -euler[1] - 1.5708,'rxyz'))#np.mod((euler[2]+np.pi),2*np.pi) - np.pi
+            euler[0] = euler[0] + np.pi
+        euler = tuple(euler)
         
+        if cam == 'bottom':
+            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(-euler[0], -euler[1], -euler[2],'rxyz'))
+        else:
+            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(-euler[0], -euler[2], -euler[1] - 1.5708,'rxyz'))#Because yaw is offset -90 to front marker
+
+        """
         #Only used for test of plotting Kalman filter against estimated position from ArUco marker position 
         if self.plot_data and self.plot_timer > 0:
             
@@ -300,7 +310,7 @@ class marker_detection:
 
             self.write_aruco_pos(x, y, z, kf_x, kf_y, kf_z, self.time)
             self.time = self.time + self.cycle_time
-
+        """
 
         #print( euler_from_quaternion([self.aruco_pose.pose.orientation.x,self.aruco_pose.pose.orientation.y,self.aruco_pose.pose.orientation.z,self.aruco_pose.pose.orientation.w]))
         #print "Ori: {} x: {} y: {} z: {} \n".format(euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
