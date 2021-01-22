@@ -23,7 +23,7 @@ class graphics_plot:
 
     
     #A function to plot the Kalman filter against data points    
-    def plot_kf_data(self, file_name, title, xlabel, ylabel, fig_path_name, pos_index, time_index):
+    def plot_kf_data(self, file_name, title, xlabel, ylabel, fig_path_name, pos_index, time_index, label):
         
         fig, ax = plt.subplots()
         ax.set_axisbelow(True)
@@ -46,20 +46,25 @@ class graphics_plot:
         data = np.array([item[pos_index] for item in self.data])
         time = np.array([item[time_index] for item in self.data])
 
-        ax.plot(time, data, label='Sensor noise',color='red',markersize=2)
+        ax.plot(time, data, label=label,color='red',markersize=2)
         ax.set_title(title)
         ax.legend()
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.savefig(fig_path_name)
-
+        
+        avg = sum(data)/len(data)
+        print('Average ' + label + ' :' + str(avg))
 
 if __name__ == "__main__":
     gp = graphics_plot()
 
     #Plot estimated ArUco positions vs Kalman filter to see the difference and avantage of using this filter
-    gp.plot_kf_data('data.txt','Estimated sensor noise for accelerometer','Time [s]', 'x [m]','accelerometer_noise_x.png',0,6)
-    gp.plot_kf_data('data.txt','Estimated sensor noise for accelerometer','Time [s]', 'y [m]','accelerometer_noise_y.png',1,6)
-    gp.plot_kf_data('data.txt','Estimated sensor noise for accelerometer','Time [s]', 'z [m]','accelerometer_noise_z.png',2,6)
+    gp.plot_kf_data('data.txt','Estimated sensor noise for accelerometer','Time [s]', 'x [m]','accelerometer_noise_x.png',0,6,'Sensor noise x')
+    gp.plot_kf_data('data.txt','Estimated sensor noise for accelerometer','Time [s]', 'y [m]','accelerometer_noise_y.png',1,6,'Sensor noise y')
+    gp.plot_kf_data('data.txt','Estimated sensor noise for accelerometer','Time [s]', 'z [m]','accelerometer_noise_z.png',2,6,'Sensor noise z')
 
+    gp.plot_kf_data('data.txt','Estimated sensor noise for gyro','Time [s]', 'x [m]','gyro_noise_x.png',3,6,'Sensor noise x')
+    gp.plot_kf_data('data.txt','Estimated sensor noise for gyro','Time [s]', 'y [m]','gyro_noise_y.png',4,6,'Sensor noise y')
+    gp.plot_kf_data('data.txt','Estimated sensor noise for gyro','Time [s]', 'z [m]','gyro_noise_z.png',5,6,'Sensor noise z')
 

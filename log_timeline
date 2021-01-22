@@ -93,4 +93,6 @@ Now the transitions between different marker boards has been completed. This was
 21/01/2021:
 The tracking script has been changed to sensor_fusion where the IMU data has to be fused along with the pose estimation of the aruco marker. An small rotation matrix has been created to get the IMU data in respect to the ground marker. The accelerometer noise has been found and has to be subtracted from the IMU data as an offset.  
 
+22/01/2021:
+The next step is to make an EKF based from the template found on the internet. This will be done from the test section.  
  

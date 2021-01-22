@@ -41,7 +41,7 @@ class marker_detection:
         self.plot_aruco_pos_kf_y = []
         self.plot_aruco_pos_kf_z = []
         """
-        self.cycle_time = (1./40.) #1./40.
+        self.cycle_time = (1./10.) #1./40.
         self.plot_timer = int(((20)/self.cycle_time)) #Set to run 10 seconds before plot
 
         self.plot_time = []
@@ -118,7 +118,7 @@ class marker_detection:
         self.aruco_pose_without_kf = PoseStamped()
 
         #self.use_bottom_cam = False
-        self.aruco_board = 2
+        self.aruco_board = 1
         #self.change_aruco_board = False
         #self.find_next_board = False
         
