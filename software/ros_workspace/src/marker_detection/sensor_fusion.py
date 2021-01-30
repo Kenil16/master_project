@@ -67,7 +67,6 @@ class kalman_filter:
         self.Q_scale_factor = 10000.
         self.eps_max = 4.
         self.count = 0
-        """
         
         self.tracker = KalmanFilter(dim_x=18, dim_z=9)
         
@@ -127,6 +126,8 @@ class kalman_filter:
         
         #Variance of the state
         self.tracker.P = np.eye(18) * 500.
+        """
+
 
     def first_update(self,data):
     
@@ -159,25 +160,40 @@ class kalman_filter:
                 self.tracker.Q /= self.Q_scale_factor
                 self.count -= 1
         """
-"""
+
 class ekf():
     
     def __init__(self):
         
         self.numstates = 12 #States
-        self.dt = 1.0/50.0 # Sample Rate of the Measurements is 50Hz
-        self.dtVision = 1.0/10.0 # Sample Rate of GPS is 10Hz
-        xs, ys, zs, dts, xs, ys, lats, lons = symbols('x y z \dotx \doty \dot \alpha \beta \gamma ')
-        
-        self.gs = Matrix([[xs+(vs/dpsis)*(sin(psis+dpsis*dts)-sin(psis))],
-            [ys+(vs/dpsis)*(-cos(psis+dpsis*dts)+cos(psis))],
-            [psis+dpsis*dts],
-            [vs],
-            [dpsis]])
-        
-        state = Matrix([xs,ys,psis,vs,dpsis])
+        self.P = np.diag([1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0])
+        self.Q = np.diag([0.5**2, 0.5**2, 0.2**2, 0.8**2, 0.8**2, 0.8**2, 0.2**2, 0.2**2, 0.2**2, 0.8**2, 0.8**2, 0.8**2])
+        self.R = np.diag([10.5**2, 10.5**2, 10.2**2, 5.8**2, 5.8**2, 5.8**2, 0.2**2, 0.2**2, 0.2**2, 5.8**2, 5.8**2, 5.8**2])
+        self.x = np.matrix([[0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0 ,0]]).T
+        self.I = np.eye(self.numstates)
 
-"""
+        # Preallocation for Plotting
+        self.x0 = [] #x
+        self.x1 = [] #y
+        self.x2 = [] #z
+        self.x3 = [] #acc_x
+        self.x4 = [] #acc_y
+        self.x5 = [] #acc_z
+        self.x6 = [] #psi
+        self.x7 = [] #phi
+        self.x8 = [] #theta
+        self.x9 = [] #gyro_x
+        self.x10 = [] #gyro_y
+        self.x11 = [] #gyro_z
+
+    def ekf_update(self):
+
+        measurements = np.vstack((ekf.mx, ekf.my, ekf.mz, ekf.macc_x, ekf.macc_y, ekf.macc_z, ekf.mpsi, ekf.mphi, ekf.mtheta, ekf.mgyro_x, ekf.mgyro_y, ekf.mgyro_z))
+        x = np.matrix([[i[0,0], i[1,0], i[2,0], i[3,0], i[4,0], i[5,0], i[6,0], i[7,0], i[8,0], i[9,0], i[10,0], i[11,0]]]).T
+
+
+
+        
 class sensor_fusion():
 
     def __init__(self):
@@ -185,7 +201,7 @@ class sensor_fusion():
         #Init ROS node
         rospy.init_node('sensor_fusion')
 
-        self.dt = 1./50.
+        self.dt = 1./10.
         self.kf = kalman_filter(self.dt)
 
         self.imu_data = Imu()
@@ -194,7 +210,11 @@ class sensor_fusion():
         self.sensor_fusion_pose = PoseStamped()
         self.aruco_board_found = Bool()
         self.aruco_board_found = False
-        self.start_kf_tracking = False
+        self.start_tracking = False
+
+        self.measurements = []
+
+        self.plot_vision_imu_data = True
 
         #IMU update rate 50Hz (rostopic hz /mavros/imu/data)
         self.old_imu_time = 0.0
@@ -215,6 +235,10 @@ class sensor_fusion():
         self.gyro_x_offset = -0.000143702855887
         self.gyro_y_offset = -0.000105893216729
         self.gyro_z_offset = 0.0018871804653
+
+        self.pre_acc_x = 0.0
+        self.pre_acc_y = 0.0
+        self.pre_acc_z = 0.0
 
         #Init data textfile
         data = Path('../../../../data/estimate_imu_noise/data.txt')
@@ -243,7 +267,7 @@ class sensor_fusion():
         
     def aruco_board_found_callback(self, msg):
         self.aruco_board_found = msg
-        self.start_kf_tracking = True
+        self.start_tracking = True
 
     def aruco_marker_pose_callback(self, data):
         self.aruco_marker_pose = data
@@ -258,37 +282,45 @@ class sensor_fusion():
         data.write('\n')
         data.close()
         
-    def write_vision_imu_data(self, x=0, acc_x=0, y=0, acc_y=0, z=0, acc_z=0, a=0, gyro_x=0, b=0, gyro_y=0, g=0, gyro_z=0, time=0):
+    def write_vision_imu_data(self, x=0, y=0, z=0, acc_x=0, acc_y=0, acc_z=0, roll=0, pitch=0, yaw=0, gyro_x=0, gyro_y=0, gyro_z=0, time=0):
         
         data = open(self.create_ekf_path,'a')
-        data.write(str(x) + " " + str(acc_x) + " " + \
-                   str(y) + " " + str(acc_y) + " " + \
-                   str(z) + " " + str(acc_z) + " " + \
-                   str(a) + " " + str(gyro_x) + " " + \
-                   str(b) + " " + str(gyro_y) + " " + \
-                   str(g) + " " + str(gyro_z) + " " + \
+        data.write(str(x) + " " + str(y) + " " + \
+                   str(z) + " " + str(acc_x) + " " + \
+                   str(acc_y) + " " + str(acc_z) + " " + \
+                   str(roll) + " " + str(pitch) + " " + \
+                   str(yaw) + " " + str(gyro_x) + " " + \
+                   str(gyro_y) + " " + str(gyro_z) + " " + \
                    str(time))
         data.write('\n')
         data.close()
     
-    def correct_imu_offset(self):
+    def get_data(self):
         
+        #Marker orientation 
         q = (self.aruco_marker_pose.pose.orientation.x,
              self.aruco_marker_pose.pose.orientation.y,
              self.aruco_marker_pose.pose.orientation.z,
              self.aruco_marker_pose.pose.orientation.w)
+        self.marker_orientation_euler = euler_from_quaternion(q)
         
         euler = euler_from_quaternion(q)
-        acc_x = np.cos(euler[2])*self.imu_data.linear_acceleration.x - np.sin(euler[2])*self.imu_data.linear_acceleration.y
-        acc_y = np.sin(euler[2])*self.imu_data.linear_acceleration.x + np.cos(euler[2])*self.imu_data.linear_acceleration.y
+        #Drone acceleration from inertia measurement unit (IMU)
+        acc_x = np.cos(euler[2]+np.pi)*self.imu_data.linear_acceleration.x - np.sin(euler[2]+np.pi)*self.imu_data.linear_acceleration.y
+        acc_y = np.sin(euler[2]+np.pi)*self.imu_data.linear_acceleration.x + np.cos(euler[2]+np.pi)*self.imu_data.linear_acceleration.y
         acc_z = self.imu_data.linear_acceleration.z
-
+        #print('x: ' + str(acc_x))
+        #print('y: ' + str(acc_y))
+        
+        #Drone angular velocity from inertia measurement unit (IMU)
         gyro_x = self.imu_data.angular_velocity.x
         gyro_y = self.imu_data.angular_velocity.y
         gyro_z = self.imu_data.angular_velocity.z
         
+        #Get time between IMU updates
         time = self.imu_data.header.stamp.secs + self.imu_data.header.stamp.nsecs/1000000000.
-
+        
+        #Correct IMU measurements using offset bias
         self.imu_data_corrected = [acc_x - self.acc_x_offset, 
                                    acc_y - self.acc_y_offset, 
                                    acc_z - self.acc_z_offset, 
@@ -298,15 +330,15 @@ class sensor_fusion():
                                    time]
         
         #For testing and visualisation
-        """
-        if time > 10 and time < 30:
-            self.write_imu_data(self.imu_data_corrected[0], self.imu_data_corrected[1],
-                                self.imu_data_corrected[2], self.imu_data_corrected[3],
-                                self.imu_data_corrected[4], self.imu_data_corrected[5],
-                                self.imu_data_corrected[6])
-        """
+        
+        #if time > 10 and time < 30:
+        #    self.write_imu_data(self.imu_data_corrected[0], self.imu_data_corrected[1],
+        #                        self.imu_data_corrected[2], self.imu_data_corrected[3],
+        #                        self.imu_data_corrected[4], self.imu_data_corrected[5],
+        #                        self.imu_data_corrected[6])
 
-    def get_sensor_data(self):
+
+    def get_measurements(self):
         
         x, y, z, roll, pitch, yaw = 0., 0., 0., 0., 0., 0.
         acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z = 0., 0., 0., 0., 0., 0.
@@ -327,34 +359,27 @@ class sensor_fusion():
             pitch = euler[1]
             yaw = euler[2]
 
-        acc_x = (self.imu_data.linear_acceleration.x-self.acc_x_offset) 
-        #np.cos(yaw)*(self.imu_data.linear_acceleration.x-self.acc_x_offset) - np.sin(yaw)*(self.imu_data.linear_acceleration.y-self.acc_y_offset)
-        
-        acc_y = (self.imu_data.linear_acceleration.y-self.acc_y_offset) 
-        #np.sin(yaw)*(self.imu_data.linear_acceleration.x-self.acc_x_offset) + np.cos(yaw)*(self.imu_data.linear_acceleration.y-self.acc_y_offset)
-        
-        acc_z = self.imu_data.linear_acceleration.z-self.acc_z_offset
+        acc_x = (self.imu_data.linear_acceleration.x-self.acc_x_offset)
+        acc_y = (self.imu_data.linear_acceleration.y-self.acc_y_offset)
+        acc_z = (self.imu_data.linear_acceleration.z-self.acc_z_offset)
 
         gyro_x = self.imu_data.angular_velocity.x-self.gyro_x_offset
         gyro_y = self.imu_data.angular_velocity.y-self.gyro_y_offset
         gyro_z = self.imu_data.angular_velocity.z-self.gyro_z_offset
         
-        if self.aruco_board_found:
-            time = self.imu_data.header.stamp.secs + self.imu_data.header.stamp.nsecs/1000000000.
-            self.write_vision_imu_data(x, acc_x, y, acc_y, z, acc_z, roll, gyro_x, pitch, gyro_y, yaw, gyro_z, time)
+        time = self.imu_data.header.stamp.secs + self.imu_data.header.stamp.nsecs/1000000000.
+        
+        if self.start_tracking:
+            if self.plot_vision_imu_data:
+                self.write_vision_imu_data(x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, time)
+            self.measurements = [x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z]
 
-        data = []
-        if self.aruco_board_found:
-            data = [x, acc_x, y, acc_y, z, acc_z, roll, gyro_x, pitch, gyro_y, yaw, gyro_z]
-        else:
-            data = [acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z]
-
-        return data
-
+ 
     def timer_callback(self,event):
         
         
-        self.get_sensor_data()
+        self.get_measurements()
+        #self.get_data()
         """
         if self.start_kf_tracking:
             if not self.aruco_board_found:

@@ -118,7 +118,7 @@ class marker_detection:
         self.aruco_pose_without_kf = PoseStamped()
 
         #self.use_bottom_cam = False
-        self.aruco_board = 1
+        self.aruco_board = 2
         #self.change_aruco_board = False
         #self.find_next_board = False
         
