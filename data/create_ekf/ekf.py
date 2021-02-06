@@ -6,14 +6,14 @@ from sympy import Symbol, symbols, Matrix, sin, cos
 from sympy.interactive import printing
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 printing.init_printing(use_latex=True)
+#from tf.transformations import*
 
 class ekf():
 
     def __init__(self):
 
         self.data = [] 
-        self.read_data('test3.txt')
-        
+        self.read_data('test12.txt')
         self.mx = np.array([item[0] for item in self.data])
         self.my = np.array([item[1] for item in self.data])
         self.mz = np.array([item[2] for item in self.data])
@@ -24,6 +24,7 @@ class ekf():
         
         self.corr_acc_x = []
         self.corr_acc_y = []
+        self.corr_acc_z = []
 
         self.mpsi = np.array([item[6] for item in self.data])
         self.mphi = np.array([item[7] for item in self.data])
@@ -38,29 +39,35 @@ class ekf():
         #Just need one of the x, y, z, psi, phi and theta to see if a new vision estimation has arrived 
         self.old_x = 0.0
         
-        self.numstates = 12 #States
+        self.numstates = 15 #States
         self.dt = 1.0/50.0 # Sample Rate of the Measurements is 50Hz
         self.dtVision = 1.0/10.0 # Sample Rate of GPS is 10Hz
-        xs, ys, zs, xa, ya, za, psi, phi, theta, psi_v, phi_v, theta_v, dt = symbols('x y z x_a y_a a_z psi phi theta psi_v phi_v theta_v T')
+ 
+        
+        xs, ys, zs, xv, yv, zv, xa, ya, za, psi, phi, theta, psi_v, phi_v, theta_v, dt = symbols('x y z x_v, y_v, z_v, x_a y_a a_z psi phi theta psi_v phi_v theta_v T')
         
         self.gs = Matrix([
-            [xs + ( cos(theta+np.pi)*(0.5*xa*dt**2) - sin(theta+np.pi)*(0.5*ya*dt**2) )],
-            [ys + ( sin(theta+np.pi)*(0.5*xa*dt**2) + cos(theta+np.pi)*(0.5*ya*dt**2) )],
-            [zs + 0.5*za*dt**2],
+            [xs + xv*dt + 0.5*xa*dt**2],
+            [ys + yv*dt + 0.5*ya*dt**2],
+            [zs + zv*dt + 0.5*za*dt**2],
+            [xv + xa*dt],
+            [yv + ya*dt],
+            [zv + za*dt],
             [xa],
             [ya],
             [za],
-            [psi + psi*dt],
-            [phi + phi*dt],
-            [theta + theta*dt],
+            [psi + cos(theta+np.pi)*(psi_v*dt) - sin(theta+np.pi)*(phi_v*dt)],
+            [phi + sin(theta+np.pi)*(psi_v*dt) + cos(theta+np.pi)*(phi_v*dt)],
+            [theta + theta_v*dt],
             [psi_v],
             [phi_v],
             [theta_v]])
         
-        self.state = Matrix([xs, ys, zs, xa, ya, za, psi, phi, theta, psi_v, phi_v, theta_v])
-        self.P = np.diag([1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0])
-        self.Q = np.diag([1.0**2, 1.0**2, 1.0**2, 0.5**2, 0.5**2, 0.5**2, 0.2**2, 0.2**2, 0.2**2, 0.8**2, 0.8**2, 0.8**2]) 
-        self.R = np.diag([15.5**2, 15.5**2, 0.5**2, 0.2**2, 0.2**2, 1.0**2, 0.2**2, 0.2**2, 0.2**2, 0.8**2, 0.8**2, 0.8**2])
+        
+        #self.state = Matrix([xs, ys, zs, xv, yv, zv, xa, ya, za, psi, phi, theta, psi_v, phi_v, theta_v])
+        self.P = np.diag([1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0])
+        self.Q = np.diag([1.0**2, 1.0**2, 0.5**2, 7.5**2, 7.5**2, 1.0**2, 0.5**2, 0.5**2, 0.5**2, 0.2**2, 0.2**2, 0.2**2, 0.2**2, 0.2**2, 0.2**2]) 
+        self.R = np.diag([15.5**2, 15.5**2, 0.5**2, 2.0**2, 2.0**2, 1.0**2, 0.1**2, 0.1**2, 0.5**2, 0.02**2, 0.02**2, 0.02**2])
 
 
         self.hs = Matrix([
@@ -77,28 +84,31 @@ class ekf():
             [phi_v], 
             [theta_v]])
 
-        self.JHs=self.hs.jacobian(self.state)
-
+        #self.JHs=self.hs.jacobian(self.state)
+        
         self.x = np.matrix([[0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0 ,0]]).T
         self.I = np.eye(self.numstates)
 
-        print(self.gs.jacobian(self.state))
-        print(self.JHs)
+        #print(self.gs.jacobian(self.state))
+        #print(self.JHs)
 
         
         # Preallocation for Plotting
         self.x0 = [] #x
         self.x1 = [] #y
         self.x2 = [] #z
-        self.x3 = [] #acc_x
-        self.x4 = [] #acc_y
-        self.x5 = [] #acc_z
-        self.x6 = [] #psi
-        self.x7 = [] #phi
-        self.x8 = [] #theta
-        self.x9 = [] #gyro_x
-        self.x10 = [] #gyro_y
-        self.x11 = [] #gyro_z
+        self.x3 = [] #vel_x
+        self.x4 = [] #vel_y
+        self.x5 = [] #vel_z
+        self.x6 = [] #acc_x
+        self.x7 = [] #acc_y
+        self.x8 = [] #acc_z
+        self.x9 = [] #psi
+        self.x10 = [] #phi
+        self.x11 = [] #theta
+        self.x12 = [] #gyro_x
+        self.x13 = [] #gyro_y
+        self.x14 = [] #gyro_z
     
     def read_data(self, file_name):
         
@@ -224,6 +234,32 @@ class ekf():
         plt.legend(loc='best')
         plt.savefig(fig_name)
 
+    def eulerAnglesToRotationMatrixYaw(self,theta):
+	
+        R_z = np.array([[np.cos(theta),    -np.sin(theta),    0],
+                        [np.sin(theta),    np.cos(theta),     0],
+                        [0,                     0,            1]])
+        
+        return R_z
+    
+    def eulerAnglesToRotationMatrix(self,theta):
+	
+        R_x = np.array([[1,         0,                  0                   ],
+	                [0,         np.cos(theta[0]), -np.sin(theta[0]) ],
+                        [0,         np.sin(theta[0]), np.cos(theta[0])  ]])
+        
+        R_y = np.array([[np.cos(theta[1]),    0,      np.sin(theta[1])  ],
+                        [0,                     1,      0                   ],
+                        [-np.sin(theta[1]),   0,      np.cos(theta[1])  ]])
+                
+        R_z = np.array([[np.cos(theta[2]),    -np.sin(theta[2]),    0],
+                        [np.sin(theta[2]),    np.cos(theta[2]),     0],
+                        [0,                     0,                      1]])
+        
+        R = np.matmul(R_x, np.matmul( R_y, R_z ))
+        
+        return R
+
 if __name__ == "__main__":
 
     ekf = ekf()
@@ -234,7 +270,7 @@ if __name__ == "__main__":
     m = measurements.shape[1]
     print(measurements.shape)
     i = measurements
-    x = np.matrix([[i[0,0], i[1,0], i[2,0], i[3,0], i[4,0], i[5,0], i[6,0], i[7,0], i[8,0], i[9,0], i[10,0], i[11,0]]]).T
+    x = np.matrix([[i[0,0], i[1,0], i[2,0], 0.0, 0.0, 0.0, i[3,0], i[4,0], i[5,0], i[6,0], i[7,0], i[8,0], i[9,0], i[10,0], i[11,0]]]).T
     
     for filterstep in range(m):
 
@@ -242,103 +278,120 @@ if __name__ == "__main__":
             ekf.dt = ekf.mtime[filterstep]-ekf.mtime[filterstep-1]
         print(ekf.dt)
 
-        # Time Update (Prediction)
-        # ========================
-        # Project the state ahead
-        # see "Dynamic Matrix"
+        #Time Update (Prediction)
 
-        corrected_acc_x = np.cos(x[8]+np.pi)*x[3] - np.sin(x[8]+np.pi)*x[4]
-        corrected_acc_y = np.sin(x[8]+np.pi)*x[3] + np.cos(x[8]+np.pi)*x[4]
-        ekf.corr_acc_x.append(corrected_acc_x[0,0])
-        ekf.corr_acc_y.append(corrected_acc_y[0,0])
+        #Rotation matrix to align angle to that of the acceleration of the drone. Hences the gravity can be subtracted 
+        R1 = ekf.eulerAnglesToRotationMatrix([0, 0, x[11,0]+np.pi/2])
+        R2 = ekf.eulerAnglesToRotationMatrix([0, 0, x[11,0]])
+        a = np.matmul(np.matmul(R1,R2), np.array([x[9,0], x[10,0], x[11,0]]))
         
-        x[0] = x[0] + 0.5*corrected_acc_x[0,0]*ekf.dt #(np.cos(x[8]+np.pi)*(0.5*x[3]*ekf.dt) - np.sin(x[8]+np.pi)*(0.5*x[4]*ekf.dt))
-        x[1] = x[1] + 0.5*corrected_acc_y[0,0]*ekf.dt #(np.sin(x[8]+np.pi)*(0.5*x[3]*ekf.dt) + np.cos(x[8]+np.pi)*(0.5*x[4]*ekf.dt))
-        x[2] = x[2] + x[5]*ekf.dt
-        x[3] = x[3]
-        x[4] = x[4]
-        x[5] = x[5]
-        x[6] = x[6] + x[9]*ekf.dt
-        x[7] = x[7] + x[10]*ekf.dt
-        x[8] = x[8] + x[11]*ekf.dt
-        x[9] = x[9]
-        x[10] = x[10]
-        x[11] = x[11]
+        #Correct for acceleration shift for the orientation of the drone and bias for x and y
+        R = ekf.eulerAnglesToRotationMatrixYaw(x[11,0])
+        acc = np.matmul(R, np.array([x[6,0], x[7,0], 0]))
+        acc_bias = np.matmul(R, np.array([-0.190006656546, -0.174740895383, 0]))
+        
+        corrected_acc_x = acc[0] - acc_bias[0] + np.sin(a[0]*9.79531049538)
+        corrected_acc_y = acc[1] - acc_bias[1] + np.sin(a[1]*9.79531049538)
+        corrected_acc_z = x[8,0] - 9.79531049538
+        
+        ekf.corr_acc_x.append(corrected_acc_x)
+        ekf.corr_acc_y.append(corrected_acc_y)
+        ekf.corr_acc_z.append(corrected_acc_z)
+        
+        x[0] = x[0] + x[3]*ekf.dt #+ 0.5*corrected_acc_x*ekf.dt**2 #(np.cos(x[8]+np.pi)*(0.5*x[3]*ekf.dt) - np.sin(x[8]+np.pi)*(0.5*x[4]*ekf.dt))
+        x[1] = x[1] + x[4]*ekf.dt #+ 0.5*corrected_acc_y*ekf.dt**2 #(np.sin(x[8]+np.pi)*(0.5*x[3]*ekf.dt) + np.cos(x[8]+np.pi)*(0.5*x[4]*ekf.dt))
+        x[2] = x[2] + 0.5*x[5]*ekf.dt #+ 0.5*corrected_acc_z*ekf.dt**2
+        x[3] = x[3] + corrected_acc_x*ekf.dt
+        x[4] = x[4] + corrected_acc_y*ekf.dt
+        x[5] = x[5] + corrected_acc_z*ekf.dt
+        x[6] = x[6]
+        x[7] = x[7]
+        x[8] = x[8]
+        x[9] = x[9] - (np.cos(x[11,0])*x[12,0]*ekf.dt + np.sin(x[11,0])*x[13,0]*ekf.dt) # x[12]*ekf.dt
+        x[10] = x[10] - (-np.sin(x[11,0])*x[12,0]*ekf.dt + np.cos(x[11,0])*x[13,0]*ekf.dt) # x[13]*ekf.dt
+        x[11] = x[11] + x[14]*ekf.dt
+        x[12] = x[12]
+        x[13] = x[13]
+        x[14] = x[14]
         #dstate.append(1)
 
-        print((np.sin(x[8]+np.pi)*(0.5*x[3]*ekf.dt) + np.cos(x[8]+np.pi)*(0.5*x[4]*ekf.dt)))
-        #print(x[1])
+        #print((np.sin(x[8]+np.pi)*(0.5*x[3]*ekf.dt) + np.cos(x[8]+np.pi)*(0.5*x[4]*ekf.dt)))
+        print(x[10])
 
         # Calculate the Jacobian of the Dynamic Matrix A
         # see "Calculate the Jacobian of the Dynamic Matrix with respect to the state vector"
-        a14 = float(0.5*ekf.dt**1*np.cos(x[8]+np.pi))
-        a15 = float(-0.5*ekf.dt**1*np.sin(x[8]+np.pi))
-        a19 = float(-0.5*ekf.dt**1*x[3]*np.sin(x[8]+np.pi) - 0.5*ekf.dt**1*x[4]*np.cos(x[8]+np.pi))
-        a24 = float(0.5*ekf.dt**1*np.sin(x[8]+np.pi))
-        a25 = float(0.5*ekf.dt**1*np.cos(x[8]+np.pi))
-        a29 = float(0.5*ekf.dt**1*x[3]*np.cos(x[8]+np.pi) - 0.5*ekf.dt**1*x[4]*np.sin(x[8]+np.pi))
-        a36 = float(0.5*ekf.dt**1)
-        JA = np.matrix([[1.0, 0.0, 0.0, a14, a15, 0.0, 0.0, 0.0, a19, 0.0, 0.0, 0.0],
-                        [0.0, 1.0, 0.0, a24, a25, 0.0, 0.0, 0.0, a29, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 1.0, 0.0, 0.0, a36, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ekf.dt+1, 0.0, 0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ekf.dt+1, 0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ekf.dt+1, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
-                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
+        
+        a09_11 = float(-ekf.dt*x[12]*np.sin(x[11]) - ekf.dt*x[13]*np.cos(x[11])) 
+        a09_12 = float(ekf.dt*np.cos(x[11])) 
+        a09_13 = float(-ekf.dt*np.sin(x[11])) 
+        
+        a10_11 = float(-ekf.dt*x[12]*np.sin(x[11]) + ekf.dt*x[13]*np.cos(x[11])) 
+        a10_12 = float(ekf.dt*np.sin(x[11])) 
+        a10_13 = float(ekf.dt*np.cos(x[11])) 
+        
+        JA = np.matrix([[1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.5*ekf.dt**2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.5*ekf.dt**2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.5*ekf.dt**2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, a09_11, a09_12, a09_13, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, a10_11, a10_12, a10_13, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
 
-
-        # Project the error covariance ahead
+        #Error covariance
         ekf.P = JA*ekf.P*JA.T + ekf.Q
 
         # Measurement Update (Correction)
-        # ===============================
+        
         # Measurement Function
         hx = np.matrix([[float(x[0])],
                         [float(x[1])],
                         [float(x[2])],
-                        [float(x[3])],
-                        [float(x[4])],
-                        [float(x[5])],
                         [float(x[6])],
                         [float(x[7])],
                         [float(x[8])],
                         [float(x[9])],
                         [float(x[10])],
-                        [float(x[11])]])
-
+                        [float(x[11])],
+                        [float(x[12])],
+                        [float(x[13])],
+                        [float(x[14])]])
+        
         if not ekf.old_x == measurements[0,filterstep]: # with 10Hz, every 5th step
             print('Vision update')
-            ekf.JH = np.matrix([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
+            ekf.JH = np.matrix([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
         else: # every other step
             print('NO vision')
-            ekf.JH = np.matrix([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
-                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
+            ekf.JH = np.matrix([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
             
         S = ekf.JH*ekf.P*ekf.JH.T + ekf.R
         K = (ekf.P*ekf.JH.T) * np.linalg.inv(S) #np.linalg.pinv(S)
@@ -360,18 +413,30 @@ if __name__ == "__main__":
         ekf.x3.append(float(x[3]))
         ekf.x4.append(float(x[4]))
         ekf.x5.append(float(x[5]))
+        ekf.x9.append(float(np.rad2deg(x[9])))
+        ekf.x10.append(float(np.rad2deg(x[10])))
+        ekf.x11.append(float(np.rad2deg(x[11])))
     
     ekf.plot_position()
     
     labels = ['x','y','z']
-    ys = [ekf.corr_acc_x, ekf.corr_acc_y, ekf.macc_z]
+    ys = [ekf.corr_acc_x, ekf.corr_acc_y, ekf.corr_acc_z]
     ekf.plot_state('Acceleration [IMU]', 'Time [s]', r'Acceleration [$(\frac{m}{s^2})$]', 'Acceleration.png', ekf.mtime, ys)
+    
+    labels = ['Velocity in x','Velocity in y','Velocity in z']
+    ys = [ekf.x3, ekf.x4, ekf.x5]
+    ekf.plot_state('Linear velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{m}{s})$]', 'Linear velocity.png', ekf.mtime, ys)
+    
+    labels = ['Roll','Pitch']
+    ys = [ekf.x9, ekf.x10, ekf.x11]
+    ekf.plot_state('Angle [IMU and vision fusion]', 'Time [s]', r'Angle [Degress]', 'Orientation.png', ekf.mtime, ys)
     
     labels = ['x','y','z']
     ys = [ekf.mgyro_x, ekf.mgyro_y, ekf.mgyro_z]
     ekf.plot_state('Angular velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{m}{s})$]', 'Velocity.png', ekf.mtime, ys)
 
+    """
     labels = ['x','y','z']
     ys = [ekf.mx, ekf.my, ekf.mz]
     ekf.plot_state('Position [Vision]', 'Time [s]', r'Position [$(\frac{m}{s^2})$]', 'Position.png', ekf.mtime, ys)
-
+    """

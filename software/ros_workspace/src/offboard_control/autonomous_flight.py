@@ -112,7 +112,6 @@ class autonomous_flight():
         ori =  euler_from_quaternion(i)
         self.delta_ori = ori[2]-np.deg2rad(setpoint[3])
         error = np.sqrt(np.power(self.delta_x,2) + np.power(self.delta_y,2) + np.power(self.delta_z,2) + np.power(self.delta_ori,2))
-
         if error < threshold:
             return True
         else:

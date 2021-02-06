@@ -359,9 +359,9 @@ class sensor_fusion():
             pitch = euler[1]
             yaw = euler[2]
 
-        acc_x = (self.imu_data.linear_acceleration.x-self.acc_x_offset)
-        acc_y = (self.imu_data.linear_acceleration.y-self.acc_y_offset)
-        acc_z = (self.imu_data.linear_acceleration.z-self.acc_z_offset)
+        acc_x = self.imu_data.linear_acceleration.x #self.acc_x_offset)
+        acc_y = self.imu_data.linear_acceleration.y #self.acc_y_offset)
+        acc_z = self.imu_data.linear_acceleration.z #-self.acc_z_offset)
 
         gyro_x = self.imu_data.angular_velocity.x-self.gyro_x_offset
         gyro_y = self.imu_data.angular_velocity.y-self.gyro_y_offset
