@@ -201,7 +201,7 @@ class sensor_fusion():
         #Init ROS node
         rospy.init_node('sensor_fusion')
 
-        self.dt = 1./10.
+        self.dt = 1./30.
         self.kf = kalman_filter(self.dt)
 
         self.imu_data = Imu()

@@ -46,17 +46,6 @@ class ekf():
         
         xs, ys, zs, xv, yv, zv, xa, ya, za, psi, phi, theta, psi_v, phi_v, theta_v, dt = symbols('x y z x_v, y_v, z_v, x_a y_a a_z psi phi theta psi_v phi_v theta_v T')
         
-        #Rotation matrix to align angles from the world (marker) to that of the acceleration so that the gravity can be subtracted easily
-        R1 = Matrix([[cos(2*theta+np.pi/2)*cos(0), sin(theta)*(-cos(0)), sin(0)],
-                     [sin(2*theta+np.pi/2)*cos(0) + cos(theta)*sin(0)*sin(0), cos(2*theta+np.pi/2)*cos(0) - sin(2*theta+np.pi/2)*sin(0)*sin(0), sin(0)*(-cos(0))],
-                     [sin(2*theta+np.pi/2)*sin(0) - cos(theta)*cos(0)*sin(0), cos(2*theta+np.pi/2)*sin(0) + sin(2*theta+np.pi/2)*cos(0)*sin(0), cos(0)*cos(0)]])
-
-        #Rotation matrix to align the acceleratiuon of the drone to the world coordinate system (marker)
-        R2 = Matrix([[cos(theta)*cos(phi), sin(theta)*(-cos(phi)), sin(phi)],
-                     [sin(theta)*cos(psi) + cos(theta)*sin(psi)*sin(phi), cos(theta)*cos(psi) - sin(theta)*sin(psi)*sin(phi), sin(psi)*(-cos(phi))],
-                     [sin(theta)*sin(psi) - cos(theta)*cos(psi)*sin(phi), cos(theta)*sin(psi) + sin(theta)*cos(psi)*sin(phi), cos(psi)*cos(phi)]])
-        
-        
         self.gs = Matrix([
             [xs + xv*dt + 0.5*xa*dt**2],
             [ys + yv*dt + 0.5*ya*dt**2],
@@ -67,60 +56,20 @@ class ekf():
             [xa],
             [ya],
             [za],
-            [psi - (cos(theta+np.pi)*(psi_v*dt) + sin(theta+np.pi)*(phi_v*dt)],
-            [phi - (-sin(theta+np.pi)*(psi_v*dt) + cos(theta+np.pi)*(phi_v*dt))],
+            [psi + cos(theta+np.pi)*(psi_v*dt) - sin(theta+np.pi)*(phi_v*dt)],
+            [phi + sin(theta+np.pi)*(psi_v*dt) + cos(theta+np.pi)*(phi_v*dt)],
             [theta + theta_v*dt],
             [psi_v],
             [phi_v],
             [theta_v]])
         
         
-        self.state = Matrix([xs, ys, zs, xv, yv, zv, xa, ya, za, psi, phi, theta, psi_v, phi_v, theta_v])
-        dt = 0.1
-        
-        #Process Noise Covariance Matrix Q (The state uncertainty model models the disturbances which excite the linear system)
-        self.P = np.diag([1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0])
-        vision_x = 0.8*1.0*dt**2
-        vision_y = 0.8*1.0*dt**2
-        vision_z = 0.8*1.0*dt**2
-        rate_x = 0.8*dt
-        rate_y = 0.8*dt
-        rate_z = 0.8*dt
-        acc_x = 0.8
-        acc_y = 0.8
-        acc_z = 0.8
-        roll = 1.25*dt
-        pitch = 1.25*dt
-        yaw = 1.25*dt
-        rate_roll = 1.25
-        rate_pitch = 1.25
-        rate_yaw = 1.25
-        
-        self.Q = np.diag([vision_x**2, vision_y**2, vision_z**2, 
-                          rate_x**2, rate_y**2, rate_z**2, 
-                          acc_x**2, acc_y**2, acc_z**2, 
-                          roll**2, pitch**2, yaw**2, 
-                          rate_roll**2, rate_pitch**2, rate_yaw**2])
+        #self.state = Matrix([xs, ys, zs, xv, yv, zv, xa, ya, za, psi, phi, theta, psi_v, phi_v, theta_v])
+        self.P = np.diag([1.0, 1.0, 1.0, 1.0, 1.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0])
+        self.Q = np.diag([1.0**2, 1.0**2, 0.5**2, 9.5**2, 9.5**2, 1.0**2, 0.3**2, 0.3**2, 0.5**2, 0.2**2, 0.2**2, 0.2**2, 0.2**2, 0.2**2, 0.2**2]) 
+        self.R = np.diag([0.5**2, 0.5**2, 0.5**2, 2.2**2, 2.2**2, 1.0**2, 0.1**2, 0.1**2, 0.5**2, 0.02**2, 0.02**2, 0.02**2])
 
-        self.Q = self.Q * self.Q.T
-        #Measurement Noise Covariance R (The uncertainty estimates take on the significance of relative weights of state estimates and measurements STD)
-        vision_x = 2.5
-        vision_y = 2.5
-        vision_z = 2.5
-        acc_x = 2.5
-        acc_y = 2.5
-        acc_z = 2.5
-        roll = 0.05
-        pitch = 0.05
-        yaw = 0.05
-        rate_roll = 0.1
-        rate_pitch = 0.1
-        rate_yaw = 0.1
-        self.R = np.diag([vision_x**2, vision_y**2, vision_z**2, 
-                          acc_x**2, acc_y**2, acc_z**2, 
-                          roll**2, pitch**2, yaw**2, 
-                          rate_roll**2, rate_pitch**2, rate_yaw**2])
-        
+
         self.hs = Matrix([
             [xs],
             [ys],
@@ -160,16 +109,6 @@ class ekf():
         self.x12 = [] #gyro_x
         self.x13 = [] #gyro_y
         self.x14 = [] #gyro_z
-        
-        self.kx0 = []
-        self.kx1 = []
-        self.kx2 = []
-        self.kx3 = []
-        self.kx4 = []
-        self.kx5 = []
-        self.kx6 = []
-        self.kx7 = []
-        self.kx8 = []
     
     def read_data(self, file_name):
         
@@ -295,34 +234,6 @@ class ekf():
         plt.legend(loc='best')
         plt.savefig(fig_name)
 
-    def plot_kg(self, title, x_label, y_label, fig_name, x, y):
-        
-        fig, ax = plt.subplots()
-        ax.set_axisbelow(True)
-        ax.set_facecolor('#E6E6E6')
-        plt.grid(color='w', linestyle='solid')
-
-        for spine in ax.spines.values():
-            spine.set_visible(False)
-
-        ax.xaxis.tick_bottom()
-        ax.yaxis.tick_left()
-        ax.tick_params(colors='gray', direction='out')
-
-        for tick in ax.get_xticklabels():
-            tick.set_color('gray')
-        for tick in ax.get_yticklabels():
-            tick.set_color('gray')
-
-        for label, y in zip(labels, y):
-            plt.step(x, y, linewidth=0.5, label=label)
-        
-        plt.xlabel(x_label)
-        plt.ylabel(y_label)
-        plt.title(title)
-        plt.legend(loc='best')
-        plt.ylim([-0.1,1.0]);
-        plt.savefig(fig_name)
     def eulerAnglesToRotationMatrixYaw(self,theta):
 	
         R_z = np.array([[np.cos(theta),    -np.sin(theta),    0],
@@ -361,55 +272,51 @@ if __name__ == "__main__":
     i = measurements
     x = np.matrix([[i[0,0], i[1,0], i[2,0], 0.0, 0.0, 0.0, i[3,0], i[4,0], i[5,0], i[6,0], i[7,0], i[8,0], i[9,0], i[10,0], i[11,0]]]).T
     
-    x_test = []
-    x_ = .0
     for filterstep in range(m):
 
         if filterstep:
             ekf.dt = ekf.mtime[filterstep]-ekf.mtime[filterstep-1]
-        
-        #print(ekf.dt)
+        print(ekf.dt)
 
         #Time Update (Prediction)
 
-        bias = [-0.190006656546, -0.174740895383]
-        gravity = 9.79531049538
-        
         #Rotation matrix to align angle to that of the acceleration of the drone. Hences the gravity can be subtracted 
-        R1 = ekf.eulerAnglesToRotationMatrix([0, 0, 2*x[11,0] + np.pi/2])
-        a = np.matmul(R1, np.array([x[9,0], x[10,0], x[11,0]]))
+        R1 = ekf.eulerAnglesToRotationMatrix([0, 0, x[11,0]+np.pi/2])
+        R2 = ekf.eulerAnglesToRotationMatrix([0, 0, x[11,0]])
+        a = np.matmul(np.matmul(R1,R2), np.array([x[9,0], x[10,0], x[11,0]]))
         
         #Correct for acceleration shift for the orientation of the drone and bias for x and y
-        R2 = ekf.eulerAnglesToRotationMatrix([x[10,0], x[9,0], x[11,0]])
-        acc = np.matmul(R2, np.array([x[6,0], x[7,0], 0]))
-        acc_bias = np.matmul(R2, np.array([bias[0], bias[1], 0]))
+        R = ekf.eulerAnglesToRotationMatrixYaw(x[11,0])
+        acc = np.matmul(R, np.array([x[6,0], x[7,0], 0]))
+        acc_bias = np.matmul(R, np.array([-0.190006656546, -0.174740895383, 0]))
         
-        corrected_acc_x = acc[0] - acc_bias[0] + np.sin(a[0])*gravity
-        corrected_acc_y = acc[1] - acc_bias[1] + np.sin(a[1])*gravity
-        corrected_acc_z = x[8,0] - gravity
-
+        corrected_acc_x = acc[0] - acc_bias[0] + np.sin(a[0]*9.79531049538)
+        corrected_acc_y = acc[1] - acc_bias[1] + np.sin(a[1]*9.79531049538)
+        corrected_acc_z = x[8,0] - 9.79531049538
+        
         ekf.corr_acc_x.append(corrected_acc_x)
         ekf.corr_acc_y.append(corrected_acc_y)
         ekf.corr_acc_z.append(corrected_acc_z)
         
-        x[0] = x[0] + x[3]*ekf.dt + 0.5*corrected_acc_x*ekf.dt**2
-        x[1] = x[1] + x[4]*ekf.dt + 0.5*corrected_acc_y*ekf.dt**2
-        x[2] = x[2] + x[5]*ekf.dt + 0.5*corrected_acc_z*ekf.dt**2
+        x[0] = x[0] + 0.5*x[3]*ekf.dt #+ 0.5*corrected_acc_x*ekf.dt**2 #(np.cos(x[8]+np.pi)*(0.5*x[3]*ekf.dt) - np.sin(x[8]+np.pi)*(0.5*x[4]*ekf.dt))
+        x[1] = x[1] + 0.5*x[4]*ekf.dt #+ 0.5*corrected_acc_y*ekf.dt**2 #(np.sin(x[8]+np.pi)*(0.5*x[3]*ekf.dt) + np.cos(x[8]+np.pi)*(0.5*x[4]*ekf.dt))
+        x[2] = x[2] + 0.5*x[5]*ekf.dt #+ 0.5*corrected_acc_z*ekf.dt**2
         x[3] = x[3] + corrected_acc_x*ekf.dt
         x[4] = x[4] + corrected_acc_y*ekf.dt
         x[5] = x[5] + corrected_acc_z*ekf.dt
         x[6] = x[6]
         x[7] = x[7]
         x[8] = x[8]
-        x[9] = x[9] - (np.cos(x[11,0])*x[12,0]*ekf.dt + np.sin(x[11,0])*x[13,0]*ekf.dt)
-        x[10] = x[10] - (-np.sin(x[11,0])*x[12,0]*ekf.dt + np.cos(x[11,0])*x[13,0]*ekf.dt)
+        x[9] = x[9] - (np.cos(x[11,0])*x[12,0]*ekf.dt + np.sin(x[11,0])*x[13,0]*ekf.dt) # x[12]*ekf.dt
+        x[10] = x[10] - (-np.sin(x[11,0])*x[12,0]*ekf.dt + np.cos(x[11,0])*x[13,0]*ekf.dt) # x[13]*ekf.dt
         x[11] = x[11] + x[14]*ekf.dt
         x[12] = x[12]
         x[13] = x[13]
         x[14] = x[14]
-        
-        x_ = x_ + (np.cos(x[11,0])*x[12,0]*ekf.dt + np.sin(x[11,0])*x[13,0]*ekf.dt)
-        #print(x[10])
+        #dstate.append(1)
+
+        #print((np.sin(x[8]+np.pi)*(0.5*x[3]*ekf.dt) + np.cos(x[8]+np.pi)*(0.5*x[4]*ekf.dt)))
+        print(x[10])
 
         # Calculate the Jacobian of the Dynamic Matrix A
         # see "Calculate the Jacobian of the Dynamic Matrix with respect to the state vector"
@@ -422,9 +329,9 @@ if __name__ == "__main__":
         a10_12 = float(ekf.dt*np.sin(x[11])) 
         a10_13 = float(ekf.dt*np.cos(x[11])) 
         
-        JA = np.matrix([[1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.5*ekf.dt**2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                        [0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.5*ekf.dt**2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                        [0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.5*ekf.dt**2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        JA = np.matrix([[1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                        [0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, ekf.dt, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -458,7 +365,7 @@ if __name__ == "__main__":
                         [float(x[14])]])
         
         if not ekf.old_x == measurements[0,filterstep]: # with 10Hz, every 5th step
-            #print('Vision update')
+            print('Vision update')
             ekf.JH = np.matrix([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                                 [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                                 [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -472,7 +379,7 @@ if __name__ == "__main__":
                                 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
                                 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
         else: # every other step
-            #print('NO vision')
+            print('NO vision')
             ekf.JH = np.matrix([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                                 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                                 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -487,8 +394,7 @@ if __name__ == "__main__":
                                 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]])
             
         S = ekf.JH*ekf.P*ekf.JH.T + ekf.R
-        K = (ekf.P*ekf.JH.T) * np.linalg.inv(S)
-        #print(K)
+        K = (ekf.P*ekf.JH.T) * np.linalg.inv(S) #np.linalg.pinv(S)
         
         # Update the estimate via
         Z = measurements[:,filterstep].reshape(ekf.JH.shape[0],1)
@@ -510,16 +416,6 @@ if __name__ == "__main__":
         ekf.x9.append(float(np.rad2deg(x[9])))
         ekf.x10.append(float(np.rad2deg(x[10])))
         ekf.x11.append(float(np.rad2deg(x[11])))
-
-        ekf.kx0.append(float(K[0,0]))
-        ekf.kx1.append(float(K[1,0]))
-        ekf.kx2.append(float(K[2,0]))
-        ekf.kx3.append(float(K[3,0]))
-        ekf.kx4.append(float(K[4,0]))
-        ekf.kx5.append(float(K[5,0]))
-        ekf.kx6.append(float(K[6,0]))
-        ekf.kx7.append(float(K[7,0]))
-        ekf.kx8.append(float(K[8,0]))
     
     ekf.plot_position()
     
@@ -539,10 +435,6 @@ if __name__ == "__main__":
     ys = [ekf.mgyro_x, ekf.mgyro_y, ekf.mgyro_z]
     ekf.plot_state('Angular velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{m}{s})$]', 'Velocity.png', ekf.mtime, ys)
 
-    labels = ['x','y','z','$\dot x$','$\dot y$','$\dot z$', '$\dot \dot x$','$\dot \dot y$', '$\dot \dot z$']
-    ys = [ekf.kx0, ekf.kx1, ekf.kx2, ekf.kx3, ekf.kx4, ekf.kx5, ekf.kx6, ekf.kx7, ekf.kx8]
-    ekf.plot_kg('Kalman gain', 'Time [s]', r'Velocity [ ]', 'kalman_gain.png', ekf.mtime, ys)
-    
     """
     labels = ['x','y','z']
     ys = [ekf.mx, ekf.my, ekf.mz]
