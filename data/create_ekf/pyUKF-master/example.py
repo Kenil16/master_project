@@ -51,7 +51,31 @@ class ukf():
         self.x13 = [] #gyro_y
         self.x14 = [] #gyro_z
 
-        self.test = 0.0
+        self.x15 = [] #gyro_x
+        self.x16 = [] #gyro_y
+        self.x17= [] #gyro_z
+        
+        self.gyro_x = 0.0
+        self.gyro_y = 0.0
+        self.gyro_z = 0.0
+        self.test = 0
+
+        self.new_route_x = []
+        self.new_route_y = []
+        self.new_route_z = []
+
+        self.create_ground_truth()
+        
+        #Used in the GA (chromosome)
+        self.covariance = [0.009, 0.009, 0.009, #Process noise x, y and z (pos)
+                           0.04, 0.04, 0.04, #Process noise x, y and z (rate)
+                           0.05, 0.05, 0.05, #Process noise x, y and z (acc)
+                           0.05, 0.05, 0.05, #Process noise roll, pitch and yaw (angle)
+                           0.005, 0.005, 0.005, #Process noise x, y and z (angle rate)
+                           200.1, 200.1, 200.0, #Measurement noise x, y and z (pos)
+                           0.02, 0.02, 0.001, #Measurement noise x, y and z (acc)
+                           0.1, 0.1, 0.1, #Measurement noise x, y and z (angle)
+                           0.01, 0.01, 0.01] #Measurement noise x, y and z (abgle rate)
 
     def read_data(self, file_name):
 
@@ -110,8 +134,8 @@ class ukf():
         corrected_acc_z = x[8] - gravity
 
         #Rotation matrix to align gyro velocity to the orientation of the world (marker)
-        R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]])
-        corrected_gyro = np.matmul(R3, np.array([x[12], x[13], x[14]]))
+        R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])
+        corrected_gyro = np.matmul(R3, np.array([x[13], x[12], x[14]]))
 
         ret[0] = x[0] + x[3]*dt + 0.5*corrected_acc_x*dt**2
         ret[1] = x[1] + x[4]*dt + 0.5*corrected_acc_y*dt**2
@@ -122,23 +146,26 @@ class ukf():
         ret[6] = x[6]
         ret[7] = x[7]
         ret[8] = x[8]
-        ret[9] = x[9] + corrected_gyro[1]*dt #+ (np.cos(x[11])*x[12]*dt - np.sin(x[11])*x[13]*dt)
-        ret[10] = x[10] + corrected_gyro[0]*dt # - (-np.sin(x[11])*x[12]*dt + np.cos(x[11])*x[13]*dt)
-        ret[11] = x[11] + corrected_gyro[2]*dt #+ x[14]*dt
+        ret[9] = x[9] + corrected_gyro[1]*dt
+        ret[10] = x[10] + corrected_gyro[0]*dt
+        ret[11] = x[11] + corrected_gyro[2]*dt
         ret[12] = x[12]
         ret[13] = x[13]
         ret[14] = x[14]
 
+        #self.gyro_x = self.gyro_x + corrected_gyro[1]*dt
+        #self.gyro_y = self.gyro_y + corrected_gyro[0]*dt
+        #self.gyro_z = self.gyro_z + corrected_gyro[2]*dt
+        
         #print(x)
-        #self.test = self.test + x[14]*dt
-
-
+        #self.test = self.test + 1
+        #print(self.test)
         return ret
     
     def main(self):
         
         np.set_printoptions(precision=3)
-
+        """
         # Process Noise
         q = np.eye(15)
         q[0][0] = 0.009
@@ -173,20 +200,56 @@ class ukf():
         r_vision[3][3] = 0.01
         r_vision[4][4] = 0.01
         r_vision[5][5] = 0.01
+        """
 
+        # Process Noise
+        q = np.eye(15)
+        q[0][0] = self.covariance[0]
+        q[1][1] = self.covariance[1]
+        q[2][2] = self.covariance[2]
+        q[3][3] = self.covariance[3]
+        q[4][4] = self.covariance[4]
+        q[5][5] = self.covariance[5]
+        q[6][6] = self.covariance[6]
+        q[7][7] = self.covariance[7]
+        q[8][8] = self.covariance[8]
+        q[9][9] = self.covariance[9]
+        q[10][10] = self.covariance[10]
+        q[11][11] = self.covariance[11]
+        q[12][12] = self.covariance[12]
+        q[13][13] = self.covariance[13]
+        q[14][14] = self.covariance[14]
+        
+        # Create measurement noise covariance matrices
+        r_imu = np.zeros([6, 6])
+        r_imu[0][0] = self.covariance[15]
+        r_imu[1][1] = self.covariance[16]
+        r_imu[2][2] = self.covariance[17]
+        r_imu[3][3] = self.covariance[18]
+        r_imu[4][4] = self.covariance[19]
+        r_imu[5][5] = self.covariance[20]
+        
+        r_vision = np.zeros([6, 6])
+        r_vision[0][0] = self.covariance[21]
+        r_vision[1][1] = self.covariance[22]
+        r_vision[2][2] = self.covariance[23]
+        r_vision[3][3] = self.covariance[24]
+        r_vision[4][4] = self.covariance[25]
+        r_vision[5][5] = self.covariance[26]
+        
         # pass all the parameters into the UKF!
         # number of state variables, process noise, initial state, initial coariance, three tuning paramters, and the iterate function
         measurements = np.vstack((self.mx, self.my, self.mz, self.macc_x, self.macc_y, self.macc_z, self.mpsi, self.mphi, self.mtheta, self.mgyro_x, self.mgyro_y, self.mgyro_z))
         m = measurements.shape[1]
-        print(measurements.shape)
+        #print(measurements.shape)
         i = measurements
         x_init = [i[0,0], i[1,0], i[2,0], 0 ,0 ,0, i[3,0], i[4,0], i[5,0], i[6,0], i[7,0], i[8,0], i[9,0], i[10,0], i[11,0]]
+        
         state_estimator = UKF(15, q, x_init, 0.0001*np.eye(15), 0.04, 0.0, 2.0, self.iterate_x)
-        print(x_init)
+        
         dt = 0.0
-        print(range(m))
         for j in range(m):
-            
+                
             row = [i[0,j], i[1,j], i[2,j], i[3,j], i[4,j], i[5,j], i[6,j], i[7,j], i[8,j], i[9,j], i[10,j], i[11,j]]
             #print(row)        
             if j:
@@ -241,7 +304,19 @@ class ukf():
             self.x9.append(float(np.rad2deg(x[9])))
             self.x10.append(float(np.rad2deg(x[10])))
             self.x11.append(float(np.rad2deg(x[11])))
+            
+            self.gyro_x = self.gyro_x + row[9]*dt
+            self.gyro_y = self.gyro_y + row[10]*dt
+            self.gyro_z = self.gyro_z + row[11]*dt
+            
+            self.x15.append(float(np.rad2deg(self.gyro_x)))
+            self.x16.append(float(np.rad2deg(self.gyro_y)))
+            self.x17.append(float(np.rad2deg(self.gyro_z)))
 
+            #self.test = self.test + 1
+            #print(self.test)
+            
+            
     def plot_state(self, title, x_label, y_label, fig_name, x, y):
 
         fig, ax = plt.subplots()
@@ -304,9 +379,79 @@ class ukf():
 
         plt.savefig('Position.png')
 
+    def plot_ground_truth(self, x, y):
+
+        fig, ax = plt.subplots()
+        ax.set_axisbelow(True)
+        ax.set_facecolor('#E6E6E6')
+        plt.grid(color='w', linestyle='solid')
+
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+        ax.xaxis.tick_bottom()
+        ax.yaxis.tick_left()
+        ax.tick_params(colors='gray', direction='out')
+
+        for tick in ax.get_xticklabels():
+            tick.set_color('gray')
+        for tick in ax.get_yticklabels():
+            tick.set_color('gray')
+
+        plt.scatter(x, y, s=5, label='GPS Measurements', c='r')
+
+        # Start/Goal
+        plt.scatter(x[0], y[0], s=60, label='Start', c='g')
+        plt.scatter(x[-1], y[-1], s=60, label='Goal', c='r')
+
+        plt.xlabel('X [m]')
+        plt.ylabel('Y [m]')
+        plt.title('position_ground_truth')
+        plt.legend(loc='best')
+        plt.axis('equal')
+
+        plt.savefig('position_ground_truth.png')
+
+    def create_ground_truth(self):
+        
+        route = [[-3.65,-1.10,1.5], [-3.65,-4.25,1.5], [-3.65,-4.25,1.5], [-7.1,-4.25,1.5], [-7.1,-4.25,1.5], [-7.1,-7.1,1.5], [-7.1,-7.1, 1.0,]]
+        waypoints = 335
+        
+        int_points = waypoints/(len(route)-1)
+        if int(int_points) < int_points:
+            int_points = int_points + 1
+        
+        #print(int_points)
+        
+        for i in range(1, len(route)):
+            point1 = route[i-1]
+            point2 = route[i]
+    
+            new_points = np.linspace(point1[0],point2[0],int(int_points))
+            for i in new_points:    
+                self.new_route_x.append(i)
+        
+            new_points = np.linspace(point1[1],point2[1],int(int_points))
+            for i in new_points:    
+                self.new_route_y.append(i)
+            
+            new_points = np.linspace(point1[2],point2[2],int(int_points))
+            for i in new_points:    
+                self.new_route_z.append(i)
+        
+        while len(self.new_route_x) > waypoints:
+            self.new_route_x.pop()
+            self.new_route_y.pop()
+            self.new_route_z.pop()
+        
+        #print(len(self.new_route_x))
+        self.plot_ground_truth(self.new_route_x, self.new_route_y)
+        
+        
 if __name__ == "__main__":
 
     ukf = ukf()
+    #ukf.create_ground_truth()
     ukf.main()
 
     labels = ['x','y','z']
@@ -326,4 +471,8 @@ if __name__ == "__main__":
     ukf.plot_state('Angular velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{m}{s})$]', 'Velocity.png', ukf.mtime, ys)
 
     ukf.plot_position()
-
+    
+    labels = ['Roll','Pitch', 'Yaw']
+    ys = [ukf.x15, ukf.x16, ukf.x17]
+    ukf.plot_state('Angle [IMU and vision fusion]', 'Time [s]', r'Angle [Degress]', 'Orientation_gyro.png', ukf.mtime, ys)
+    
