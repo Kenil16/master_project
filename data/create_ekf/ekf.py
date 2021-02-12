@@ -46,6 +46,7 @@ class ekf():
         
         xs, ys, zs, xv, yv, zv, xa, ya, za, psi, phi, theta, psi_v, phi_v, theta_v, dt = symbols('x y z x_v, y_v, z_v, x_a y_a a_z psi phi theta psi_v phi_v theta_v T')
         
+        """
         #Rotation matrix to align angles from the world (marker) to that of the acceleration so that the gravity can be subtracted easily
         R1 = Matrix([[cos(2*theta+np.pi/2)*cos(0), sin(theta)*(-cos(0)), sin(0)],
                      [sin(2*theta+np.pi/2)*cos(0) + cos(theta)*sin(0)*sin(0), cos(2*theta+np.pi/2)*cos(0) - sin(2*theta+np.pi/2)*sin(0)*sin(0), sin(0)*(-cos(0))],
@@ -55,8 +56,8 @@ class ekf():
         R2 = Matrix([[cos(theta)*cos(phi), sin(theta)*(-cos(phi)), sin(phi)],
                      [sin(theta)*cos(psi) + cos(theta)*sin(psi)*sin(phi), cos(theta)*cos(psi) - sin(theta)*sin(psi)*sin(phi), sin(psi)*(-cos(phi))],
                      [sin(theta)*sin(psi) - cos(theta)*cos(psi)*sin(phi), cos(theta)*sin(psi) + sin(theta)*cos(psi)*sin(phi), cos(psi)*cos(phi)]])
-        
-        
+        """
+
         self.gs = Matrix([
             [xs + xv*dt + 0.5*xa*dt**2],
             [ys + yv*dt + 0.5*ya*dt**2],
@@ -67,7 +68,7 @@ class ekf():
             [xa],
             [ya],
             [za],
-            [psi - (cos(theta+np.pi)*(psi_v*dt) + sin(theta+np.pi)*(phi_v*dt)],
+            [psi - (cos(theta+np.pi)*(psi_v*dt) + sin(theta+np.pi)*(phi_v*dt))],
             [phi - (-sin(theta+np.pi)*(psi_v*dt) + cos(theta+np.pi)*(phi_v*dt))],
             [theta + theta_v*dt],
             [psi_v],
@@ -387,7 +388,11 @@ if __name__ == "__main__":
         corrected_acc_x = acc[0] - acc_bias[0] + np.sin(a[0])*gravity
         corrected_acc_y = acc[1] - acc_bias[1] + np.sin(a[1])*gravity
         corrected_acc_z = x[8,0] - gravity
-
+        
+        #Rotation matrix to align gyro velocity to the orientation of the world (marker)
+        R3 = ekf.eulerAnglesToRotationMatrix([0, 0, x[11,0]-np.pi])
+        corrected_gyro = np.matmul(R3, np.array([x[13,0], x[12,0], x[14,0]]))
+        
         ekf.corr_acc_x.append(corrected_acc_x)
         ekf.corr_acc_y.append(corrected_acc_y)
         ekf.corr_acc_z.append(corrected_acc_z)
@@ -398,15 +403,15 @@ if __name__ == "__main__":
         x[3] = x[3] + corrected_acc_x*ekf.dt
         x[4] = x[4] + corrected_acc_y*ekf.dt
         x[5] = x[5] + corrected_acc_z*ekf.dt
-        x[6] = x[6]
-        x[7] = x[7]
-        x[8] = x[8]
-        x[9] = x[9] - (np.cos(x[11,0])*x[12,0]*ekf.dt + np.sin(x[11,0])*x[13,0]*ekf.dt)
-        x[10] = x[10] - (-np.sin(x[11,0])*x[12,0]*ekf.dt + np.cos(x[11,0])*x[13,0]*ekf.dt)
-        x[11] = x[11] + x[14]*ekf.dt
-        x[12] = x[12]
-        x[13] = x[13]
-        x[14] = x[14]
+        x[6] = x[6] + corrected_acc_x
+        x[7] = x[7] + corrected_acc_y
+        x[8] = x[8] + corrected_acc_z
+        x[9] = x[9] + corrected_gyro[1]*ekf.dt
+        x[10] = x[10] + corrected_gyro[0]*ekf.dt
+        x[11] = x[11] + corrected_gyro[2]*ekf.dt
+        x[12] = x[12] + corrected_gyro[1]
+        x[13] = x[13] + corrected_gyro[0]
+        x[14] = x[14] + corrected_gyro[2]
         
         x_ = x_ + (np.cos(x[11,0])*x[12,0]*ekf.dt + np.sin(x[11,0])*x[13,0]*ekf.dt)
         #print(x[10])

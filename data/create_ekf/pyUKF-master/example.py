@@ -67,16 +67,19 @@ class ukf():
         self.create_ground_truth()
         
         #Used in the GA (chromosome)
-        self.covariance = [0.009, 0.009, 0.009, #Process noise x, y and z (pos)
+        self.covariance = [0.05, 0.05, 0.05, #Process noise x, y and z (pos)
                            0.04, 0.04, 0.04, #Process noise x, y and z (rate)
-                           0.05, 0.05, 0.05, #Process noise x, y and z (acc)
-                           0.05, 0.05, 0.05, #Process noise roll, pitch and yaw (angle)
-                           0.005, 0.005, 0.005, #Process noise x, y and z (angle rate)
-                           200.1, 200.1, 200.0, #Measurement noise x, y and z (pos)
-                           0.02, 0.02, 0.001, #Measurement noise x, y and z (acc)
-                           0.1, 0.1, 0.1, #Measurement noise x, y and z (angle)
-                           0.01, 0.01, 0.01] #Measurement noise x, y and z (abgle rate)
-
+                           0.02, 0.02, 0.0005, #Process noise x, y and z (acc)
+                           2.05, 2.05, 2.5, #Process noise roll, pitch and yaw (angle)
+                           0.9, 0.9, 0.5, #Process noise x, y and z (angle rate)
+                           2.3, 2.3, 2.3, #Measurement noise x, y and z (pos)
+                           1.3, 1.3, 0.8, #Measurement noise x, y and z (acc)
+                           0.05, 0.05, 0.05, #Measurement noise x, y and z (angle)
+                           1.5, 1.5, 0.5] #Measurement noise x, y and z (abgle rate)
+        
+        # From best individual using GA 
+        #self.covariance = self.load_chromosome('ga_data/best_chromosome.txt')
+    
     def read_data(self, file_name):
 
         with open(file_name,"r") as text_file:
@@ -117,6 +120,8 @@ class ukf():
         '''this function is based on the x_dot and can be nonlinear as needed'''
         
         ret = np.zeros(len(x))
+
+        """
         bias = [-0.190006656546, -0.174740895383]
         gravity = 9.79531049538
 
@@ -136,74 +141,35 @@ class ukf():
         #Rotation matrix to align gyro velocity to the orientation of the world (marker)
         R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])
         corrected_gyro = np.matmul(R3, np.array([x[13], x[12], x[14]]))
+        """
 
-        ret[0] = x[0] + x[3]*dt + 0.5*corrected_acc_x*dt**2
-        ret[1] = x[1] + x[4]*dt + 0.5*corrected_acc_y*dt**2
-        ret[2] = x[2] + x[5]*dt + 0.5*corrected_acc_z*dt**2
-        ret[3] = x[3] + corrected_acc_x*dt
-        ret[4] = x[4] + corrected_acc_y*dt
-        ret[5] = x[5] + corrected_acc_z*dt
+        ret[0] = x[0] + x[3]*dt + 0.5*x[6]*dt**2
+        ret[1] = x[1] + x[4]*dt + 0.5*x[7]*dt**2
+        ret[2] = x[2] + x[5]*dt + 0.5*x[8]*dt**2
+        ret[3] = x[3] + x[6]*dt
+        ret[4] = x[4] + x[7]*dt
+        ret[5] = x[5] + x[8]*dt
         ret[6] = x[6]
         ret[7] = x[7]
         ret[8] = x[8]
-        ret[9] = x[9] + corrected_gyro[1]*dt
-        ret[10] = x[10] + corrected_gyro[0]*dt
-        ret[11] = x[11] + corrected_gyro[2]*dt
-        ret[12] = x[12]
-        ret[13] = x[13]
+        ret[9] = x[9] + x[13]*dt# - x[15]
+        ret[10] = x[10] + x[12]*dt# - x[16]
+        ret[11] = x[11] + x[14]*dt
+        ret[12] = x[12] 
+        ret[13] = x[13] 
         ret[14] = x[14]
+        ret[15] = x[15]
+        ret[16] = x[16]
+        ret[17] = x[17]
 
-        #self.gyro_x = self.gyro_x + corrected_gyro[1]*dt
-        #self.gyro_y = self.gyro_y + corrected_gyro[0]*dt
-        #self.gyro_z = self.gyro_z + corrected_gyro[2]*dt
-        
-        #print(x)
-        #self.test = self.test + 1
-        #print(self.test)
         return ret
     
     def main(self):
         
         np.set_printoptions(precision=3)
-        """
-        # Process Noise
-        q = np.eye(15)
-        q[0][0] = 0.009
-        q[1][1] = 0.009
-        q[2][2] = 0.009
-        q[3][3] = 0.04
-        q[4][4] = 0.04
-        q[5][5] = 0.04
-        q[6][6] = 0.05
-        q[7][7] = 0.05
-        q[8][8] = 0.05
-        q[9][9] = 0.05
-        q[10][10] = 0.05
-        q[11][11] = 0.05
-        q[12][12] = 0.005
-        q[13][13] = 0.005
-        q[14][14] = 0.005
         
-        # Create measurement noise covariance matrices
-        r_imu = np.zeros([6, 6])
-        r_imu[0][0] = 200.1
-        r_imu[1][1] = 200.1
-        r_imu[2][2] = 200.0
-        r_imu[3][3] = 0.02
-        r_imu[4][4] = 0.02
-        r_imu[5][5] = 0.001
-        
-        r_vision = np.zeros([6, 6])
-        r_vision[0][0] = 0.1
-        r_vision[1][1] = 0.1
-        r_vision[2][2] = 0.1
-        r_vision[3][3] = 0.01
-        r_vision[4][4] = 0.01
-        r_vision[5][5] = 0.01
-        """
-
         # Process Noise
-        q = np.eye(15)
+        q = np.eye(18)
         q[0][0] = self.covariance[0]
         q[1][1] = self.covariance[1]
         q[2][2] = self.covariance[2]
@@ -219,23 +185,28 @@ class ukf():
         q[12][12] = self.covariance[12]
         q[13][13] = self.covariance[13]
         q[14][14] = self.covariance[14]
+        q[15][15] = 0.5
+        q[16][16] = 0.5
+        q[17][17] = 0.005
         
         # Create measurement noise covariance matrices
-        r_imu = np.zeros([6, 6])
-        r_imu[0][0] = self.covariance[15]
-        r_imu[1][1] = self.covariance[16]
-        r_imu[2][2] = self.covariance[17]
-        r_imu[3][3] = self.covariance[18]
-        r_imu[4][4] = self.covariance[19]
-        r_imu[5][5] = self.covariance[20]
+        r_imu_acc = np.zeros([3, 3])
+        r_imu_gyro_v = np.zeros([3, 3])
+        r_imu_acc[0][0] = self.covariance[15]
+        r_imu_acc[1][1] = self.covariance[16]
+        r_imu_acc[2][2] = self.covariance[17]
+        r_imu_gyro_v[0][0] = self.covariance[18]
+        r_imu_gyro_v[1][1] = self.covariance[19]
+        r_imu_gyro_v[2][2] = self.covariance[20]
         
-        r_vision = np.zeros([6, 6])
-        r_vision[0][0] = self.covariance[21]
-        r_vision[1][1] = self.covariance[22]
-        r_vision[2][2] = self.covariance[23]
-        r_vision[3][3] = self.covariance[24]
-        r_vision[4][4] = self.covariance[25]
-        r_vision[5][5] = self.covariance[26]
+        r_vision_pos = np.zeros([3, 3])
+        r_vision_ori = np.zeros([3, 3])
+        r_vision_pos[0][0] = self.covariance[21]
+        r_vision_pos[1][1] = self.covariance[22]
+        r_vision_pos[2][2] = self.covariance[23]
+        r_vision_ori[0][0] = self.covariance[24]
+        r_vision_ori[1][1] = self.covariance[25]
+        r_vision_ori[2][2] = self.covariance[26]
         
         # pass all the parameters into the UKF!
         # number of state variables, process noise, initial state, initial coariance, three tuning paramters, and the iterate function
@@ -243,9 +214,9 @@ class ukf():
         m = measurements.shape[1]
         #print(measurements.shape)
         i = measurements
-        x_init = [i[0,0], i[1,0], i[2,0], 0 ,0 ,0, i[3,0], i[4,0], i[5,0], i[6,0], i[7,0], i[8,0], i[9,0], i[10,0], i[11,0]]
+        x_init = [i[0,0], i[1,0], i[2,0], 0, 0, 0, 0, 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0, 0, 0, 0]
         
-        state_estimator = UKF(15, q, x_init, 0.0001*np.eye(15), 0.04, 0.0, 2.0, self.iterate_x)
+        state_estimator = UKF(18, q, x_init, 0.0001*np.eye(18), 0.04, 0.0, 2.0, self.iterate_x)
         
         dt = 0.0
         for j in range(m):
@@ -256,6 +227,27 @@ class ukf():
                 dt = self.mtime[j]-self.mtime[j-1]
             
             # create an array for the data from each sensor
+            x = state_estimator.get_state()
+            bias = [-0.190006656546, -0.174740895383]
+            gravity = 9.79531049538
+
+            #Rotation matrix to align angle to that of the acceleration of the drone. Hences the gravity can be subtracted 
+            R1 = self.eulerAnglesToRotationMatrix([0, 0, 2*x[11] + np.pi/2])
+            a = np.matmul(R1, np.array([x[9], x[10], x[11]]))
+
+            #Correct for acceleration shift for the orientation of the drone and bias for x and y
+            R2 = self.eulerAnglesToRotationMatrix([x[10], x[9], x[11]])
+            acc = np.matmul(R2, np.array([row[3], row[4], 0]))
+            acc_bias = np.matmul(R2, np.array([bias[0], bias[1], 0]))
+
+            corrected_acc_x = acc[0] - acc_bias[0] + np.sin(a[0])*gravity
+            corrected_acc_y = acc[1] - acc_bias[1] + np.sin(a[1])*gravity
+            corrected_acc_z = row[5] - gravity
+            
+            #Rotation matrix to align gyro velocity to the orientation of the world (marker)
+            R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])
+            corrected_gyro = np.matmul(R3, np.array([row[10], row[9], row[11]]))
+ 
             vision_x = row[0]
             vision_y = row[1]
             vision_z = row[2]
@@ -263,26 +255,29 @@ class ukf():
             vision_pitch = row[7]
             vision_yaw = row[8]
 
-            imu_accX = row[3]
-            imu_accY = row[4]
-            imu_accZ = row[5]
-            imu_rollV = row[9]
-            imu_pitchV = row[10]
-            imu_yawV = row[11]
+            imu_accX = corrected_acc_x #row[3]
+            imu_accY = corrected_acc_y #row[4]
+            imu_accZ = corrected_acc_z #row[5]
+            imu_rollV = corrected_gyro[0] #row[9]
+            imu_pitchV = corrected_gyro[1] #row[10]
+            imu_yawV = corrected_gyro[2] #row[11]
 
-            vision_data = np.array([vision_x, vision_y, vision_z, vision_roll, vision_pitch, vision_yaw])
-            imu_data = np.array([imu_accX, imu_accY, imu_accZ, imu_rollV, imu_pitchV, imu_yawV])
+            vision_data_pos = np.array([vision_x, vision_y, vision_z])
+            vision_data_ori = np.array([vision_roll, vision_pitch, vision_yaw])
+            imu_data_acc = np.array([imu_accX, imu_accY, imu_accZ])
+            imu_data_gyro_v = np.array([imu_rollV, imu_pitchV, imu_yawV])
 
             # prediction is pretty simple
             state_estimator.predict(dt)
 
-            # updating isn't bad either
             # remember that the updated states should be zero-indexed
             # the states should also be in the order of the noise and data matrices
             if not self.old_x == row[0]:
-                state_estimator.update([0, 1, 2, 9, 10, 11], vision_data, r_vision)
+                state_estimator.update([0, 1, 2], vision_data_pos, r_vision_pos)
+                state_estimator.update([9, 10, 11], vision_data_ori, r_vision_ori)
                 
-            state_estimator.update([6, 7, 8, 12, 13, 14], imu_data, r_imu)
+            state_estimator.update([6, 7, 8], imu_data_acc, r_imu_acc)
+            state_estimator.update([12, 13, 14], imu_data_gyro_v, r_imu_gyro_v)
 
             self.old_x = row[0]
 
@@ -445,8 +440,17 @@ class ukf():
             self.new_route_z.pop()
         
         #print(len(self.new_route_x))
-        self.plot_ground_truth(self.new_route_x, self.new_route_y)
+        #self.plot_ground_truth(self.new_route_x, self.new_route_y)
         
+    def load_chromosome(self,file_name):
+        chromosome = []
+        with open(file_name,"r") as ga_file:
+            for line in ga_file:
+                items = line.split(' ')
+                for item in items:
+                    chromosome.append(item)
+        return chromosome
+  
         
 if __name__ == "__main__":
 
@@ -468,7 +472,7 @@ if __name__ == "__main__":
 
     labels = ['x','y','z']
     ys = [ukf.mgyro_x, ukf.mgyro_y, ukf.mgyro_z]
-    ukf.plot_state('Angular velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{m}{s})$]', 'Velocity.png', ukf.mtime, ys)
+    ukf.plot_state('Angular velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{r}{s})$]', 'Velocity.png', ukf.mtime, ys)
 
     ukf.plot_position()
     

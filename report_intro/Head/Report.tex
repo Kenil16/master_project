@@ -1,0 +1,36 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{../Head/Setup}
+\raggedbottom
+\linespread{1.15}
+\graphicspath{{./Figures/}{../Figures/}}
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
+
+\addbibresource{Bibliography.bib}
+
+\begin{document}
+
+    \cfoot[]{ \fancyplain{}{\footnotesize} }
+    \fancyhead{}
+    
+    \subfile{../Head/Titlepage}
+    \clearpage
+    \setcounter{tocdepth}{2}
+    \setcounter{page}{0}	
+	\tableofcontents 
+	\thispagestyle{empty}
+    \clearpage
+	\thispagestyle{fancy}    
+       
+    \fancyhead[R]{\normalsize\rightmark}
+    \fancyhead[L]{\large \textsc{Section }\normalsize\thesection}
+	    
+    \subfile{../Sections/introduction}
+    %\clearpage
+    \subfile{../Sections/Materials_and_methods}
+    \subfile{../Sections/contact_information}
+    \clearpage
+   
+	%\printbibliography
+	\printbibliography[heading=bibintoc]
+
+\end{document}

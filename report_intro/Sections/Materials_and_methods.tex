@@ -1,0 +1,126 @@
+\documentclass[../Head/Report.tex]{subfiles}
+\begin{document}
+\section{Materials and methods}
+
+A tentative time schedule for the project has been formulated which can be seen in Figure \ref{fig:Tentative_time_schedule_2020} and \ref{fig:Tentative_time_schedule_2021}. The first part of the project will focus on the creation of CAD models for buildings and markers. This will be used heavily in the simulations.  
+
+\newcounter{myWeekNum}
+\stepcounter{myWeekNum}
+%
+\newcommand{\myWeek}{\themyWeekNum
+    \stepcounter{myWeekNum}
+    \ifnum\themyWeekNum=53
+         \setcounter{myWeekNum}{1}
+    \else\fi
+}
+
+\setcounter{myWeekNum}{36}
+\ganttset{%
+calendar week text={\myWeek{}}%
+}
+%
+\begin{figure}[h!bt]
+\begin{center}
+
+\advance\leftskip-2.0cm
+
+\begin{ganttchart}[
+vgrid={*{6}{draw=none}, dotted},
+x unit=.08cm,
+y unit title=.7cm,
+y unit chart=.44cm,
+time slot format=isodate,
+time slot format/start date=2020-09-01]{2020-09-01}{2020-12-27}
+\ganttset{bar height=.6}
+\gantttitlecalendar{year, month=name, week} \\
+\ganttbar[bar/.append style={fill=blue}]{Simulation (Gazebo)}{2020-09-15}{2020-11-30}\\
+
+\ganttbar[bar/.append style={fill=green}]{CAD modelling}{2020-09-01}{2020-09-14}\\
+
+\ganttbar[bar/.append style={fill=red}]{ROS implementation}{2020-09-08}{2020-10-05}\\
+
+\ganttbar[bar/.append style={fill=yellow}]{Computer vision}{2020-09-22}{2020-12-07}\\
+
+\ganttbar[bar/.append style={fill=gray}]{Flight tests}{2020-12-01}{2020-12-07}\\
+
+\ganttbar[bar/.append style={fill=black}]{Report writing}{2020-12-08}{2020-12-14}
+\ganttbar[bar/.append style={fill=black}]{}{2020-11-24}{2020-11-30}
+\ganttbar[bar/.append style={fill=black}]{}{2020-11-10}{2020-11-16}
+\ganttbar[bar/.append style={fill=black}]{}{2020-10-27}{2020-11-02}
+
+\end{ganttchart}
+\caption{Tentative time schedule for 2020}
+\label{fig:Tentative_time_schedule_2020}
+\end{center}
+
+\end{figure}
+
+The implementation of ROS will be initiated from where the basis of the project will take place and sensor simulations of the drone for IMU, GPS and camera data have to be extracted for further analyzing. 
+Hence, the main focus of the project for 2020 will be the computer vision part where marker detection, pose estimation, navigation between markers and landing will be in focus. This will be programmed in python with OpenCV as the computer vision software.
+
+The first draft of the report is expected to be given to the supervisor in the end of December 2020. This will involve theory, methods used and initial testing of simulations of the drone.  
+
+In the second part of the project, the focus will be to reduce settling time of the landing as well as wind simulations. In this stage, the drone will be tested in real conditions. Hence, lot of time has been put side for testing of the drone, where computer vision still plays a big part because of possible changes to the software which would be expected when shifting to real flight from simulations.     
+
+\setcounter{myWeekNum}{5}
+\ganttset{%
+calendar week text={\myWeek{}}%
+}
+%
+\begin{figure}[h!bt]
+\begin{center}
+
+\advance\leftskip-2.0cm
+
+\begin{ganttchart}[
+vgrid={*{6}{draw=none}, dotted},
+x unit=.08cm,
+y unit title=.7cm,
+y unit chart=.44cm,
+time slot format=isodate,
+time slot format/start date=2021-02-01]{2021-02-01}{2021-05-30}
+\ganttset{bar height=.6}
+\gantttitlecalendar{year, month=name, week} \\
+
+\ganttbar[bar/.append style={fill=blue}]{Simulation (Gazebo)}{2021-02-01}{2021-02-28}\\
+
+\ganttbar[bar/.append style={fill=yellow}]{Computer vision}{2021-02-01}{2021-03-28}\\
+
+\ganttbar[bar/.append style={fill=gray}]{Flight tests}{2021-02-29}{2021-05-02}\\
+
+\ganttbar[bar/.append style={fill=black}]{Report writing}{2021-05-03}{2021-05-30}
+\ganttbar[bar/.append style={fill=black}]{}{2021-03-22}{2021-03-28}
+\ganttbar[bar/.append style={fill=black}]{}{2021-04-05}{2021-04-11}
+\ganttbar[bar/.append style={fill=black}]{}{2021-04-19}{2021-04-25}
+\end{ganttchart}
+\end{center}
+\caption{Tentative time schedule for 2021}
+\label{fig:Tentative_time_schedule_2021}
+\end{figure}
+
+The final report as well as software used in the project will be handed in in the end of may 2021, where the project is expected to be finish.  
+
+The materials used in this master thesis can be seen in table \ref{tab:tentative_budget}. This consists of a drone where the markers on the floor are expected to be made from foil. The markers can be placed on the floor and used throughout the project. This project is expected to have a tentative budget in the region of 3000 kr.    
+
+\begin{table}[H]
+\captionsetup{justification=centering}
+\caption{Tentative budget for the master project is set to be approximately 3000 kr. The used materials and prize can be seen in the table}
+\label{tab:tentative_budget}
+            	\scalebox{1.00}{
+                \begin{tabular}[t]{p{13.0cm} | c }
+                \centering
+                 \textbf{Description} & \textbf{Prize} \\ [0.5ex] 
+ 				 \hline
+ 				 \centering
+ 				 Quad with a DJI SK500 frame and Pixhawk 2.1 & $\approx$ 2500 kr. \\
+ 				 \centering
+ 				 Printed foil to markers & $\approx$ 500 kr. \\
+ 				 \hline
+ 				 \centering
+ 				 Overall & $\approx$ 3000 kr. \\
+ 
+                \end{tabular}}
+                \centering
+\end{table}
+
+\end{document}

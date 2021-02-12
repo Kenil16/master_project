@@ -3,6 +3,7 @@
   <world name="map">
 
     <!-- A global light source -->
+
     <include>
       <uri>model://sun</uri>
     </include>
@@ -28,6 +29,7 @@
     </model>
 
     <!-- OptiTrack setup -->
+
     <model name="stand0">
       <pose>6 6 3 0 0 0</pose>
       <include>
@@ -169,6 +171,7 @@
     </model>
 
     <!-- Center -->
+
     <model name="center">
       <pose>0 0 6 0 0 0</pose>
       <include>
@@ -205,6 +208,7 @@
     </model>
 
     <!-- OptiTrack Prime cameras -->
+
     <model name="prime01">
       <pose>5.8 0 5.8 0 0.785 3.14</pose>
       <include>
@@ -313,7 +317,7 @@
       <diffuse>0.7 0.7 0.7 0</diffuse>
       <specular>1 1 1 0</specular>
       <direction>-1 -1 -1</direction>
-      <pose>-10 0 0 0 0 3.16</pose>
+      <pose>-18 0 0 0 0 3.16</pose>
     </light>
 
     <physics name='default_physics' default='0' type='ode'>
@@ -339,11 +343,18 @@
     </physics>
 
    <!--Change default camera pose-->
+
    <gui>
      <camera name="gzclient_camera">
-       <pose>-15 -10 3 0 0 0.785398</pose>
+       <pose>-12 -8 3 0 0 0.785398</pose>
      </camera>
    </gui>
-
+<!--
+   <gui>
+     <camera name="gzclient_camera">
+       <pose>0 0 15 0 1.5708 1.5708</pose>
+     </camera>
+   </gui>
+-->
   </world>
 </sdf>

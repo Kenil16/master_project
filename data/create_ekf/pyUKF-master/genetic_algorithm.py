@@ -5,7 +5,7 @@ from example import*
 from random import randrange
 
 # Number of individuals in each generation 
-POPULATION_SIZE = 200
+POPULATION_SIZE = 100
 
 #Run 100 episodes to find fitness of individual
 episodes = 100
@@ -41,7 +41,7 @@ class Individual(object):
     def mutated_genes(self):
 
         #Create random genes for mutation of floats -1 to 1 with 5 digits  
-        gene = round(random.uniform(0,100),digits) 
+        gene = round(random.uniform(0,1),digits) 
         return gene 
   
     @classmethod
@@ -82,6 +82,12 @@ class Individual(object):
         #Insert mutated gene to maintain diversity
         rand_gene = randrange(chromo_len)
         child_chromosome[rand_gene] = self.mutated_genes()
+        
+        rand_gene = randrange(chromo_len)
+        child_chromosome[rand_gene] = self.mutated_genes()
+        
+        rand_gene = randrange(chromo_len)
+        child_chromosome[rand_gene] = self.mutated_genes()
 
         # create new Individual(offspring) using  
         # generated chromosome for offspring 
@@ -109,15 +115,15 @@ class Individual(object):
 
         #print(UKF.covariance)
 
-        mse = 0.0
+        mse = 0
         for i in range(len(UKF.new_route_x)-1):
-            mse = mse + (UKF.new_route_x[i] - UKF.x0[i])**2 
-            mse = mse + (UKF.new_route_y[i] - UKF.x1[i])**2 
-            mse = mse + (UKF.new_route_z[i] - UKF.x2[i])**2 
-            mse = mse/3
+            x_error = abs(UKF.new_route_x[i] - UKF.x0[i])
+            y_error = abs(UKF.new_route_y[i] - UKF.x1[i])
+            z_error = abs(UKF.new_route_z[i] - UKF.x2[i])
+            mse = round(mse,2) + round((x_error + y_error + z_error)/3,2)
 
-        score = 100/(1+mse) #Get score from 0 to 100 in % for best fit gene
-        #print(score)
+        score = 100/(1+round(mse,2)) #Get score from 0 to 100 in % for best fit gene
+        print(score)
         
         states = [UKF.x0, UKF.x1, UKF.x2, UKF.mx, UKF.my, UKF.mz]
         return score, states
