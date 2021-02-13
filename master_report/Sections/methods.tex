@@ -137,18 +137,89 @@ The world file uses the SDF format which contains things like \textit{worlds}, \
 
 The plugins in gazebo are code which is compiled as a shared library and inserted into the simulation. These plugins includes world, model, sensors, system, visual and GUI. For instance, if one wants to include a feature to an existing model, like a wind plugin, these can be included into the world file to be used in a simulation. This wind plugin will be used in some of the simulations for stress testing of the ArUco pose estimation and the flight control in general. \todo{Explain in detail how these wind tests are going to be performed. The wind test is only relevant for the GPS to vision marker and ground marker following. The landing are to be performed in a indoor environment}
 
-\subsection{PX4 autopilot}
-\label{sec:px4_autopilot}
+\subsection{PX4 and ROS for autonomous flight}
 
-PX4 is an open source control software for unmanned vehicles. PX4 uses software in the loop (SITL) for simulations of a given unit before real world testing. The flight stack runs on a computer which could be any unit on the same network. Hardware in the loop (HITL) uses simulation software on a real flight controller board e.g PX4 mini which will be the used flight controller on the drone. 
+This section deals with the implementation of the autonomous flight of the drone. The PX4 autopilot will be used as flight controller which offers many features to enable autonomous flight. Along the PX4 software, ROS will be used which enables onboard computing on the raspberry pi and transmission of messages to the PX4 using the MAVROS package. Before the setup of the raspberry pi, this onboard computing will be simulated in Gazebo and tested thoroughly before moving further. This leads to the execution of flight plans and actions taking by the drone which will be discussed along the implementation of ROS. 
 
-MAVROS is a packages that provides communication drivers for various autopilots with the MAVLink communication protocol. MAVLink is categorized as a light weight messaging protocol for communication with drones, other unmanned vehicles and there onboard components. This follows a hybrid publish-subscribe and point-to-point design pattern.   
+\subsubsection{PX4 flight stack}
+\label{sec:px4_flight_stack}
 
-\todo{ QGroundControl must also be mentioned because much of the setup of the PX4 can be set using this tool. Many parameters can be set in this section as well. }
+PX4 is an open source control software for unmanned vehicles. PX4 uses software in the loop (SITL) for simulations of a given unit before real world testing. The flight stack runs on a computer which could be any unit on the same network. Hardware in the loop (HITL) uses simulation software on a real flight controller board e.g PX4 mini which will be the used as flight controller on the drone. 
+
+MAVROS is a packages that provides communication drivers for various autopilots with the MAVLink communication protocol. MAVLink is categorized as a light weight messaging protocol for communication with drones, other unmanned vehicles and there onboard components. This follows a hybrid publish-subscribe and point-to-point design pattern. A visualization of how this works can be seen in Figure \ref{fig:sitl_simulation_enviroment}.   
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48
+    \linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/px4_sitl.png}
+        \caption{}
+        \label{fig:mavlink_comminication}
+    \end{subfigure}
+      \hskip 10ex
+    \begin{subfigure}[b]{0.26\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/simulator_mavlink_api.png}
+        \caption{}
+        \label{fig:simulator_mavlink_api}
+    \end{subfigure}
+    \caption{Illustrations of the message handling in the SITL simulation environment \cite{px4Autopilot}}
+    \label{fig:sitl_simulation_enviroment}
+\end{figure}
+
+In Figure \ref{fig:simulator_mavlink_api}, a high level view of the communication between the PX4 flight stack and simulation environment (Gazebo) can be seen. Sensor readings like GPS, IMU data etc. are passed to the PX4 flight controller which returns control outputs (motor actuator commands) to the simulation according to sensor readings. 
+
+The transmission of messages between PX4 and external programs happens using  the user datagram protocol (UDP) ports for MAVLink communication. This is illustrated in Figure \ref{fig:mavlink_comminication}. Here a number of ports are associated to different applications. The UDP Port 14540 is used for offboard control communication which will be python scripts running in the simulation (later on the raspberry pi) for autonomous flight using information from sensors e.g. vision system. The UDP port 14550 is used for communicating with ground control stations (GCS). QgroundControl will be used which offers many features like sensor calibration, radio setup and calibration of transmitters, predefined air frame selection for different drones etc. Moreover, parameters for position and attitude control, speed limits and the like can be changed during flights. However, these parameters can also be changed using ROS in the offboard control script, which will be explained in Section \ref{sec:ros}. The last port, UDP 4560, will be used for transmission of messages between PX4 and the simulation environment.
+
+\todo{Here a link to github can be set regarding how the installation for PX4, gazebo and ROS has been preformed. This have to be done in a REAME file with a bash script which can execute the installation automatically. }
+
+\subsubsection{ROS}
+\label{sec:ros}
+
+ROS is an open source software framework to be used in robot applications. This includes a number of libraries and tools with the aim of simplifying the creation of new robotic solutions. Another important feature is the message handling between nodes in the ROS architecture which is visualized in Figure \ref{fig:ros}. The ROS master keeps track on all the nodes in the system an each node goes through registration via the master. Then each node can publish or subscribe to messages which is initiated through the master. This is called topics under the ROS framework and will be used in offboard control where a number of nodes have to communicate to each other.  
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{../Figures/ros.png}
+    \caption{Illustrations of a high level view of the architecture in ROS}
+    \label{fig:ros}
+\end{figure}
 
 
-\subsection{ROS for autonomous flight}
-\label{sec:ros_for_autonomous_flight}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{../Figures/node_communication.png}
+    \caption{Illustrations of a high level view of the architecture in ROS}
+    \label{fig:ros}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\hline
+\textbf{Keypress} & \textbf{Action}                                    \\ \hline
+t                 & drone\_control: Takeoff + offboard + loiter mode         \\
+m                 & drone\_control: Mission                                 \\
+h                 & drone\_control: Move the drone to home and land         \\
+l                 & drone\_control: Switch to loiter control 
+\\
+k                 & drone\_control: Kill switch
+\\
+1                 & drone\_control: Estimate aruco pose using front cam 
+\\
+2                 & drone\_control: Estimate aruco pose using bottom cam 
+\\
+3                 & drone\_control: Hold position using aruco pose 
+\\
+wasd              & loiter\_pilot: Forwards, left, back and right respectively           \\
+qe                & loiter\_pilot: Rotate left or right (yaw) respectively             \\
+zx                & loiter\_pilot: Decrease/increase altitude respectively         
+\end{tabular}
+\caption{Table of all possible commands from the GCS}
+\label{tab:ros_commands}
+\end{table}
+
 
 \subsection{Pose estimation using ArUco markers}
 \label{sec:pose_estimation_using_aruco_markers}
