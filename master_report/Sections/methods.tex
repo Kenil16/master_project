@@ -248,14 +248,83 @@ To enable all nodes to start from a single script, a \textit{roslaunch} file nam
 \subsection{Pose estimation using ArUco markers}
 \label{sec:pose_estimation_using_aruco_markers}
 
+This section deals which pose estimation of ArUco markers to be used as the local coordinate system for the drone for vision based navigation. 
+
+A number of visual markers could be used for pose estimation e.g ArUco markers, AprilTag or QR-codes just to name a few. However, to achieve real-time performance, the latter cannot be used due to large amount of data in the marker. This is not the case with ArUco markers and AprilTag which also yields good performance in regards to detection accuracy and a low error rate. \cite{visualmarkers} 
+
+Because the ArUco markers have been shown to have high performance along with libraries for ArUco marker boards for better precision, ArUco markers will be used for pose estimation.       
+
+\subsubsection{ArUco marker detection}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{.1525\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/aruco_detection1.png}
+        \caption{}
+        \label{fig:aruco_detection1}
+        %\vspace*{0.1cm}
+    \end{subfigure}
+    \begin{subfigure}[b]{.15\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/aruco_detection2.png}
+        \caption{}
+        \label{fig:aruco_detection2}
+    \end{subfigure}
+        \begin{subfigure}[b]{.15\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/aruco_detection3.png}
+        \caption{}
+        \label{fig:aruco_detection3}
+    \end{subfigure}
+        \begin{subfigure}[b]{.15\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/aruco_detection4.png}
+        \caption{}
+        \label{fig:aruco_detection4}
+    \end{subfigure}
+        \begin{subfigure}[b]{.154\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/aruco_detection5.png}
+        \caption{}
+        \label{fig:aruco_detection5}
+         \vspace{-0.05cm}
+    \end{subfigure}
+    \caption{Illustration of the procedures of ArUco marker detection}
+    \label{fig:aruco_detection_procedure}
+  
+\end{figure}
+
+\subsubsection{ArUco pose estimation}
+
  \begin{figure}[H]
     \centering
-    \scalebox{1.0}{\input{../Drawings/coordinate_systems_aruco.tex}}
-    \caption{Illustration of the state machine used in the simulation for the onboard state of the system}
-    \label{fig:state_machine_simulation}
+    \scalebox{1.0}{\input{../Drawings/2d_coordinate_system_simulation.tex}}
+    \caption{Visualization of the coordinate systems of the ArUco markers in the simulation seen from above}
+    \label{fig:2d_view_aruco_coordinate_systems}
 \end{figure}
 
 
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.48\textwidth}
+        \centering
+\scalebox{1.0}{\input{../Drawings/3d_coordinate_system_simulation_front.tex}}
+		\caption{}
+        \label{fig:3d_view_aruco_front_camera}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{.48\textwidth}
+        \centering
+\scalebox{1.0}{\input{../Drawings/3d_coordinate_system_simulation_bottom_cam.tex}}
+        \caption{}
+        \label{fig:3d_view_aruco_bottom_camera}
+    \end{subfigure}
+    \caption{Visualization of the coordinate systems of the ArUco markers in the simulation seen from a 3D view with two camera configurations as seen in Figure \ref{fig:3d_view_aruco_front_camera} and \ref{fig:3d_view_aruco_bottom_camera} for the front and bottom camera respectively}
+    \label{fig:3d_view_aruco_coordinate_systems}
+\end{figure}
+
+\subsubsection{Camera calibration}
 
 \subsection{Sensor fusion for pose optimization}
 \label{sec:sensor_fusion_for_pose_optimization}

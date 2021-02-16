@@ -1,0 +1,76 @@
+\tdplotsetmaincoords{60}{110}
+
+\newcommand{\tdseteulerxyz}{
+\renewcommand{\tdplotcalctransformrotmain}{%
+%perform some trig for the Euler transformation
+\tdplotsinandcos{\sinalpha}{\cosalpha}{\tdplotalpha} 
+\tdplotsinandcos{\sinbeta}{\cosbeta}{\tdplotbeta}
+\tdplotsinandcos{\singamma}{\cosgamma}{\tdplotgamma}
+%
+\tdplotmult{\sasb}{\sinalpha}{\sinbeta}
+\tdplotmult{\sasg}{\sinalpha}{\singamma}
+\tdplotmult{\sasbsg}{\sasb}{\singamma}
+%
+\tdplotmult{\sacb}{\sinalpha}{\cosbeta}
+\tdplotmult{\sacg}{\sinalpha}{\cosgamma}
+\tdplotmult{\sasbcg}{\sasb}{\cosgamma}
+%
+\tdplotmult{\casb}{\cosalpha}{\sinbeta}
+\tdplotmult{\cacb}{\cosalpha}{\cosbeta}
+\tdplotmult{\cacg}{\cosalpha}{\cosgamma}
+\tdplotmult{\casg}{\cosalpha}{\singamma}
+%
+\tdplotmult{\cbsg}{\cosbeta}{\singamma}
+\tdplotmult{\cbcg}{\cosbeta}{\cosgamma}
+%
+\tdplotmult{\casbsg}{\casb}{\singamma}
+\tdplotmult{\casbcg}{\casb}{\cosgamma}
+%
+%determine rotation matrix elements for Euler transformation
+\pgfmathsetmacro{\raaeul}{\cacb}
+\pgfmathsetmacro{\rabeul}{\casbsg - \sacg}
+\pgfmathsetmacro{\raceul}{\sasg + \casbcg}
+\pgfmathsetmacro{\rbaeul}{\sacb}
+\pgfmathsetmacro{\rbbeul}{\sasbsg + \cacg}
+\pgfmathsetmacro{\rbceul}{\sasbcg - \casg}
+\pgfmathsetmacro{\rcaeul}{-\sinbeta}
+\pgfmathsetmacro{\rcbeul}{\cbsg}
+\pgfmathsetmacro{\rcceul}{\cbcg}
+}
+}
+\tdseteulerxyz
+
+\begin{tikzpicture}[scale=3,tdplot_main_coords]
+
+
+%Ground marker 
+\tdplotsetrotatedcoords{45}{0}{0}
+\draw[thick,red,tdplot_rotated_coords,->] (0,0,0) -- (1.5,0,0) node[anchor=north east]{$x$};
+\draw[thick,green,tdplot_rotated_coords,->] (0,0,0) -- (0,1.5,0) node[anchor=north west]{$y$};
+\draw[thick,blue,tdplot_rotated_coords,->] (0,0,0) -- (0,0,1.5) node[anchor=south]{$z$};
+\node[align=center] at (0.01, 1.0, 0) (ori) {$Marker_{ground}$};
+\draw[->,help lines,shorten >=3pt] (ori) .. controls (0.25,0.5, 0.1) .. (0.05, 0.1, 0);
+
+%Drone
+\coordinate (Shift) at (3,2,3);
+\tdplotsetrotatedcoords{135}{0}{0}
+\tdplotsetrotatedcoordsorigin{(Shift)}
+\draw[thick,color=red,tdplot_rotated_coords,->] (0,0,0)-- (0.5,0,0) node[right]{$x$};
+\draw[thick, green,tdplot_rotated_coords,->] (0,0,0)-- (0,0.5,0) node[above]{$y$};
+\draw[thick,color=blue,tdplot_rotated_coords,->] (0,0,0)-- (0,0,0.5) node[anchor=south]{$z$};
+\node[align=center] at (1.5, 2, 2.7) (ori) {$Drone$};
+\draw[->,help lines,shorten >=3pt] (ori) .. controls (1.5,2, 2.5) .. (3, 2, 3.05);
+
+%Front cam on drone
+\coordinate (Shift) at (3,2,2.9);
+\tdplotsetrotatedcoords{-45}{0}{180}
+\tdplotsetrotatedcoordsorigin{(Shift)}
+\draw[thick,color=red,tdplot_rotated_coords,->] (0,0,0)-- (0.5,0,0) node[below]{$x$};
+\draw[thick, green,tdplot_rotated_coords,->] (0,0,0)-- (0,0.5,0) node[left]{$y$};
+\draw[thick,color=blue,tdplot_rotated_coords,->] (0,0,0)-- (0,0,0.5) node[right]{$z$};
+\node[align=center] at (2.8, 2.8, 2.7) (ori) {$Camera_{bottom}$};
+\draw[->,help lines,shorten >=3pt] (ori) .. controls (2.3,2.5, 2.5) .. (3, 2.05, 2.89);
+
+
+
+\end{tikzpicture}
