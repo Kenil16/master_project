@@ -252,9 +252,12 @@ This section deals which pose estimation of ArUco markers to be used as the loca
 
 A number of visual markers could be used for pose estimation e.g ArUco markers, AprilTag or QR-codes just to name a few. However, to achieve real-time performance, the latter cannot be used due to large amount of data in the marker. This is not the case with ArUco markers and AprilTag which also yields good performance in regards to detection accuracy and a low error rate. \cite{visualmarkers} 
 
-Because the ArUco markers have been shown to have high performance along with libraries for ArUco marker boards for better precision, ArUco markers will be used for pose estimation.       
+Because the ArUco markers have been shown to have high performance along with libraries for ArUco marker boards for better precision, ArUco markers will be used for pose estimation.       Furthermore, these estimations is made using OpenCVs marker detection and pose estimation for ArUco markers.
 
 \subsubsection{ArUco marker detection}
+
+The ArUco marker consists of a black border with an inner binary matrix (bits) which defines its ID. This inner binary matrix is called the binary codification of the marker. To detect a marker, candidates in the image are first analyzed where adaptive thresholding is applied to the image and afterwards extracting contours which have to be square in order to be categorized as a marker candidate. When the candidates have been found, a perspective transformation is applied to each of them, to remove distortion in the images. This can be seen in Figure \ref{fig:aruco_detection1} and \ref{fig:aruco_detection2} where a marker candidate are giving to the algorithm for further processing. In this step Utsu thresholding have been used. Then the image can be divided into cells which corresponds to the predefined size of the marker (bits) and corresponding border size. In each cell, the number of black and white pixels are determined in order to categories the candidate marker to belong to a specific dictionary where it is finally evaluated to be and ArUco marker or not. These steps can be seen in Figure \ref{fig:aruco_detection3}, \ref{fig:aruco_detection4} and \ref{fig:aruco_detection5}.       
+
 
 \begin{figure}[H]
     \centering
@@ -290,12 +293,62 @@ Because the ArUco markers have been shown to have high performance along with li
         \label{fig:aruco_detection5}
          \vspace{-0.05cm}
     \end{subfigure}
-    \caption{Illustration of the procedures of ArUco marker detection}
+    \caption{Illustration of the procedures of ArUco marker detection \cite{arucoMarkerDetection}}
     \label{fig:aruco_detection_procedure}
   
 \end{figure}
 
 \subsubsection{ArUco pose estimation}
+
+Knowing the size of the marker, defined when creating the ArUco marker board, the intrinsic and corresponding distortion parameters in the camera and the found corners of each marker, a pose estimation can now be performed. For pose estimation, OpenCV uses an implementation of Levenberg-Marquardt optimization for solving the perspective-n-point (PnP) which estimates the pose of a camera in respect to the ArUco board giving a set of 3D points in the board reference system and there corresponding 2D projections in the image. The model for this can be seen in Equation \ref{eq:pnp} and simplified in Equation \ref{eq:pnp_simplified}.
+
+\begin{equation}
+	s	
+	\begin{bmatrix}
+		u\\
+		v\\
+		1
+	\end{bmatrix}
+	=
+	\begin{bmatrix}
+		f_x & \gamma & u_0\\
+		0 & f_y & v_0\\
+		0 & 0 & 1
+	\end{bmatrix}
+	\begin{bmatrix}
+		r_11 & r_12 & 13 & t_1\\
+		r_21 & r_22 & r23 & t_2 \\
+		r_31 & r_32 & r_33 & t_3 \\
+	\end{bmatrix}
+	\begin{bmatrix}
+		X\\
+		Y\\
+		Z\\
+		1
+	\end{bmatrix}
+	\label{eq:pnp}
+\end{equation}
+
+\begin{equation}
+	s \cdot p_{c} = K \cdot[R|T] \cdot p_{w}
+	\label{eq:pnp_simplified}
+\end{equation}
+
+Here $f_x$ and $f_y$ defines focal lengths, $u_0$ and $v_0$ are the principle points which are expected to be the center of the image, $\gamma$ the skew parameter and $s$ a scaling factor for the image. The two vectors $p_c$ and $p_w$ defines the 2D and 3D points for the projection in the image and known locations of the marker corners respectively. Hence, the rotation matrix $R$ and translation vector $T$ can be estimated, which yields a rotation and translation of the board in respect to the camera \cite{pnp} \cite{estimatePoseBoard}. 
+
+As defined in Section \ref{sec:3d_modeling_for_gazebo_simulations}, the drone will use the marker located on the ground as the local coordinate system. Because the GPS to vision marker is located on the wall to the entrance of the building and three landing markers are used when the drone is to land, the $Marker_{GPS2vision}$, $Marker_{landing_1}$, $Marker_{landing_2}$ and $Marker_{landing_3}$ must be transformed to align with the local coordinate system. An illustration of the placement of these marker boards visualized from above can be seen in Figure \ref{fig:2d_view_aruco_coordinate_systems}. It may be noticed that the GPS to vision marker and all landing makers have the same orientation and differs only in translation. In this configuration, the bottom camera of the drone is used for pose estimation of the ground marker and front camera for the GPS to vision and landing markers. This yields two different configurations as seen in Figure \ref{fig:3d_view_aruco_coordinate_systems}. In Figure \ref{fig:3d_view_aruco_front_camera}, the drone is considered to hover in front of the GPS to vision marker. Here four coordinate systems are illustrated namely the marker located on the ground, the drone, the front camera attached on the drone and the GPS to vision marker. To get the pose of the drone in respect to the ground marker, the rotation and translation of the camera w.r.t  the marker board must be found using Equation \ref{eq:translation_from_board2cam}. Here the transpose of the rotation vector named $r_{vec}$ is multiplied with the translation vector $t_{vec}$ to give a translation from the camera to the marker board. This has to be done because the output $r_{vec}$ and $t_{vec}$ from the pose estimation using OpenCV are given from the marker board w.r.t the camera \cite{theExtrinsicCameraMatrix}. 
+
+\begin{equation}
+	t = -r_{vec}^T t_{vec} 
+	\label{eq:translation_from_board2cam}  
+\end{equation} 
+
+This initial step goes for both cameras. Now to get the pose of the drone w.r.t the ground marker, Equation \ref{eq:translation_drone2ground_gps2vision} is used.
+
+\begin{equation}
+	P^{Drone}_{Marker_{Ground}} = T^{Marker_{GPS2vision}}_{Marker_{ground}} \cdot T^{Drone}_{Camera_{front}} \cdot t
+	\label{eq:translation_drone2ground_gps2vision} 
+\end{equation}
 
  \begin{figure}[H]
     \centering
@@ -323,6 +376,31 @@ Because the ArUco markers have been shown to have high performance along with li
     \caption{Visualization of the coordinate systems of the ArUco markers in the simulation seen from a 3D view with two camera configurations as seen in Figure \ref{fig:3d_view_aruco_front_camera} and \ref{fig:3d_view_aruco_bottom_camera} for the front and bottom camera respectively}
     \label{fig:3d_view_aruco_coordinate_systems}
 \end{figure}
+
+Here a transformation of the pose of the GPS to vision marker w.r.t the ground marker is multiplied with a transformation of the drone w.r.t the front camera which is then multiplied with the translation vector from the front camera to the marker. The same principle goes for Equation \ref{eq:translation_drone2ground_landing1} according to the $Marker_{landing_1}$, Equation \ref{eq:translation_drone2ground_landing2} for the $Marker_{landing_2}$, Equation  \ref{eq:translation_drone2ground_landing3} for the  $Marker_{landing_3}$ and Equation \ref{eq:translation_drone2ground} where the later uses the bottom camera for pose estimation of the ground marker.   
+
+
+\begin{equation}
+	P^{Drone}_{Marker_{Ground}} = T^{Marker_{landing_1}}_{Marker_{ground}} \cdot T^{Drone}_{Camera_{front}} \cdot t
+	\label{eq:translation_drone2ground_landing1}   
+\end{equation}       
+
+\begin{equation}
+	P^{Drone}_{Marker_{Ground}} = T^{Marker_{landing_2}}_{Marker_{ground}} \cdot T^{Drone}_{Camera_{front}} \cdot t
+	\label{eq:translation_drone2ground_landing2} 
+\end{equation} 
+
+\begin{equation}
+	P^{Drone}_{Marker_{Ground}} = T^{Marker_{landing_3}}_{Marker_{ground}} \cdot T^{Drone}_{Camera_{front}} \cdot t
+	\label{eq:translation_drone2ground_landing3}   
+\end{equation} 
+
+\begin{equation}
+	P^{Drone}_{Marker_{Ground}} = T^{Drone}_{Camera_{bottom}} \cdot t 
+	\label{eq:translation_drone2ground}  
+\end{equation}
+
+These equations for the transformations of the pose will be used for the different configurations in regard to the wanted action from the drone e.g GPS to vision, indoor navigation or landing.    
 
 \subsubsection{Camera calibration}
 

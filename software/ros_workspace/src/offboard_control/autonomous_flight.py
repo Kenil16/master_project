@@ -45,6 +45,8 @@ class autonomous_flight():
         self.delta_y = 0.0
         self.delta_z = 0.0
 
+        self.mission = self.read_mission('../../../../missions/mission3.txt')
+        self.next_waypoint = PoseStamped()
 
         #Publishers
         self.pub_local_pose = rospy.Publisher('/onboard/setpoint/autonomous_flight', PoseStamped, queue_size=1)
@@ -311,6 +313,7 @@ class autonomous_flight():
         rospy.loginfo('Autonomous_flight: Estimate the aruco pose utilising the front camera test complete')
         self.set_state('loiter')
 
+    """
     def follow_aruco_pose_bottom_test(self):
 
         #The three different routes the drone can fly in the simulation 
@@ -436,7 +439,68 @@ class autonomous_flight():
             
         rospy.loginfo('Autonomous_flight: Follow aruco pose utilising the bottom camera test complete')
         self.set_state('loiter')
+    """
+    def follow_aruco_pose_bottom_test(self):
 
+        #Inialize parameters 
+        while not self.mission[0][0] == '-':
+            self.update_mission()
+        self.mission.pop(0)
+        
+        self.drone_takeoff(alt = 2.5)
+
+        self.set_state('follow_aruco_pose_bottom_test')
+        rospy.loginfo('Autonomous_flight: Follow aruco pose utilising the bottom camera test startet')
+
+        #Now turn to vision navigation
+        while not self.mission[0][0] == '-':
+            self.update_mission()
+
+        """
+        while not self.aruco_board_found:
+            pass
+        """
+        #See elapsed time
+        start = timer()
+        time_sec = 0.0
+
+        data = open('../../../../data/follow_aruco_pose_bottom/data.txt','a')
+        
+        while len(self.mission):
+            print(self.mission[0])
+            
+            start_time = rospy.get_rostime()
+            timeout = rospy.Duration(1)
+           
+            #Inialize now set parameters to enable higher speeds after GPS to vision has settled
+            while not self.mission[0][0] == '-':
+                self.update_mission()
+
+            waypoint = [float(self.mission[0][3]), float(self.mission[0][4]), float(self.mission[0][5]), float(self.mission[0][8])] 
+            self.update_mission()
+            
+            while True:
+                
+                    self.pub_msg(self.next_waypoint, self.pub_local_pose)
+                    
+                    x = self.uav_local_pose.pose.position.x
+                    y = self.uav_local_pose.pose.position.y
+                    z = self.uav_local_pose.pose.position.z
+
+                    if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold= 0.10):
+                        break
+
+                    time_sec = timer()-start
+                    data.write(str(x) + " " + str(waypoint[0]) + " " + str(y) + " " + str(waypoint[1]) + " " + str(z) + " " + str(waypoint[2]) + " " + str(time_sec))
+                    data.write('\n')
+            
+
+        data.close()
+        self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
+        self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
+            
+        rospy.loginfo('Autonomous_flight: Follow aruco pose utilising the bottom camera test complete')
+        self.set_state('loiter')
     def hold_aruco_pose_test(self):
 
         #Enable aruco detection, cam use and start index board 
@@ -547,6 +611,59 @@ class autonomous_flight():
                 waypoints.append(waypoint)
         
         return waypoints
+
+    def update_mission(self):
+
+        param = ' '
+        param_value = 0
+        timeout = 0
+        transform = 0
+
+        if not self.mission[0][0] == '-':
+            param = self.mission[0][0]
+
+            try:
+                param_value = int(self.mission[0][1])
+            except ValueError:
+                param_value = float(self.mission[0][1])
+
+            timeout = int(self.mission[0][2])
+
+            #Update parameters
+            self.flight_mode.set_param(param, param_value, timeout)
+
+        if not self.mission[0][3] == '-':
+
+            self.next_waypoint.pose.position.x = float(self.mission[0][3])
+            self.next_waypoint.pose.position.y = float(self.mission[0][4])
+            self.next_waypoint.pose.position.z = float(self.mission[0][5])
+
+            angle = Quaternion(*quaternion_from_euler(
+                np.deg2rad(float(self.mission[0][6])),
+                np.deg2rad(float(self.mission[0][7])),
+                np.deg2rad(float(self.mission[0][8]))))
+
+            self.next_waypoint.pose.orientation = angle
+
+        if not self.mission[0][9] == '-':
+            transform = int(self.mission[0][9])
+            self.pub_aruco_board.publish(transform)
+
+        self.mission.pop(0)
+        #print(param + ' ' + str(param_value) + ' ' + str(timeout) + ' ' + str(self.next_waypoint.pose.position.x) + ' ' + str(transform))
+
+    def read_mission(self, file_name):
+
+        txtFile = open(file_name,'r')
+        data = txtFile.readlines()
+        mission = []
+
+        for x in data:
+            x = x.split(' ')
+            x.pop(-1)
+            mission.append(x)
+
+        return mission
 
     def run(self):
         while not rospy.is_shutdown():
