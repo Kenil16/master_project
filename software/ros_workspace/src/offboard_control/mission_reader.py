@@ -19,7 +19,7 @@ class missionReader():
 
         self.mission = self.readMission(fileName)
 
-    def getNext(self, forward):
+    def update_mission(self, mission):
         if forward == False:
             self.index = self.index - 1
 
@@ -45,66 +45,17 @@ class missionReader():
         if self.missionState == 'complete':
             self.index = 0
 
-    def readMission(self, fileName):
+    def read_mission(self, fileName):
         fileName = '../mission_files/' + fileName
 
         txtFile = open(fileName,'r')
         data = txtFile.readlines()
         arr = []
-
-        nextPos = [0.0,0.0,0.0]
-        nextOri = [0.0,0.0,0.0]
-        nextState = 'idle'
-        nextSubState = 'idle'
-        nextCommand = 't'
-        nextParam = ' '
-        nextParamVal = 0
-        missionState = 'idle'
-
+        
         for x in data:
-            tmp = x.split(';')
-            if tmp[0] == 'COMMAND':
-                nextCommand = tmp[1]
-                nextState = tmp[2].split('\n')[0]
-                missionState = 'sendCommand'
-            if tmp[0] == 'STATE':
-                nextState = tmp[1].split('\n')[0]
-                missionState = 'setState'
-            if tmp[0] == 'SUBSTATE':
-                nextSubState = tmp[1].split('\n')[0]
-                missionState = 'setSubState'
-            if tmp[0] == 'WAYPOINT':                
-                nextPos[0] = float(tmp[1])
-                nextPos[1] = float(tmp[2])
-                nextPos[2] = float(tmp[3])
-                nextOri[0] = float(tmp[4])
-                nextOri[1] = float(tmp[5])
-                nextOri[2] = float(tmp[6].split('\n')[0])
-                missionState = 'setWaypoint'
-            if tmp[0] == 'PARAM':
-                nextParam = tmp[1]
-                nextParamVal = float(tmp[2].split('\n')[0])
-                missionState = 'updateParam'
-            if tmp[0] == 'COMPLETE\n':
-                missionState = 'complete'
-
-            arr.append([nextPos[0],
-                nextPos[1],
-                nextPos[2],
-                nextOri[0],
-                nextOri[1],
-                nextOri[2],
-                nextState,
-                nextSubState,
-                nextCommand,
-                nextParam,
-                nextParamVal,
-                missionState])
+            arr.append(x.split(' '))
 
         return np.array(arr)
-
-
-
 
 if __name__ == "__main__":
     mr = missionReader('../mission_files/mission_00.txt')

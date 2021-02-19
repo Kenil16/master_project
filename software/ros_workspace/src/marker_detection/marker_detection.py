@@ -12,7 +12,7 @@ from tf.transformations import* #quaternion_from_euler, euler_from_quaternion, q
 import tf
 import tf2_ros
 import tf2_geometry_msgs
-from geometry_msgs.msg import PoseStamped, Quaternion
+from geometry_msgs.msg import PoseStamped, Quaternion, PoseWithCovariance, PoseWithCovarianceStamped
 from std_msgs.msg import Float64, Bool, Int8
 from mavlink_msgs.msg import mavlink_lora_aruco
 
@@ -101,12 +101,12 @@ class marker_detection:
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
         #rospy.Subscriber('/onboard/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
         
-        rospy.Subscriber('/onboard/aruco_board', Int8, self.aruco_board_callback)
-
         #Publishers
         self.aruco_marker_image_pub = rospy.Publisher('/onboard/aruco_marker_image', Image, queue_size=1)
         self.aruco_marker_pose_pub = rospy.Publisher('/onboard/aruco_marker_pose', PoseStamped, queue_size=1)
         self.aruco_marker_found_pub = rospy.Publisher('/onboard/aruco_board_found', Bool, queue_size=1)
+        #self.aruco_marker_pose_cov = rospy.Publisher('/onboard/aruco_marker_pose_cov', PoseWithCovarianceStamped, queue_size=1)
+
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
         
@@ -227,7 +227,22 @@ class marker_detection:
         else:
             self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(-euler[0], -euler[2], -euler[1] - 1.5708,'rxyz'))#Because yaw is offset -90 to front marker
 
-        
+        """
+        test = PoseWithCovarianceStamped()
+        pose_cov = PoseWithCovariance()
+        pose_cov.pose.position = self.aruco_pose.pose.position
+        pose_cov.pose.orientation = self.aruco_pose.pose.orientation
+        pose_cov.covariance[0] = 500.5
+        pose_cov.covariance[7] = 500.5
+        pose_cov.covariance[14] = 500.5
+        pose_cov.covariance[21] = 500.5
+        pose_cov.covariance[28] = 500.5
+        pose_cov.covariance[34] = 500.5
+        test.pose.pose = pose_cov.pose
+        test.pose.covariance = pose_cov.covariance
+        self.aruco_marker_pose_cov.publish(test)
+        """
+
         #print( euler_from_quaternion([self.aruco_pose.pose.orientation.x,self.aruco_pose.pose.orientation.y,self.aruco_pose.pose.orientation.z,self.aruco_pose.pose.orientation.w]))
         #print "Ori: {} x: {} y: {} z: {} \n".format(euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
         #self.aruco_marker_found_pub.publish(True)

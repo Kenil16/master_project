@@ -15,7 +15,7 @@ class ukf():
         self.corr_acc_z = []
         self.data = []
 
-        self.read_data('test1.txt')
+        self.read_data('test15.txt')
         self.mx = np.array([item[0] for item in self.data])
         self.my = np.array([item[1] for item in self.data])
         self.mz = np.array([item[2] for item in self.data])
@@ -69,11 +69,11 @@ class ukf():
         #Used in the GA (chromosome)
         self.covariance = [0.05, 0.05, 0.05, #Process noise x, y and z (pos)
                            0.04, 0.04, 0.04, #Process noise x, y and z (rate)
-                           0.02, 0.02, 0.0005, #Process noise x, y and z (acc)
-                           2.05, 2.05, 2.5, #Process noise roll, pitch and yaw (angle)
+                           3.02, 3.02, 6.8, #Process noise x, y and z (acc)
+                           1.5, 0.005, 0.05, #Process noise roll, pitch and yaw (angle)
                            0.9, 0.9, 0.5, #Process noise x, y and z (angle rate)
                            2.3, 2.3, 2.3, #Measurement noise x, y and z (pos)
-                           1.3, 1.3, 0.8, #Measurement noise x, y and z (acc)
+                           0.03, 0.03, 0.08, #Measurement noise x, y and z (acc)
                            0.05, 0.05, 0.05, #Measurement noise x, y and z (angle)
                            1.5, 1.5, 0.5] #Measurement noise x, y and z (abgle rate)
         
@@ -121,28 +121,6 @@ class ukf():
         
         ret = np.zeros(len(x))
 
-        """
-        bias = [-0.190006656546, -0.174740895383]
-        gravity = 9.79531049538
-
-        #Rotation matrix to align angle to that of the acceleration of the drone. Hences the gravity can be subtracted 
-        R1 = self.eulerAnglesToRotationMatrix([0, 0, 2*x[11] + np.pi/2])
-        a = np.matmul(R1, np.array([x[9], x[10], x[11]]))
-
-        #Correct for acceleration shift for the orientation of the drone and bias for x and y
-        R2 = self.eulerAnglesToRotationMatrix([x[10], x[9], x[11]])
-        acc = np.matmul(R2, np.array([x[6], x[7], 0]))
-        acc_bias = np.matmul(R2, np.array([bias[0], bias[1], 0]))
-
-        corrected_acc_x = acc[0] - acc_bias[0] + np.sin(a[0])*gravity
-        corrected_acc_y = acc[1] - acc_bias[1] + np.sin(a[1])*gravity
-        corrected_acc_z = x[8] - gravity
-
-        #Rotation matrix to align gyro velocity to the orientation of the world (marker)
-        R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])
-        corrected_gyro = np.matmul(R3, np.array([x[13], x[12], x[14]]))
-        """
-
         ret[0] = x[0] + x[3]*dt + 0.5*x[6]*dt**2
         ret[1] = x[1] + x[4]*dt + 0.5*x[7]*dt**2
         ret[2] = x[2] + x[5]*dt + 0.5*x[8]*dt**2
@@ -158,9 +136,6 @@ class ukf():
         ret[12] = x[12] 
         ret[13] = x[13] 
         ret[14] = x[14]
-        ret[15] = x[15]
-        ret[16] = x[16]
-        ret[17] = x[17]
 
         return ret
     
@@ -169,7 +144,7 @@ class ukf():
         np.set_printoptions(precision=3)
         
         # Process Noise
-        q = np.eye(18)
+        q = np.eye(15)
         q[0][0] = self.covariance[0]
         q[1][1] = self.covariance[1]
         q[2][2] = self.covariance[2]
@@ -185,9 +160,6 @@ class ukf():
         q[12][12] = self.covariance[12]
         q[13][13] = self.covariance[13]
         q[14][14] = self.covariance[14]
-        q[15][15] = 0.5
-        q[16][16] = 0.5
-        q[17][17] = 0.005
         
         # Create measurement noise covariance matrices
         r_imu_acc = np.zeros([3, 3])
@@ -214,9 +186,9 @@ class ukf():
         m = measurements.shape[1]
         #print(measurements.shape)
         i = measurements
-        x_init = [i[0,0], i[1,0], i[2,0], 0, 0, 0, 0, 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0, 0, 0, 0]
+        x_init = [i[0,0], i[1,0], i[2,0], 0, 0, 0, 0, 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0]
         
-        state_estimator = UKF(18, q, x_init, 0.0001*np.eye(18), 0.04, 0.0, 2.0, self.iterate_x)
+        state_estimator = UKF(15, q, x_init, 0.0001*np.eye(15), 0.04, 15.0, 2.0, self.iterate_x)
         
         dt = 0.0
         for j in range(m):
@@ -237,12 +209,25 @@ class ukf():
 
             #Correct for acceleration shift for the orientation of the drone and bias for x and y
             R2 = self.eulerAnglesToRotationMatrix([x[10], x[9], x[11]])
+            
+            
             acc = np.matmul(R2, np.array([row[3], row[4], 0]))
             acc_bias = np.matmul(R2, np.array([bias[0], bias[1], 0]))
-
+            """
             corrected_acc_x = acc[0] - acc_bias[0] + np.sin(a[0])*gravity
             corrected_acc_y = acc[1] - acc_bias[1] + np.sin(a[1])*gravity
             corrected_acc_z = row[5] - gravity
+            
+            """
+            gravity = 9.79531049538
+            
+            gamma = [gravity*np.sin(a[0]), gravity*np.sin(a[1]), gravity*np.cos(a[0])*np.cos(a[1])]
+            acc = np.matmul(R2, np.array([row[3], row[4], 0]))
+            #acc_bias = np.matmul(R2, np.array([bias[0], bias[1], 0]))
+
+            corrected_acc_x = acc[0] - acc_bias[0] #+ gamma[0]
+            corrected_acc_y = acc[1] - acc_bias[1] #+ gamma[1]
+            corrected_acc_z = row[5] - gamma[2]
             
             #Rotation matrix to align gyro velocity to the orientation of the world (marker)
             R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])

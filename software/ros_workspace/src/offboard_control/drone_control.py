@@ -7,7 +7,7 @@ from mavros_msgs.srv import SetMode
 
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import (String, Int8, Float64, Bool)
-from geometry_msgs.msg import PoseStamped, Quaternion
+from geometry_msgs.msg import PoseStamped, Quaternion, PoseWithCovarianceStamped
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 class drone_control():
@@ -26,6 +26,8 @@ class drone_control():
         self.autonomous_fligt_state_msg = None
         self.loiter_pilot_msg = PoseStamped()
 
+        self.aruco_pose_covariance = PoseWithCovarianceStamped()
+
         #Subscribers
         rospy.Subscriber('/mavros/state', State, self.cb_uav_state) 
         rospy.Subscriber('/gcs/command', Int8, self.on_command)
@@ -33,12 +35,16 @@ class drone_control():
         rospy.Subscriber('/onboard/state', String, self.on_uav_state)
         rospy.Subscriber('/onboard/setpoint/loiter_pilot', PoseStamped, self.lp_setpoint_change)
         rospy.Subscriber('/onboard/aruco_marker_pose', PoseStamped, self.amp_change)
-
+        
+        #rospy.Subscriber('/onboard/aruco_marker_pose_cov', PoseWithCovarianceStamped, self.aruco_pose_covar)
+        
         #Publishers
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=1)
         self.pub_local_pose = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=1)
         self.pub_vision_pose = rospy.Publisher('/mavros/vision_pose/pose', PoseStamped, queue_size=1)
 
+        #self.aruco_marker_pose_cov = rospy.Publisher('/mavros/vision_pose/pose_cov', PoseWithCovarianceStamped, queue_size=1)
+        
         self.set_mode = rospy.ServiceProxy('/mavros/set_mode', SetMode)
 
         #Perform MAVROS handshake   
@@ -74,6 +80,11 @@ class drone_control():
     def af_setpoint_change(self,msg):
         self.autonomous_flight_pose_msg = msg
 
+    """
+    def aruco_pose_covar(self,msg):
+        self.aruco_pose_covariance = msg 
+    """
+    
     def on_uav_state(self,msg):
         self.uav_state = msg.data
 
@@ -137,6 +148,8 @@ class drone_control():
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
                 self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
+                
+                #self.pub_msg(self.aruco_pose_covariance, self.aruco_marker_pose_cov)
             
             if self.uav_state == 'hold_aruco_pose_test':
                 output_msg = self.autonomous_flight_pose_msg

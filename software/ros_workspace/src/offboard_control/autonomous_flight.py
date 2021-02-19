@@ -136,7 +136,7 @@ class autonomous_flight():
         rospy.loginfo('Autonomous_flight: UAV takeoff')
 
         #Wait until takeoff has occurred
-        waypoint = [self.uav_local_pose.pose.position.x, self.uav_local_pose.pose.position.y, alt, 0]
+        waypoint = [self.uav_local_pose.pose.position.x, self.uav_local_pose.pose.position.y, alt, 135]
         while(not self.waypoint_check(setpoint = waypoint)):
             if self.uav_state == 'loiter' or self.uav_state == 'home':
                 rospy.loginfo('Autonomous_flight: Takeoff disrupted!')
