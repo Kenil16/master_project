@@ -20,7 +20,7 @@ class autonomous_flight():
     def __init__(self):        
         
         rospy.init_node('autonomous_flight')
-        self.rate = rospy.Rate(30)
+        self.rate = rospy.Rate(10)
 
         #Init flight modes 
         self.flight_mode = flight_modes()
@@ -136,7 +136,7 @@ class autonomous_flight():
         rospy.loginfo('Autonomous_flight: UAV takeoff')
 
         #Wait until takeoff has occurred
-        waypoint = [self.uav_local_pose.pose.position.x, self.uav_local_pose.pose.position.y, alt, 135]
+        waypoint = [self.uav_local_pose.pose.position.x, self.uav_local_pose.pose.position.y, alt, 0]
         while(not self.waypoint_check(setpoint = waypoint)):
             if self.uav_state == 'loiter' or self.uav_state == 'home':
                 rospy.loginfo('Autonomous_flight: Takeoff disrupted!')
@@ -487,7 +487,7 @@ class autonomous_flight():
                     y = self.uav_local_pose.pose.position.y
                     z = self.uav_local_pose.pose.position.z
 
-                    if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold= 0.10):
+                    if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold= 0.30):
                         break
 
                     time_sec = timer()-start

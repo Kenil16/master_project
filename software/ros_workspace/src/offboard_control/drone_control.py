@@ -15,7 +15,7 @@ class drone_control():
         
         #Init ROS
         rospy.init_node('drone_control')
-        self.rate = rospy.Rate(10)
+        self.rate = rospy.Rate(20)
         
         #Variables
         self.uav_state = 'idle' 
@@ -25,6 +25,7 @@ class drone_control():
         self.aruco_marker_pose_msg = PoseStamped()
         self.autonomous_fligt_state_msg = None
         self.loiter_pilot_msg = PoseStamped()
+        self.sensor_fusion = PoseStamped()
 
         self.aruco_pose_covariance = PoseWithCovarianceStamped()
 
@@ -36,7 +37,7 @@ class drone_control():
         rospy.Subscriber('/onboard/setpoint/loiter_pilot', PoseStamped, self.lp_setpoint_change)
         rospy.Subscriber('/onboard/aruco_marker_pose', PoseStamped, self.amp_change)
         
-        #rospy.Subscriber('/onboard/aruco_marker_pose_cov', PoseWithCovarianceStamped, self.aruco_pose_covar)
+        rospy.Subscriber('/onboard/sensor_fusion', PoseStamped, self.sensor_fusion_callback)
         
         #Publishers
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=1)
@@ -80,10 +81,8 @@ class drone_control():
     def af_setpoint_change(self,msg):
         self.autonomous_flight_pose_msg = msg
 
-    """
-    def aruco_pose_covar(self,msg):
-        self.aruco_pose_covariance = msg 
-    """
+    def sensor_fusion_callback(self,msg):
+        self.sensor_fusion = msg 
     
     def on_uav_state(self,msg):
         self.uav_state = msg.data
@@ -147,7 +146,9 @@ class drone_control():
             if self.uav_state == 'follow_aruco_pose_bottom_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
-                self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
+                self.pub_msg(self.sensor_fusion, self.pub_vision_pose)
+                
+                #self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
                 
                 #self.pub_msg(self.aruco_pose_covariance, self.aruco_marker_pose_cov)
             

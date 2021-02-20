@@ -15,7 +15,7 @@ class ukf():
         self.corr_acc_z = []
         self.data = []
 
-        self.read_data('test15.txt')
+        self.read_data('test10_180d.txt')
         self.mx = np.array([item[0] for item in self.data])
         self.my = np.array([item[1] for item in self.data])
         self.mz = np.array([item[2] for item in self.data])

@@ -3,7 +3,7 @@ import csv
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
 
 class ukf():
@@ -15,7 +15,7 @@ class ukf():
         self.corr_acc_z = []
         self.data = []
 
-        self.read_data('test16.txt')
+        self.read_data('imu_vision_data.txt')
         self.mx = np.array([item[0] for item in self.data])
         self.my = np.array([item[1] for item in self.data])
         self.mz = np.array([item[2] for item in self.data])
@@ -31,8 +31,8 @@ class ukf():
         self.mgyro_x = np.array([item[9] for item in self.data])
         self.mgyro_y = np.array([item[10] for item in self.data])
         self.mgyro_z = np.array([item[11] for item in self.data])
-
-        self.mtime = np.array([item[12] for item in self.data])
+        self.mbaro = np.array([item[12] for item in self.data])
+        self.mtime = np.array([item[13] for item in self.data])
         self.old_x = 0.0
 
         self.x0 = [] #x
@@ -80,8 +80,8 @@ class ukf():
 
         #Used in the GA (chromosome)
         self.covariance = [0.05, 0.05, 0.05, #Process noise x, y and z (pos)
-                           5.02, 5.02, 0.8, #Process noise x, y and z (acc)
-                           1.5, 0.005, 0.05, #Process noise roll, pitch and yaw (angle)
+                           5.02, 5.02, 0.0005, #Process noise x, y and z (acc)
+                           1.5, 1.5, 0.05, #Process noise roll, pitch and yaw (angle)
                            0.9, 0.9, 0.5, #Process noise x, y and z (angle rate)
                            2.3, 2.3, 2.3, #Measurement noise x, y and z (pos)
                            0.03, 0.03, 0.08, #Measurement noise x, y and z (acc)
@@ -132,9 +132,9 @@ class ukf():
         
         ret = np.zeros(len(x))
 
-        ret[0] = x[0] + x[3]*dt
-        ret[1] = x[1] + x[4]*dt
-        ret[2] = x[2] + x[5]*dt
+        ret[0] = x[0] + 0.6*x[3]*dt
+        ret[1] = x[1] + 0.6*x[4]*dt
+        ret[2] = x[2] + x[12]
         ret[3] = x[3]
         ret[4] = x[4]
         ret[5] = x[5]
@@ -144,6 +144,7 @@ class ukf():
         ret[9] = x[9] 
         ret[10] = x[10] 
         ret[11] = x[11]
+        ret[12] = x[12]
 
         return ret
     
@@ -152,7 +153,7 @@ class ukf():
         np.set_printoptions(precision=3)
         
         # Process Noise
-        q = np.eye(12)
+        q = np.eye(13)
         q[0][0] = self.covariance[0]
         q[1][1] = self.covariance[1]
         q[2][2] = self.covariance[2]
@@ -165,6 +166,7 @@ class ukf():
         q[9][9] = self.covariance[9]
         q[10][10] = self.covariance[10]
         q[11][11] = self.covariance[11]
+        q[12][12] = self.covariance[12]
         
         # Create measurement noise covariance matrices
         r_imu_acc = np.zeros([3, 3])
@@ -185,20 +187,22 @@ class ukf():
         r_vision_ori[1][1] = self.covariance[22]
         r_vision_ori[2][2] = self.covariance[23]
         
+        r_baro_pos = np.zeros([1, 1])
+        r_baro_pos[0][0] = 0.05
         # pass all the parameters into the UKF!
         # number of state variables, process noise, initial state, initial coariance, three tuning paramters, and the iterate function
-        measurements = np.vstack((self.mx, self.my, self.mz, self.macc_x, self.macc_y, self.macc_z, self.mpsi, self.mphi, self.mtheta, self.mgyro_x, self.mgyro_y, self.mgyro_z))
+        measurements = np.vstack((self.mx, self.my, self.mz, self.macc_x, self.macc_y, self.macc_z, self.mpsi, self.mphi, self.mtheta, self.mgyro_x, self.mgyro_y, self.mgyro_z, self.mbaro))
         m = measurements.shape[1]
         #print(measurements.shape)
         i = measurements
-        x_init = [i[0,0], i[1,0], i[2,0], 0, 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0]
+        x_init = [i[0,0], i[1,0], i[2,0], 0, 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0, i[12,0]]
         
-        state_estimator = UKF(12, q, x_init, 0.0001*np.eye(12), 0.04, 15.0, 2.0, self.iterate_x)
+        state_estimator = UKF(13, q, x_init, 0.0001*np.eye(13), 0.04, 15.0, 2.0, self.iterate_x)
         
         dt = 0.0
         for j in range(m):
                 
-            row = [i[0,j], i[1,j], i[2,j], i[3,j], i[4,j], i[5,j], i[6,j], i[7,j], i[8,j], i[9,j], i[10,j], i[11,j]]
+            row = [i[0,j], i[1,j], i[2,j], i[3,j], i[4,j], i[5,j], i[6,j], i[7,j], i[8,j], i[9,j], i[10,j], i[11,j], i[12,j]]
             #print(row)        
             if j:
                 dt = self.mtime[j]-self.mtime[j-1]
@@ -208,24 +212,14 @@ class ukf():
             bias = [-0.190006656546, -0.174740895383]
             gravity = 9.79531049538
 
-            #Rotation matrix to align angle to that of the acceleration of the drone. Hences the gravity can be subtracted 
-            R1 = self.eulerAnglesToRotationMatrix([0, 0, 2*x[8] + np.pi/2])
-            a = np.matmul(R1, np.array([x[6], x[7], x[8]]))
-
             #Correct for acceleration shift for the orientation of the drone and bias for x and y
-            R2 = self.eulerAnglesToRotationMatrix([x[7], x[6], x[8]])
-            
-            
+            R2 = self.eulerAnglesToRotationMatrix([x[7], x[6], x[8]])            
             acc = np.matmul(R2, np.array([row[3], row[4], 0]))
             acc_bias = np.matmul(R2, np.array([bias[0], bias[1], 0]))
-            
-            gamma = [gravity*np.sin(a[0]), gravity*np.sin(a[1]), gravity*np.cos(a[0])*np.cos(a[1])]
-            acc = np.matmul(R2, np.array([row[3], row[4], 0]))
-            #acc_bias = np.matmul(R2, np.array([bias[0], bias[1], 0]))
 
-            corrected_acc_x = -acc[0] + acc_bias[0]# + gamma[0]
-            corrected_acc_y = -acc[1] + acc_bias[1]# + gamma[1]
-            corrected_acc_z = row[5] - gamma[2]
+            corrected_acc_x = -acc[0] + acc_bias[0]
+            corrected_acc_y = -acc[1] + acc_bias[1]
+            corrected_acc_z = row[5] - gravity*np.cos(x[9])*np.cos(x[10])
             
             #Mechanical Filtering Window
             if corrected_acc_x < 0.05 and corrected_acc_x > -0.05:
@@ -239,9 +233,9 @@ class ukf():
             
 
             #Rotation matrix to align gyro velocity to the orientation of the world (marker)
-            R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])
+            R3 = self.eulerAnglesToRotationMatrix([0, 0, x[8]-np.pi])
             corrected_gyro = np.matmul(R3, np.array([row[10], row[9], row[11]]))
- 
+            self.prev_vel_z = self.prev_vel_z + corrected_acc_z*dt
             vision_x = row[0]
             vision_y = row[1]
             vision_z = row[2]
@@ -251,10 +245,12 @@ class ukf():
 
             imu_accX = corrected_acc_x
             imu_accY = corrected_acc_y
-            imu_accZ = corrected_acc_z
+            imu_accZ = self.prev_vel_z #corrected_acc_z
             imu_rollV = corrected_gyro[0]
             imu_pitchV = corrected_gyro[1]
             imu_yawV = corrected_gyro[2]
+
+            baro_pos = row[12]
 
             self.prev_acc_x_new = corrected_acc_x
             self.prev_acc_y_new = corrected_acc_y
@@ -264,6 +260,7 @@ class ukf():
             vision_data_ori = np.array([vision_roll, vision_pitch, vision_yaw])
             imu_data_acc = np.array([imu_accX, imu_accY, imu_accZ])
             imu_data_gyro_v = np.array([imu_rollV, imu_pitchV, imu_yawV])
+            baro_data = np.array([baro_pos])
 
             # prediction is pretty simple
             state_estimator.predict(dt)
@@ -276,13 +273,10 @@ class ukf():
                 
             state_estimator.update([3, 4, 5], imu_data_acc, r_imu_acc)
             state_estimator.update([9, 10, 11], imu_data_gyro_v, r_imu_gyro_v)
+            state_estimator.update([2], baro_data, r_baro_pos)
 
             self.old_x = row[0]
 
-            #print ("Estimated state: ", state_estimator.get_state())
-
-            # Save states for Plotting
-            
             x = state_estimator.get_state()
 
             self.x0.append(float(x[0]))
@@ -291,9 +285,9 @@ class ukf():
             self.x3.append(float(x[3]))
             self.x4.append(float(x[4]))
             self.x5.append(float(x[5]))
-            self.x6.append(float(x[6]))
-            self.x7.append(float(x[7]))
-            self.x8.append(float(x[8]))
+            self.x6.append(float(np.rad2deg(x[6])))
+            self.x7.append(float(np.rad2deg(x[7])))
+            self.x8.append(float(np.rad2deg(x[8])))
             self.x9.append(float(np.rad2deg(x[9])))
             self.x10.append(float(np.rad2deg(x[10])))
             self.x11.append(float(np.rad2deg(x[11])))
@@ -337,7 +331,47 @@ class ukf():
         plt.title(title)
         plt.legend(loc='best')
         plt.savefig(fig_name)
+    
+    """
+    def plot_position(self):
+        
+        
+        fig, ax = plt.subplots(111, projection='3d')
+        ax.set_axisbelow(True)
+        ax.set_facecolor('#E6E6E6')
+        plt.grid(color='w', linestyle='solid')
 
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+        ax.xaxis.tick_bottom()
+        ax.yaxis.tick_left()
+        ax.tick_params(colors='gray', direction='out')
+
+        for tick in ax.get_xticklabels():
+            tick.set_color('gray')
+        for tick in ax.get_yticklabels():
+            tick.set_color('gray')
+        
+        fig3d = plt.figure()
+        #ax = fig.add_subplot(111, projection='3d')
+        ax = Axes3D(fig3d)
+
+        ax.scatter3D(self.mx, self.my, self.mz, s=10, label='GPS Measurements')
+        ax.scatter3D(self.x0, self.x1, self.x2, s=2, label='EKF Position', c='k')
+
+        # Start/Goal
+        ax.scatter3D(self.mx[0], self.my[0], self.mz[0], s=60, label='Start', c='g')
+        ax.scatter3D(self.mx[-1], self.my[-1], self.mz[-1], s=60, label='Goal', c='r')
+        ax.view_init(20,60 )
+
+        ax.set_xlabel('$x$', fontsize=15)
+        ax.set_ylabel('$y$',fontsize=15)
+        ax.set_zlabel('$z$',fontsize=15)
+        ax.set_title('Position')
+        ax.legend(loc='best',fontsize=10)
+        plt.savefig('Position.png')
+    """
     def plot_position(self):
 
         fig, ax = plt.subplots()
@@ -366,11 +400,45 @@ class ukf():
 
         plt.xlabel('X [m]')
         plt.ylabel('Y [m]')
-        plt.title('Position')
+        plt.title('Position_xy')
         plt.legend(loc='best')
         plt.axis('equal')
 
-        plt.savefig('Position.png')
+        plt.savefig('Positionxy.png')
+    def plot_position_2d(self):
+
+        fig, ax = plt.subplots()
+        ax.set_axisbelow(True)
+        ax.set_facecolor('#E6E6E6')
+        plt.grid(color='w', linestyle='solid')
+
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+        ax.xaxis.tick_bottom()
+        ax.yaxis.tick_left()
+        ax.tick_params(colors='gray', direction='out')
+
+        for tick in ax.get_xticklabels():
+            tick.set_color('gray')
+        for tick in ax.get_yticklabels():
+            tick.set_color('gray')
+
+        #plt.scatter(self.mtime, self.mz, s=10, label='GPS Measurements')
+        plt.scatter(self.mtime, self.x2, s=2, label='EKF Position', c='k')
+
+        # Start/Goal
+        print(len(self.mtime))
+        print(len(self.x2))
+        #plt.scatter(self.mtime, self.mz[0], s=60, label='Start', c='g')
+        #plt.scatter(self.mtime, self.mz[-1], s=60, label='Goal', c='r')
+
+        plt.xlabel('Z [m]')
+        plt.title('Positionz')
+        plt.legend(loc='best')
+        plt.axis('equal')
+
+        plt.savefig('Positionz.png')
 
     def plot_ground_truth(self, x, y):
 
@@ -455,12 +523,7 @@ if __name__ == "__main__":
     ukf = ukf()
     #ukf.create_ground_truth()
     ukf.main()
-
-    """
-    labels = ['x','y','z']
-    ys = [ukf.x6, ukf.x7, ukf.x8]
-    ukf.plot_state('Acceleration [IMU]', 'Time [s]', r'Acceleration [$(\frac{m}{s^2})$]', 'Acceleration.png', ukf.mtime, ys)
-    """
+    
     labels = ['Velocity in x','Velocity in y','Velocity in z']
     ys = [ukf.x3, ukf.x4, ukf.x5]
     ukf.plot_state('Linear velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{m}{s})$]', 'Linear velocity.png', ukf.mtime, ys)
@@ -472,8 +535,9 @@ if __name__ == "__main__":
     labels = ['x','y','z']
     ys = [ukf.x9, ukf.x10, ukf.x11]
     ukf.plot_state('Angular velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{r}{s})$]', 'Velocity.png', ukf.mtime, ys)
-
+    
     ukf.plot_position()
+    ukf.plot_position_2d()
     
     labels = ['Roll','Pitch', 'Yaw']
     ys = [ukf.x15, ukf.x16, ukf.x17]
