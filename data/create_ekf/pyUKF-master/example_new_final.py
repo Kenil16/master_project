@@ -33,6 +33,9 @@ class ukf():
         self.mgyro_z = np.array([item[11] for item in self.data])
         self.mbaro = np.array([item[12] for item in self.data])
         self.mtime = np.array([item[13] for item in self.data])
+        self.mvision_seq = np.array([item[14] for item in self.data])
+        self.mimu_seq = np.array([item[15] for item in self.data])
+        self.mbaro_seq = np.array([item[16] for item in self.data])
         self.old_x = 0.0
 
         self.x0 = [] #x
@@ -191,7 +194,8 @@ class ukf():
         r_baro_pos[0][0] = 0.05
         # pass all the parameters into the UKF!
         # number of state variables, process noise, initial state, initial coariance, three tuning paramters, and the iterate function
-        measurements = np.vstack((self.mx, self.my, self.mz, self.macc_x, self.macc_y, self.macc_z, self.mpsi, self.mphi, self.mtheta, self.mgyro_x, self.mgyro_y, self.mgyro_z, self.mbaro))
+        measurements = np.vstack((self.mx, self.my, self.mz, self.macc_x, self.macc_y, self.macc_z, self.mpsi, self.mphi, self.mtheta, self.mgyro_x, self.mgyro_y, self.mgyro_z, self.mbaro, 
+            self.mvision_seq, self.mimu_seq, self.mbaro_seq))
         m = measurements.shape[1]
         #print(measurements.shape)
         i = measurements
@@ -202,7 +206,7 @@ class ukf():
         dt = 0.0
         for j in range(m):
                 
-            row = [i[0,j], i[1,j], i[2,j], i[3,j], i[4,j], i[5,j], i[6,j], i[7,j], i[8,j], i[9,j], i[10,j], i[11,j], i[12,j]]
+            row = [i[0,j], i[1,j], i[2,j], i[3,j], i[4,j], i[5,j], i[6,j], i[7,j], i[8,j], i[9,j], i[10,j], i[11,j], i[12,j], i[13,0], i[14,0], i[15,0]]
             #print(row)        
             if j:
                 dt = self.mtime[j]-self.mtime[j-1]
@@ -267,13 +271,21 @@ class ukf():
 
             # remember that the updated states should be zero-indexed
             # the states should also be in the order of the noise and data matrices
-            if not self.old_x == row[0]:
+
+            
+            if not self.vision_seq == row[13]:
                 state_estimator.update([0, 1, 2], vision_data_pos, r_vision_pos)
                 state_estimator.update([6, 7, 8], vision_data_ori, r_vision_ori)
-                
-            state_estimator.update([3, 4, 5], imu_data_acc, r_imu_acc)
-            state_estimator.update([9, 10, 11], imu_data_gyro_v, r_imu_gyro_v)
-            state_estimator.update([2], baro_data, r_baro_pos)
+                self.vision_seq = row[13]
+            
+            if not self.imu_seq == row[14]:
+                state_estimator.update([3, 4, 5], imu_data_acc, r_imu_acc)
+                state_estimator.update([9, 10, 11], imu_data_gyro_v, r_imu_gyro_v)
+                self.imu_seq = row[14]
+            
+            if not self.baro_seq == row[15]:
+                state_estimator.update([2], baro_data, r_baro_pos)
+                self.baro_seq = row[15]
 
             self.old_x = row[0]
 
@@ -524,8 +536,12 @@ if __name__ == "__main__":
     #ukf.create_ground_truth()
     ukf.main()
     
+    labels = ['x','y','z']
+    ys = [ukf.macc_x, ukf.macc_y, ukf.macc_z]
+    ukf.plot_state('Acceleration [IMU]', 'Time [s]', r'Acceleration [$(\frac{m}{s^2})$]', 'Acceleration.png', ukf.mtime, ys)
+
     labels = ['Velocity in x','Velocity in y','Velocity in z']
-    ys = [ukf.x3, ukf.x4, ukf.x5]
+    ys = [ukf.x3, ukf.x4]
     ukf.plot_state('Linear velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{m}{s})$]', 'Linear velocity.png', ukf.mtime, ys)
 
     labels = ['Roll','Pitch']
@@ -537,7 +553,8 @@ if __name__ == "__main__":
     ukf.plot_state('Angular velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{r}{s})$]', 'Velocity.png', ukf.mtime, ys)
     
     ukf.plot_position()
-    ukf.plot_position_2d()
+    
+    #ukf.plot_position_2d()
     
     labels = ['Roll','Pitch', 'Yaw']
     ys = [ukf.x15, ukf.x16, ukf.x17]

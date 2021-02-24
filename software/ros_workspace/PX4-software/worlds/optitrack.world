@@ -24,7 +24,7 @@
     <model name="wall_with_markers">
       <pose> -1 0 0 0 0 3.16</pose>
       <include>
-        <uri>model://wall_with_markers_big_board_onepattern_error</uri>
+        <uri>model://wall_with_markers_big_board_threepattern_error</uri>
       </include>
     </model>
 

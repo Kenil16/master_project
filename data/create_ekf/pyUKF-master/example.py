@@ -15,7 +15,7 @@ class ukf():
         self.corr_acc_z = []
         self.data = []
 
-        self.read_data('test10_180d.txt')
+        self.read_data('imu_vision_data.txt')
         self.mx = np.array([item[0] for item in self.data])
         self.my = np.array([item[1] for item in self.data])
         self.mz = np.array([item[2] for item in self.data])
@@ -121,9 +121,9 @@ class ukf():
         
         ret = np.zeros(len(x))
 
-        ret[0] = x[0] + x[3]*dt + 0.5*x[6]*dt**2
-        ret[1] = x[1] + x[4]*dt + 0.5*x[7]*dt**2
-        ret[2] = x[2] + x[5]*dt + 0.5*x[8]*dt**2
+        ret[0] = x[0] + x[3]*dt #+ 0.5*x[6]*dt**2
+        ret[1] = x[1] + x[4]*dt #+ 0.5*x[7]*dt**2
+        ret[2] = x[2] + x[5]*dt #+ 0.5*x[8]*dt**2
         ret[3] = x[3] + x[6]*dt
         ret[4] = x[4] + x[7]*dt
         ret[5] = x[5] + x[8]*dt
@@ -257,6 +257,7 @@ class ukf():
 
             # remember that the updated states should be zero-indexed
             # the states should also be in the order of the noise and data matrices
+   
             if not self.old_x == row[0]:
                 state_estimator.update([0, 1, 2], vision_data_pos, r_vision_pos)
                 state_estimator.update([9, 10, 11], vision_data_ori, r_vision_ori)
