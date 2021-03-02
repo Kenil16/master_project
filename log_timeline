@@ -105,4 +105,7 @@ The angle(orientation) according to the aruco marker on the ground has now been 
 24/02/2021:
 The acceleration has been decided to be used as velocity to be used a position estimation in the x and y axis. This is because the gravity can not proberly be estimated and subtracted from this force values yielding errors in the results. This gravity vector in x and y has shown to be dominant and matches the velocity pretty well. The acceleration in z will be used normation by dobble integration.
  
- 
+02/03/2021:
+The altimeter (baro data) has now been fused together with the vision data for altitude estimation. Because the altimeter relies on the pressure, which can change over time, an offset for the altitude estimation for the altimeter has been made based on the difference between the measurements from the vision and the altide from the baro sensor. This works quite well. Howeverm the fusion must be optimezed because the drone has been seen to drift a lot in the x, y and z direction when no vision is avaiable. 
+
+The vision (pos) of the drone could be used to estimate the velocity and acceleration which could then be fused together with the acceleration from the accelerometer and the bias in the accelerometer be estimted the same way as the baro. 

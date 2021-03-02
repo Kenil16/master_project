@@ -13,7 +13,7 @@ from tf.transformations import*
 from std_msgs.msg import (String, Int8, Float64, Bool)
 from nav_msgs.msg import Odometry 
 from scipy.stats import norm
-
+from hector_uav_msgs.msg import Altimeter 
 from ukf import UKF
 
 class sensor_fusion():
@@ -28,13 +28,13 @@ class sensor_fusion():
                            5.02, 5.02, 5.5, #Process noise x, y and z (acc)
                            1.5, 1.5, 0.05, #Process noise roll, pitch and yaw (angle)
                            0.9, 0.9, 0.5, #Process noise x, y and z (angle rate)
-                           2.3, 2.3, 2.3, #Measurement noise x, y and z (pos)
+                           2.3, 2.3, 0.05, #Measurement noise x, y and z (pos)
                            0.03, 0.03, 0.08, #Measurement noise x, y and z (acc)
                            0.05, 0.05, 0.05, #Measurement noise x, y and z (angle)
                            1.5, 1.5, 0.5] #Measurement noise x, y and z (abgle rate)
 
         #Process Noise
-        self.q = np.eye(15)
+        self.q = np.eye(16)
         self.q[0][0] = self.covariance[0]
         self.q[1][1] = self.covariance[1]
         self.q[2][2] = self.covariance[2]
@@ -50,6 +50,7 @@ class sensor_fusion():
         self.q[12][12] = self.covariance[12]
         self.q[13][13] = self.covariance[13]
         self.q[14][14] = self.covariance[14]
+        self.q[15][15] = 0.5
         
 
         #Create measurement noise covariance matrices
@@ -71,6 +72,12 @@ class sensor_fusion():
         self.r_vision_ori[1][1] = self.covariance[25]
         self.r_vision_ori[2][2] = self.covariance[26]
 
+        self.r_baro = np.zeros([1,1])
+        self.r_baro[0][0] = 0.05
+
+        self.r_baro_offset = np.zeros([1,1])
+        self.r_baro_offset[0][0] = 0.2
+        
         #For visualisation of data
         self.plot_sensor_fusion_data = True
         self.plot_vision_imu_data = True
@@ -116,7 +123,11 @@ class sensor_fusion():
 
         self.ground_truth = Odometry()
         self.imu_data = Imu()
-        self.baro_data = Altitude()
+        self.baro_data = Altimeter()
+        
+        self.init_baro_altitude = True
+        self.altitude_ref = []
+
         self.imu_data_corrected = []
         self.aruco_marker_pose = PoseStamped()
         self.sensor_fusion_pose = PoseStamped()
@@ -132,7 +143,7 @@ class sensor_fusion():
 
         #Subscribers/mavros/altitude
         rospy.Subscriber('/mavros/imu/data', Imu, self.imu_callback)
-        rospy.Subscriber('/mavros/altitude', Altitude, self.baro_callback)
+        rospy.Subscriber('/altimeter', Altimeter, self.baro_callback)
         rospy.Subscriber('/onboard/aruco_marker_pose', PoseStamped, self.aruco_marker_pose_callback)
         rospy.Subscriber('/onboard/aruco_board_found', Bool, self.aruco_board_found_callback)
         rospy.Subscriber('/odom', Odometry, self.ground_truth_callback)
@@ -187,10 +198,10 @@ class sensor_fusion():
             
             #Choose initial values for the UKF
             i = self.get_measurements()
-            self.x_init = [i[0], i[1], i[2], 0, 0, 0, 0, 0, 0, i[6], i[7], i[8], 0, 0, 0]
+            self.x_init = [i[0], i[1], i[2], 0, 0, 0, 0, 0, 0, i[6], i[7], i[8], 0, 0, 0, 0]
             
             #Initiate the UKF
-            self.state_estimator = UKF(15, self.q, self.x_init, 0.0001*np.eye(15), 0.04, 15.0, 2.0, self.iterate_x)
+            self.state_estimator = UKF(16, self.q, self.x_init, 0.0001*np.eye(16), 0.04, 15.0, 2.0, self.iterate_x)
 
             self.init_ukf = False
             self.start_tracking = True
@@ -206,7 +217,13 @@ class sensor_fusion():
     
     def baro_callback(self, data):
         self.baro_data = data
-    
+        """
+        if self.init_baro_altitude:
+            self.altitude_ref.append(self.baro_data.altitude)
+            if len(self.altitude_ref) == 20:
+                self.altitude_ref = sum(self.altitude_ref)/len(self.altitude_ref)
+                self.init_baro_altitude = False
+        """
     def write_imu_data(self, acc_x=0, acc_y=0, acc_z=0, gyro_x=0, gyro_y=0, gyro_z=0, time=0):
 
         data = open(self.imu_data_path,'a')
@@ -214,7 +231,7 @@ class sensor_fusion():
         data.write('\n')
         data.close()
         
-    def write_vision_imu_data(self, x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, baro, time, vision_seq, imu_seq, baro_seq, path, g_roll, g_pitch, g_yaw):
+    def write_vision_imu_data(self, x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, baro, time, vision_seq, imu_seq, baro_seq, path, g_roll, g_pitch, g_yaw, g_alt):
         
         data = open(path,'a')
         data.write(str(x) + " " + str(y) + " " + \
@@ -224,7 +241,7 @@ class sensor_fusion():
                    str(yaw) + " " + str(gyro_x) + " " + \
                    str(gyro_y) + " " + str(gyro_z) + " " + \
                    str(baro) + " " + str(time) + " " + str(vision_seq) + " " +\
-                   str(imu_seq) + " " + str(baro_seq) + " " + str(g_roll) + " " + str(g_pitch) + " " + str(g_yaw))
+                   str(imu_seq) + " " + str(baro_seq) + " " + str(g_roll) + " " + str(g_pitch) + " " + str(g_yaw) + " " + str(g_alt))
         data.write('\n')
         data.close()
 
@@ -266,9 +283,9 @@ class sensor_fusion():
 
         ret = np.zeros(len(x))
 
-        ret[0] = x[0] + 0.5*x[3]*dt
-        ret[1] = x[1] + 0.5*x[4]*dt
-        ret[2] = x[2] + x[5]*dt
+        ret[0] = x[0] + 0.6*x[3]*dt
+        ret[1] = x[1] + 0.6*x[4]*dt
+        ret[2] = x[2] # x[5]*dt
         ret[3] = x[6] #x[3]*self.attenuation_vel_x + x[6]*dt
         ret[4] = x[7] #x[4]*self.attenuation_vel_y + x[7]*dt
         ret[5] = x[5]*self.attenuation_vel_z + x[8]*dt
@@ -281,6 +298,7 @@ class sensor_fusion():
         ret[12] = x[12]
         ret[13] = x[13]
         ret[14] = x[14]
+        ret[15] = x[15]
 
         return ret
 
@@ -367,7 +385,11 @@ class sensor_fusion():
         vision_data_ori = np.array([vision_roll, vision_pitch, vision_yaw])
         imu_data_acc = np.array([imu_accX, imu_accY, imu_accZ])
         imu_data_gyro_v = np.array([imu_rollV, imu_pitchV, imu_yawV])
-
+        
+        baro_data = np.array([row[12]])
+        baro_offset = vision_z - baro_data
+        #print(baro_data)
+        
         #Prediction step for UKF
         self.state_estimator.predict(dt)
         
@@ -375,6 +397,7 @@ class sensor_fusion():
         if not self.seq_aruco_pose == self.aruco_marker_pose.header.seq:
             self.state_estimator.update([0, 1, 2], vision_data_pos, self.r_vision_pos)
             self.state_estimator.update([9, 10, 11], vision_data_ori, self.r_vision_ori)
+            self.state_estimator.update([15], baro_offset, self.r_baro_offset)
             self.seq_aruco_pose = self.aruco_marker_pose.header.seq
         
         #Update only if new data has been received based on sequence number (ROS messege)
@@ -382,6 +405,10 @@ class sensor_fusion():
             self.state_estimator.update([6, 7, 8], imu_data_acc, self.r_imu_acc)
             self.state_estimator.update([12, 13, 14], imu_data_gyro_v, self.r_imu_gyro_v)
             self.seq_imu = self.imu_data.header.seq
+
+        if not self.seq_baro == self.baro_data.header.seq:
+            self.state_estimator.update([2], baro_data + x[15], self.r_baro)
+            self.seq_baro = self.baro_data.header.seq
  
         #Get estimated state
         x = self.state_estimator.get_state()
@@ -427,19 +454,22 @@ class sensor_fusion():
         
         ori = euler_from_quaternion( [self.ground_truth.pose.pose.orientation.x, self.ground_truth.pose.pose.orientation.y, 
             self.ground_truth.pose.pose.orientation.z, self.ground_truth.pose.pose.orientation.w] )
+        alt = self.ground_truth.pose.pose.position.z
 
         gyro_x = self.imu_data.angular_velocity.x-self.gyro_x_offset
         gyro_y = self.imu_data.angular_velocity.y-self.gyro_y_offset
         gyro_z = self.imu_data.angular_velocity.z-self.gyro_z_offset
 
-        altitude = self.baro_data.local
+        altitude = self.baro_data.altitude #- self.altitude_ref
         baro_seq = self.baro_data.header.seq
+
+        self.imuz_pub.publish(altitude)
         
         time = self.imu_data.header.stamp.secs + self.imu_data.header.stamp.nsecs/1000000000.
         
         if self.plot_vision_imu_data:
             self.write_vision_imu_data(x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, altitude, time, vision_seq, imu_seq, baro_seq, self.imu_vision_data_path,
-                    ori[0], ori[1], ori[2])
+                    ori[0], ori[1], ori[2], alt)
         
         self.measurements = [x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, altitude]
         return self.measurements

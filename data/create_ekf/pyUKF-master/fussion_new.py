@@ -43,6 +43,7 @@ class ukf():
         self.ground_truth_mpsi = np.array([item[17] for item in self.data])
         self.ground_truth_mphi = np.array([item[18] for item in self.data])
         self.ground_truth_mtheta = np.array([item[19] for item in self.data])
+        self.ground_truth_alt = np.array([item[20] for item in self.data])
         
         self.old_x = 0.0
 
@@ -69,6 +70,8 @@ class ukf():
         self.x18 = [] #ground truth
         self.x19 = [] #ground truth
         self.x20 = [] #ground truth
+        
+        self.x21 = [] #baro
         
         self.gyro_x = 0.0
         self.gyro_y = 0.0
@@ -152,8 +155,14 @@ class ukf():
                 if init and not str_to_float[15] == seq:
                     init = False
                 if not init:
-                    #print(str_to_float)
-                    self.data.append(str_to_float)
+                    error = False
+                    for i in str_to_float:
+                        if math.isnan(i):
+                            error = True
+
+                    if not error:
+                        #print(str_to_float)
+                        self.data.append(str_to_float)
                 seq = str_to_float[15]
 
     def eulerAnglesToRotationMatrixYaw(self, theta):
@@ -188,7 +197,7 @@ class ukf():
         
         ret[0] = x[0] + 0.5*x[3]*dt
         ret[1] = x[1] + 0.5*x[4]*dt
-        ret[2] = x[2] + x[5]*dt
+        ret[2] = x[2]  # x[5]*dt
         ret[3] = x[6] #x[3]*self.attenuation_vel_x + x[6]*dt
         ret[4] = x[7] #x[4]*self.attenuation_vel_y + x[7]*dt
         ret[5] = x[5]*self.attenuation_vel_z + x[8]*dt
@@ -201,6 +210,7 @@ class ukf():
         ret[12] = x[12]
         ret[13] = x[13]
         ret[14] = x[14]
+        ret[15] = x[15]
         return ret
     
     def main(self):
@@ -208,10 +218,10 @@ class ukf():
         np.set_printoptions(precision=3)
         
         # Process Noise
-        q = np.eye(15)
+        q = np.eye(16)
         q[0][0] = 0.5 #x
         q[1][1] = 0.5 #y
-        q[2][2] = 0.5 #z
+        q[2][2] = 0.05 #z
         q[3][3] = 0.05 #vel x
         q[4][4] = 0.05 #vel y
         q[5][5] = 0.5 #vel z 
@@ -224,6 +234,8 @@ class ukf():
         q[12][12] = 0.05 #roll rate
         q[13][13] = 0.05 #pitch rate
         q[14][14] = 0.05 #yaw rate
+        q[15][15] = 0.5 #baro rate
+        
         
         # Create measurement noise covariance matrices
         r_imu_acc = np.zeros([3, 3])
@@ -239,27 +251,33 @@ class ukf():
         r_vision_ori = np.zeros([3, 3])
         r_vision_pos[0][0] = 0.5 #x
         r_vision_pos[1][1] = 0.5 #y
-        r_vision_pos[2][2] = 0.5 #z
+        r_vision_pos[2][2] = 0.05 #z
         r_vision_ori[0][0] = 0.5 #roll rate
         r_vision_ori[1][1] = 0.5 #pitch rate
         r_vision_ori[2][2] = 0.5 #yaw rate
         
+        r_baro = np.zeros([1,1])
+        r_baro[0][0] = 0.2
+
+        r_baro_offset = np.zeros([1,1])
+        r_baro_offset[0][0] = 0.02
+        
         # pass all the parameters into the UKF!
         # number of state variables, process noise, initial state, initial coariance, three tuning paramters, and the iterate function
         measurements = np.vstack((self.mx, self.my, self.mz, self.macc_x, self.macc_y, self.macc_z, self.mpsi, self.mphi, self.mtheta, self.mgyro_x, self.mgyro_y, self.mgyro_z, 
-            self.mvision_seq, self.mimu_seq, self.ground_truth_mpsi, self.ground_truth_mphi, self.ground_truth_mtheta))
+            self.mvision_seq, self.mimu_seq, self.ground_truth_mpsi, self.ground_truth_mphi, self.ground_truth_mtheta, self.mbaro, self.mbaro_seq))
         m = measurements.shape[1]
         #print(measurements.shape)
         i = measurements
         #print(m)
-        x_init = [i[0,0], i[1,0], i[2,0], 0, 0, 0, 0, 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0]
+        x_init = [i[0,0], i[1,0], i[2,0], 0, 0, 0, 0, 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0, 0]
         
-        state_estimator = UKF(15, q, x_init, 0.0001*np.eye(15), 0.04, 15.0, 2.0, self.iterate_x)
+        state_estimator = UKF(16, q, x_init, 0.0001*np.eye(16), 0.04, 15.0, 2.0, self.iterate_x)
         time =0
         dt = 0.0
         for j in range(m):
                 
-            row = [i[0,j], i[1,j], i[2,j], i[3,j], i[4,j], i[5,j], i[6,j], i[7,j], i[8,j], i[9,j], i[10,j], i[11,j], i[12,j], i[13,j], i[14,j], i[15,j], i[16,j]]
+            row = [i[0,j], i[1,j], i[2,j], i[3,j], i[4,j], i[5,j], i[6,j], i[7,j], i[8,j], i[9,j], i[10,j], i[11,j], i[12,j], i[13,j], i[14,j], i[15,j], i[16,j], i[17,j], i[18,j]]
             #print(row)        
             if j:
                 dt = self.mtime[j]-self.mtime[j-1]
@@ -416,6 +434,9 @@ class ukf():
             vision_data_ori = np.array([vision_roll, vision_pitch, vision_yaw])
             imu_data_acc = np.array([imu_accX, imu_accY, imu_accZ])
             imu_data_gyro_v = np.array([imu_rollV, imu_pitchV, imu_yawV])
+            
+            baro_data = np.array([row[17]])
+            baro_offset = vision_z - baro_data
 
             # prediction is pretty simple
             state_estimator.predict(dt, row)
@@ -423,13 +444,18 @@ class ukf():
             if not self.vision_seq == row[12]:
                 state_estimator.update([0, 1, 2], vision_data_pos, r_vision_pos)
                 state_estimator.update([9, 10, 11], vision_data_ori, r_vision_ori)
+                state_estimator.update([15], baro_offset, r_baro_offset)
                 self.vision_seq = row[12]
             
             if not self.imu_seq == row[13]:
                 state_estimator.update([6, 7, 8], imu_data_acc, r_imu_acc)
                 state_estimator.update([12, 13, 14], imu_data_gyro_v, r_imu_gyro_v)
                 self.imu_seq = row[13]
-
+            
+            if not self.baro_seq == row[18]:
+                state_estimator.update([2], baro_data + x[15], r_baro)
+                self.baro_seq = row[18]
+            
             self.old_x = row[0]
 
             x = state_estimator.get_state()
@@ -462,6 +488,8 @@ class ukf():
             self.x18.append(float(np.rad2deg(row[14])))
             self.x19.append(float(np.rad2deg(row[15])))
             self.x20.append(float(np.rad2deg(row[16])))
+            
+            self.x21.append(float(baro_data+x[15]))
             #self.test = self.test + 1
             #print(self.test)
             
@@ -546,20 +574,24 @@ class ukf():
         for tick in ax.get_yticklabels():
             tick.set_color('gray')
 
-        #plt.scatter(self.mtime, self.mz, s=10, label='GPS Measurements')
-        plt.scatter(self.mtime, self.x2, s=2, label='EKF Position', c='k')
+        plt.scatter(self.mtime, self.x21, s=2, label='Corrected altimeter')
+        plt.scatter(self.mtime, self.mbaro, s=2, label='Altimeter')
+        plt.scatter(self.mtime, self.mz, s=2, label='Vision altitude')
+        plt.scatter(self.mtime, self.ground_truth_alt, s=2, label='Ground truth')
+        plt.scatter(self.mtime, self.x2, s=2, label='EKF altitude')
 
         # Start/Goal
         print(len(self.mtime))
         print(len(self.x2))
         #plt.scatter(self.mtime, self.mz[0], s=60, label='Start', c='g')
         #plt.scatter(self.mtime, self.mz[-1], s=60, label='Goal', c='r')
-
+        
         plt.xlabel('Z [m]')
         plt.title('Positionz')
         plt.legend(loc='best')
-        plt.axis('equal')
+        #plt.axis('equal')
 
+        plt.ylim(ymax = 5, ymin = 0)
         plt.savefig('Positionz.png')
 
     def plot_ground_truth(self, x, y):
@@ -667,6 +699,7 @@ if __name__ == "__main__":
     ukf.plot_state('Angular velocity [IMU]', 'Time [s]', r'Angular velocity [$(\frac{r}{s})$]', 'angular_velocity.png', ukf.mtime, ys)
     
     ukf.plot_position()
+    ukf.plot_position_2d()
     
     labels = ['Roll','Pitch', 'Yaw']
     ys = [ukf.x15, ukf.x16, ukf.x17]

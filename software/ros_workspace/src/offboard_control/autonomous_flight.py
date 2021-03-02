@@ -113,6 +113,7 @@ class autonomous_flight():
         i = [self.uav_local_pose.pose.orientation.x, self.uav_local_pose.pose.orientation.y, self.uav_local_pose.pose.orientation.z, self.uav_local_pose.pose.orientation.w]
         ori =  euler_from_quaternion(i)
         self.delta_ori = ori[2]-np.deg2rad(setpoint[3])
+        #self.delta_ori = np.rad2deg(ori[2])-setpoint[3]
         error = np.sqrt(np.power(self.delta_x,2) + np.power(self.delta_y,2) + np.power(self.delta_z,2) + np.power(self.delta_ori,2))
         #print(self.delta_ori)
         if error < threshold:
@@ -489,7 +490,7 @@ class autonomous_flight():
                     y = self.uav_local_pose.pose.position.y
                     z = self.uav_local_pose.pose.position.z
 
-                    if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold= 0.20):
+                    if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold= 0.10):
                         break
 
                     time_sec = timer()-start
