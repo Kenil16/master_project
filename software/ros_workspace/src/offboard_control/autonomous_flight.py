@@ -14,11 +14,15 @@ from geometry_msgs.msg import PoseStamped, Quaternion
 from pid import*
 from std_msgs.msg import (String, Int8, Float64, Bool)
 from timeit import default_timer as timer
+import sys
 
 class autonomous_flight():
 
     def __init__(self):        
         
+        #Arguments for which mission plan to load 
+        self.args = sys.argv
+        #print(self.args)
         rospy.init_node('autonomous_flight')
         self.rate = rospy.Rate(10)
 
@@ -46,8 +50,10 @@ class autonomous_flight():
         self.delta_x = 0.0
         self.delta_y = 0.0
         self.delta_z = 0.0
-
-        self.mission = self.read_mission('../../../../missions/mission3.txt')
+        
+        self.mission = self.read_mission(self.args[1])
+        #self.mission = self.read_mission('../../../../missions/mission3.txt')
+        
         self.next_waypoint = PoseStamped()
 
         #Publishers

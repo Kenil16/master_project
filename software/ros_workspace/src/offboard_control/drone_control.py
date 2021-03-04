@@ -10,15 +10,23 @@ from std_msgs.msg import (String, Int8, Float64, Bool)
 from geometry_msgs.msg import PoseStamped, Quaternion, PoseWithCovarianceStamped
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
+import sys
+
 class drone_control():
     def __init__(self):
         
+        #Arguments for which initial uav state to be in 
+        self.arg = sys.argv
+
         #Init ROS
         rospy.init_node('drone_control')
         self.rate = rospy.Rate(20)
         
         #Variables
+        print(self.arg[1])
+        
         self.uav_state = 'idle' 
+        
         self.mavros_state = State()
         
         self.autonomous_flight_pose_msg = PoseStamped()
@@ -50,6 +58,8 @@ class drone_control():
 
         #Perform MAVROS handshake   
         self.mavros_handshake()
+
+        self.set_state(self.arg[1])
 
     def mavros_handshake(self): 
         rospy.loginfo('Drone_control: Waiting for MAVROS Connection.')
@@ -94,32 +104,34 @@ class drone_control():
         self.aruco_marker_pose_msg = msg
 
     def on_command(self, msg):
-        command = str(chr(msg.data))
-        command.lower()
-    
+        
         #Change state according to GC command
         
-        if command == 't': #Takeoff
+        if self.command == 't': #Takeoff
             self.set_state('takeoff')
 
-        if command == 'h': #Returns the drone to home
+        if self.command == 'h': #Returns the drone to home
             self.set_state('home')
         
-        if command == 'l': #Execute mission
+        if self.command == 'l': #Execute mission
             self.set_state('loiter')
 
-        if command == 'k': # Kill drone
-            self.set_state('idle')
+        if self.command == 'k': # Kill drone
+            rospy.signal_shutdown("test")
 
         #Execute a number of mission tests
-        if command == '1':
+        if self.command == '1':
             self.set_state('estimate_aruco_pose_front_test')
 
-        if command == '2':
+        if self.command == '2':
             self.set_state('follow_aruco_pose_bottom_test')
 
-        if command == '3':
+        if self.command == '3':
             self.set_state('hold_aruco_pose_test')
+        
+        self.command = str(chr(msg.data))
+        self.command.lower()
+    
     
     def message_control(self):
 

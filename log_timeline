@@ -114,4 +114,23 @@ The raspberry py has been setup to run ROS and PX4 using the image from EiT. In 
 
 03/03/2021:
 Got the simulation to work with sensor fusion even with the bad marker world. However, tuing of parametersa have to be made for optimal performance ie. the UKF  process and maueseumet noise. 
-It have been noticed that the angle from the aruco pose differs auite a lot with the ground truch. This is not the case with the gryo. Maybe a better trust on the sesnor fusion could be made.  
+It have been noticed that the angle from the aruco pose differs auite a lot with the ground truch. This is not the case with the gryo. Maybe a better trust on the sesnor fusion could be made.
+
+04/03/2021:
+
+Tests which must be made in simulation (FINAL):
+	- Test pose estimation of markers using front camera at different poses away from the marker. This will be the GPS to vision marker. This test is made to see how large the error of the pose
+	  estimation gets when the drone is farther away from the marker. The estimate will be compared to that of the ground truth. This will show the minimum range away from the marker the drone must be 	       in order to make a smooth transition between using GPS to vision. 
+	- Test pose estimation of markers using bottom camera hovering above a marker a different heights. The estimate will be compared to that of the ground truth. This will show the maximum flying    	     height of the drone of the inddor navigation before the error becomes to unsateble. 
+	- Test precision of landing using the front camera. Here both the pose estimate, setpoint of landing and ground truth must be used. Try with different number of decress velocities and comepare. 
+	  This was also one of the requroments that the drone had to land within a giving time belove a giving precition. 
+	- Test complete route from GPS to vision, indoor navigation and landing. This must include pose estimate, setpoint and ground truth. Try different velocities to stress test the implementation and 		  see how fast the the drone can navigate before the error becomes to great or the system becomes unstacle.
+	- Test implementation of sensor fussion of complete route from GPS to vision, indoor navigation and landing both with world models with and without errors. Here noise on the markers could be taken 		  into account to stress test the implementation and see how noise markers could be before preformance is reduced. 
+	- 
+
+All tests must be implemented to be run in headless mode which can be executed from a bash script. 
+
+Now the commands to the drone can be giving as input to the scripts from roslaunch using 
+roslaunch px4 gazebo_sim_v2.0_tests.launch worlds:=optitrack.world drone_control_args:="follow_aruco_pose_bottom_test" autonomous_flight_args:="../../../../missions/mission3.txt". Futhermore, drone start pose and gazebo world can be giving as inputs as well which enables the tests to be executed in headless mode from a bash script from the terminal.
+
+Now the node drone_control has been giving the parameter required="true" which results in the entire Roslaunch node terminates whenever that node terminates. This is done by using the command rospy.signal_shutdown("test") in the node drone_control when the wanted mission is finish.
