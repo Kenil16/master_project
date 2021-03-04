@@ -41,6 +41,8 @@ class autonomous_flight():
         self.next_board_found = False
         self.aruco_board_found = Bool()
 
+        self.waypoint_check_pose_error = 0.25
+
         self.delta_x = 0.0
         self.delta_y = 0.0
         self.delta_z = 0.0
@@ -490,7 +492,7 @@ class autonomous_flight():
                     y = self.uav_local_pose.pose.position.y
                     z = self.uav_local_pose.pose.position.z
 
-                    if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold= 0.10):
+                    if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold = self.waypoint_check_pose_error):
                         break
 
                     time_sec = timer()-start
@@ -504,6 +506,7 @@ class autonomous_flight():
             
         rospy.loginfo('Autonomous_flight: Follow aruco pose utilising the bottom camera test complete')
         self.set_state('loiter')
+    
     def hold_aruco_pose_test(self):
 
         #Enable aruco detection, cam use and start index board 
@@ -651,6 +654,10 @@ class autonomous_flight():
         if not self.mission[0][9] == '-':
             transform = int(self.mission[0][9])
             self.pub_aruco_board.publish(transform)
+            print(transform)
+
+        if not self.mission[0][10] == '-':
+            self.waypoint_check_pose_error = float(self.mission[0][10])
 
         self.mission.pop(0)
         #print(param + ' ' + str(param_value) + ' ' + str(timeout) + ' ' + str(self.next_waypoint.pose.position.x) + ' ' + str(transform))

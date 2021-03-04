@@ -23,12 +23,12 @@ class sensor_fusion():
         #Initialise the uncented kalman filter (UKF)
         np.set_printoptions(precision=3)
 
-        self.covariance = [0.05, 0.05, 0.05, #Process noise x, y and z (pos)
+        self.covariance = [0.10, 0.10, 0.3, #Process noise x, y and z (pos)
                            0.5, 0.5, 0.05, #Process noise x, y and z (acc)
-                           5.02, 5.02, 5.5, #Process noise x, y and z (acc)
+                           0.2, 0.2, 5.5, #Process noise x, y and z (acc) 5.02, 5.02, 5.5
                            1.5, 1.5, 0.05, #Process noise roll, pitch and yaw (angle)
                            0.9, 0.9, 0.5, #Process noise x, y and z (angle rate)
-                           2.3, 2.3, 0.05, #Measurement noise x, y and z (pos)
+                           0.0003, 0.0003, 0.000005, #Measurement noise x, y and z (pos)
                            0.03, 0.03, 0.08, #Measurement noise x, y and z (acc)
                            0.05, 0.05, 0.05, #Measurement noise x, y and z (angle)
                            1.5, 1.5, 0.5] #Measurement noise x, y and z (abgle rate)
@@ -73,7 +73,7 @@ class sensor_fusion():
         self.r_vision_ori[2][2] = self.covariance[26]
 
         self.r_baro = np.zeros([1,1])
-        self.r_baro[0][0] = 0.05
+        self.r_baro[0][0] = 0.5
 
         self.r_baro_offset = np.zeros([1,1])
         self.r_baro_offset[0][0] = 0.2
@@ -82,8 +82,8 @@ class sensor_fusion():
         self.plot_sensor_fusion_data = True
         self.plot_vision_imu_data = True
 
-        self.sensor_fusion_data_path = '../../../../data/create_ekf/pyUKF-master/sensor_fusion_data.txt'
-        self.imu_vision_data_path = '../../../../data/create_ekf/pyUKF-master/imu_vision_data.txt'
+        self.sensor_fusion_data_path = '../../../../data/create_ukf/sensor_fusion_data.txt'
+        self.imu_vision_data_path = '../../../../data/create_ukf/imu_vision_data.txt'
         
         self.x0 = [] #x
         self.x1 = [] #y
@@ -328,16 +328,17 @@ class sensor_fusion():
         corrected_acc_y = -acc[1] #+ acc_bias[1]
         corrected_acc_z = row[5] - gravity*np.cos(x[9])*np.cos(x[10])
 
+        """
         #Mechanical Filtering Window
-        if corrected_acc_x < 0.25 and corrected_acc_x > -0.25:
+        if corrected_acc_x < 0.05 and corrected_acc_x > -0.05:
             corrected_acc_x = corrected_acc_x*0.0
 
-        if corrected_acc_y < 0.25 and corrected_acc_y > -0.25:
+        if corrected_acc_y < 0.05 and corrected_acc_y > -0.05:
             corrected_acc_y = corrected_acc_y*0.0
-
+        
         if corrected_acc_z < 0.25 and corrected_acc_z > -0.25:
             corrected_acc_z = corrected_acc_z*0.0
-
+        
         #Z attenuation
         zero_acc = False
         sign_shift = False
@@ -361,7 +362,7 @@ class sensor_fusion():
                 self.inversions_z = []
         elif len(self.inversions_z) == 1:
             self.attenuation_vel_z = 1.00
-
+        """
 
         #Rotation matrix to align gyro velocity to the orientation of the world (marker)
         R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])

@@ -85,21 +85,20 @@ class marker_detection:
         self.T_landingMarker3_to_ground = euler_matrix(0, 0, -np.pi/2,'rxyz')
         self.T_landingMarker3_to_ground[0][3] = 6.88
         self.T_landingMarker3_to_ground[1][3] = 8.64
-        self.T_landingMarker3_to_ground[2][3] = -0.08
+        self.T_landingMarker3_to_ground[2][3] = 0.2 #-0.08
         
         #Local drone pose
         self.local_position = PoseStamped()
         self.aruco_pose = PoseStamped()
         self.aruco_pose_without_kf = PoseStamped()
 
-        #self.use_bottom_cam = False
         self.aruco_board = 2
         
         #Subscribers
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)
         rospy.Subscriber("/mono_cam_front/image_raw", Image, self.front_img_callback)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
-        #rospy.Subscriber('/onboard/aruco_ids', mavlink_lora_aruco, self.aruco_ids_callback)
+        rospy.Subscriber('/onboard/aruco_board', Int8, self.aruco_board_callback)
         
         #Publishers
         self.aruco_marker_image_pub = rospy.Publisher('/onboard/aruco_marker_image', Image, queue_size=1)
@@ -296,6 +295,8 @@ class marker_detection:
             self.find_aruco_markers(self.front_img, self.aruco_board_landing, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
                 self.estimate_marker_pose('front', self.T_drone_camera_front, self.T_landingMarker3_to_ground)
+
+        #print(self.aruco_board)
 
 if __name__ == "__main__":
     node = marker_detection()
