@@ -12,12 +12,13 @@ from tf.transformations import* #quaternion_from_euler, euler_from_quaternion, q
 import tf
 import tf2_ros
 import tf2_geometry_msgs
-from geometry_msgs.msg import PoseStamped, Quaternion, PoseWithCovariance, PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseStamped, Quaternion, PoseWithCovariance, PoseWithCovarianceStamped, Point
 from std_msgs.msg import Float64, Bool, Int8
 from mavlink_msgs.msg import mavlink_lora_aruco
+from nav_msgs.msg import Odometry
 
 from sensor_fusion import*
-#from graphics_plot import graphics_plot
+from log_data import *
 
 import time
 
@@ -34,6 +35,10 @@ class marker_detection:
         self.plot_timer = int(((20)/self.cycle_time)) #Set to run 10 seconds before plot
 
         self.plot_time = []
+        self.log_data = log_data()
+        self.write_data_log = True
+
+        self.ground_truth = Odometry()
 
         #self.enable_aruco_detection = False
         self.draw_markers = True
@@ -43,6 +48,7 @@ class marker_detection:
         self.bottom_img = None 
         self.front_img = None
 
+        """
         #Init data textfile
         data = Path('../../../../data/estimate_aruco_vs_kf_posedata.txt')
         if not data.is_file:
@@ -52,40 +58,36 @@ class marker_detection:
         else:
             data = open('../../../../data/estimate_aruco_vs_kf_pose/data.txt','w+')
             data.close()
-
+        """
         self.time = 0.0
         
-        #Transformation matrix from drone to camera
-        self.T_drone_camera_front = euler_matrix(np.pi/2, -np.pi/2, 0, 'rxyz')
-        self.T_drone_camera_bottom = euler_matrix(np.pi, np.pi, 0, 'rxyz')
-
         #Transformation matrix from gps to vision marker to the ground wrt the drone
         self.T_gps2visionMarker_to_ground = identity_matrix()
-        self.T_gps2visionMarker_to_ground = euler_matrix(0, 0, -np.pi/2,'rxyz')
-        self.T_gps2visionMarker_to_ground[0][3] = 3.036
-        self.T_gps2visionMarker_to_ground[1][3] = 3.023
+        self.T_gps2visionMarker_to_ground = euler_matrix(np.pi/2, 0, 0, 'rxyz')
+        self.T_gps2visionMarker_to_ground[0][3] = -3.036
+        self.T_gps2visionMarker_to_ground[1][3] = -3.023
         self.T_gps2visionMarker_to_ground[2][3] = -2.36
-
+        
         #Transformation matrix from landing marker 1 to the ground wrt the drone
         self.T_landingMarker1_to_ground = identity_matrix()
-        self.T_landingMarker1_to_ground = euler_matrix(0, 0, -np.pi/2,'rxyz')
-        self.T_landingMarker1_to_ground[0][3] = 0.18 
-        self.T_landingMarker1_to_ground[1][3] = 8.64
+        self.T_landingMarker1_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
+        self.T_landingMarker1_to_ground[0][3] = -0.18 
+        self.T_landingMarker1_to_ground[1][3] = -8.64
         self.T_landingMarker1_to_ground[2][3] = -0.08
         
         #Transformation matrix from landing marker 2 to the ground wrt the drone
         self.T_landingMarker2_to_ground = identity_matrix()
-        self.T_landingMarker2_to_ground = euler_matrix(0, 0, -np.pi/2,'rxyz')
-        self.T_landingMarker2_to_ground[0][3] = 3.53
-        self.T_landingMarker2_to_ground[1][3] = 8.64
+        self.T_landingMarker2_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
+        self.T_landingMarker2_to_ground[0][3] = -3.53
+        self.T_landingMarker2_to_ground[1][3] = -8.64
         self.T_landingMarker2_to_ground[2][3] = -0.08
         
         #Transformation matrix from landing marker 3 to the ground wrt the drone
         self.T_landingMarker3_to_ground = identity_matrix()
-        self.T_landingMarker3_to_ground = euler_matrix(0, 0, -np.pi/2,'rxyz')
-        self.T_landingMarker3_to_ground[0][3] = 6.88
-        self.T_landingMarker3_to_ground[1][3] = 8.64
-        self.T_landingMarker3_to_ground[2][3] = 0.2 #-0.08
+        self.T_landingMarker3_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
+        self.T_landingMarker3_to_ground[0][3] = -6.88
+        self.T_landingMarker3_to_ground[1][3] = -8.64
+        self.T_landingMarker3_to_ground[2][3] = -0.08 #0.2
         
         #Local drone pose
         self.local_position = PoseStamped()
@@ -99,7 +101,8 @@ class marker_detection:
         rospy.Subscriber("/mono_cam_front/image_raw", Image, self.front_img_callback)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.local_position_callback)
         rospy.Subscriber('/onboard/aruco_board', Int8, self.aruco_board_callback)
-        
+        rospy.Subscriber('/odom', Odometry, self.ground_truth_callback)
+
         #Publishers
         self.aruco_marker_image_pub = rospy.Publisher('/onboard/aruco_marker_image', Image, queue_size=1)
         self.aruco_marker_pose_pub = rospy.Publisher('/onboard/aruco_marker_pose', PoseStamped, queue_size=1)
@@ -141,7 +144,10 @@ class marker_detection:
 
     def front_img_callback(self, data):
         self.front_img = data
-    
+        
+    def ground_truth_callback(self, data):
+        self.ground_truth = data
+
     def find_aruco_markers(self, img, aruco_board, camera_matrix, distortion_coefficients):
        
         #Load in the marker image
@@ -177,7 +183,7 @@ class marker_detection:
                 pose.pose.position.y = _tvec[1]
                 pose.pose.position.z = _tvec[2]
                 pose.pose.orientation = quaternion_from_euler(*self.rodrigues_to_euler_angles(_rvec))
-
+                #print(self.rodrigues_to_euler_angles(_rvec))
                 #Draw detected axis of markers
                 if self.draw_marker_axis:
                     image_markers = cv2.aruco.drawAxis(image_markers, camera_matrix, distortion_coefficients, _rvec, _tvec, 0.1)
@@ -188,61 +194,50 @@ class marker_detection:
         img = self.bridge.cv2_to_imgmsg(image_markers,"bgr8")
         self.aruco_marker_image_pub.publish(img)
 
-    def estimate_marker_pose(self, cam, T_drone_camera, T_front_to_ground = None):
+    def estimate_marker_pose(self, aruco_board, T_front_to_ground = None):
 
         #Transformation matrix from camera to ArUco marker
         r = quaternion_matrix(self.marker_pose.pose.orientation)
         
-        #T_camera_marker = np.linalg.inv(r)
         T_camera_marker = r.T
         
         t = np.array([self.marker_pose.pose.position.x, self.marker_pose.pose.position.y, self.marker_pose.pose.position.z, 1])
-        t = -np.dot(T_camera_marker,t)
+        t = -np.matmul(T_camera_marker,t.astype(float))
 
-        #New 3d vector from drone to marker using rotation from drone to camera and vector from cam to marker 
-        T_drone_marker = np.dot(T_drone_camera ,t)
+        if aruco_board == 2: #If bottom cam is used
+
+            T = euler_matrix(0, np.pi, 0, 'rxyz')
+            r = np.matmul(r,T)
+            euler = euler_from_matrix(r,'rxyz')
+
+            q_new = Quaternion(*quaternion_from_euler(euler[0], euler[1], euler[2],'rxyz'))
+            
+            #Update ArUco marker pose
+            self.aruco_pose.pose.position.x = t[0]
+            self.aruco_pose.pose.position.y = t[1]
+            self.aruco_pose.pose.position.z = t[2] + 0.05 + 0.02
+            self.aruco_pose.pose.orientation = q_new
         
-        if not cam == 'bottom':
-            T_drone_marker = np.dot(T_front_to_ground, T_drone_marker)
-        
-        #Get euler from rotation matrix
-        euler = euler_from_matrix(r,'rxyz')
-
-        #Update ArUco marker position based on Kalman filter
-        self.aruco_pose.pose.position.x = T_drone_marker[0][0] #self.kf_pos.tracker.x[0][0]
-        self.aruco_pose.pose.position.y = T_drone_marker[1][0] #self.kf_pos.tracker.x[3][0]
-        self.aruco_pose.pose.position.z = T_drone_marker[2][0] #self.kf_pos.tracker.x[6][0]
-
-        #Because roll angle is offset 180 degress with respect to the camera 
-        euler = list(euler)
-        if euler[0] > 0:
-            euler[0] = euler[0] - np.pi
         else:
-            euler[0] = euler[0] + np.pi
-        euler = tuple(euler)
+
+            T = euler_matrix(np.pi, 0, 0, 'rxyz')
+            r = np.matmul(r,T)
+            euler = euler_from_matrix(r,'rxyz')
+            
+            t = np.matmul(T_front_to_ground,t.astype(float))
+            q_new = Quaternion(*quaternion_from_euler(euler[2], euler[0], euler[1] + 1.5708,'rxyz'))
+            
+            #Update ArUco marker pose
+            self.aruco_pose.pose.position.x = t[0]
+            self.aruco_pose.pose.position.y = t[1]
+            self.aruco_pose.pose.position.z = t[2]
+            self.aruco_pose.pose.orientation = q_new
         
-        if cam == 'bottom':
-            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(-euler[0], -euler[1], -euler[2],'rxyz'))
-        else:
-            self.aruco_pose.pose.orientation = Quaternion(*quaternion_from_euler(-euler[0], -euler[2], -euler[1] - 1.5708,'rxyz'))#Because yaw is offset -90 to front marker
+        #Used for data log of estimated aruco pose vs ground truth
+        if self.write_data_log:
+            self.log_data.write_marker_detection_data(self.aruco_pose, self.ground_truth)
 
-        """
-        test = PoseWithCovarianceStamped()
-        pose_cov = PoseWithCovariance()
-        pose_cov.pose.position = self.aruco_pose.pose.position
-        pose_cov.pose.orientation = self.aruco_pose.pose.orientation
-        pose_cov.covariance[0] = 500.5
-        pose_cov.covariance[7] = 500.5
-        pose_cov.covariance[14] = 500.5
-        pose_cov.covariance[21] = 500.5
-        pose_cov.covariance[28] = 500.5
-        pose_cov.covariance[34] = 500.5
-        test.pose.pose = pose_cov.pose
-        test.pose.covariance = pose_cov.covariance
-        self.aruco_marker_pose_cov.publish(test)
-        """
-
-        #print( euler_from_quaternion([self.aruco_pose.pose.orientation.x,self.aruco_pose.pose.orientation.y,self.aruco_pose.pose.orientation.z,self.aruco_pose.pose.orientation.w]))
+        #print(euler_from_quaternion([self.aruco_pose.pose.orientation.x,self.aruco_pose.pose.orientation.y,self.aruco_pose.pose.orientation.z,self.aruco_pose.pose.orientation.w]))
         #print "Ori: {} x: {} y: {} z: {} \n".format(euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
         #self.aruco_marker_found_pub.publish(True)
         self.aruco_marker_pose_pub.publish(self.aruco_pose)
@@ -278,23 +273,23 @@ class marker_detection:
         if self.aruco_board == 1:
             self.find_aruco_markers(self.front_img, self.aruco_board_gps2vision, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
-                self.estimate_marker_pose('front', self.T_drone_camera_front, self.T_gps2visionMarker_to_ground)
+                self.estimate_marker_pose(self.aruco_board, self.T_gps2visionMarker_to_ground)
         elif self.aruco_board == 2:
             self.find_aruco_markers(self.bottom_img, self.aruco_board_vision, self.camera_matrix_bottom, self.distortion_coefficients_bottom)
             if self.aruco_board_found:
-                self.estimate_marker_pose('bottom', self.T_drone_camera_bottom)
+                self.estimate_marker_pose(self.aruco_board)
         elif self.aruco_board == 3:
             self.find_aruco_markers(self.front_img, self.aruco_board_landing, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
-                self.estimate_marker_pose('front', self.T_drone_camera_front, self.T_landingMarker1_to_ground)
+                self.estimate_marker_pose(self.aruco_board, self.T_landingMarker1_to_ground)
         elif self.aruco_board == 4:
             self.find_aruco_markers(self.front_img, self.aruco_board_landing, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
-                self.estimate_marker_pose('front', self.T_drone_camera_front, self.T_landingMarker2_to_ground)
+                self.estimate_marker_pose(self.aruco_board, self.T_landingMarker2_to_ground)
         elif self.aruco_board == 5:
             self.find_aruco_markers(self.front_img, self.aruco_board_landing, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
-                self.estimate_marker_pose('front', self.T_drone_camera_front, self.T_landingMarker3_to_ground)
+                self.estimate_marker_pose(self.aruco_board, self.T_landingMarker3_to_ground)
 
         #print(self.aruco_board)
 

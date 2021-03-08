@@ -547,10 +547,10 @@ class autonomous_flight():
         timeout = rospy.Duration(1)
 
         new_pose = PoseStamped()
-        new_pose.pose.position.x = -3.65 #-3.65
-        new_pose.pose.position.y = -1.10 #-1.10
+        new_pose.pose.position.x = 3.65 #-3.65
+        new_pose.pose.position.y = 1.10 #-1.10
         new_pose.pose.position.z = 2.36 #1.5
-        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(-90),'rxyz'))
+        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(90),'rxyz'))
 
         while (rospy.get_rostime() - start_time) < timeout:
             self.pub_msg(new_pose, self.pub_local_pose)
@@ -559,7 +559,7 @@ class autonomous_flight():
         self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 1.0, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 1.0, 5)
 
-        self.flight_mode.set_param('MC_ROLLRATE_MAX', 9.0, 5)
+        self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)
         self.flight_mode.set_param('MC_YAWRATE_MAX', 135.0, 5)
 
@@ -570,13 +570,13 @@ class autonomous_flight():
 
         data = open('../../../../data/hold_aruco_pose/data.txt','a')
 
-        while time_sec <80: #Run test for n seconds 
+        while time_sec <180: #Run test for n seconds 
 
             new_pose = PoseStamped()
-            new_pose.pose.position.x = -3.65 #self.pid_x.update_PID(self.uav_local_pose.pose.position.x)#+0.10
-            new_pose.pose.position.y = -1.10 #self.pid_y.update_PID(self.uav_local_pose.pose.position.y)#+0.5
+            new_pose.pose.position.x = 3.65 #self.pid_x.update_PID(self.uav_local_pose.pose.position.x)#+0.10
+            new_pose.pose.position.y = 1.10 #self.pid_y.update_PID(self.uav_local_pose.pose.position.y)#+0.5
             new_pose.pose.position.z =  2.36 #1.5 #alt_ #self.pid_z.update_PID(self.uav_local_pose.pose.position.z-1.5)
-            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(-90),'rxyz'))
+            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(90),'rxyz'))
 
             self.pub_msg(new_pose, self.pub_local_pose)
             

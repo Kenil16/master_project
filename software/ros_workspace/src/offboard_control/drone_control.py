@@ -106,33 +106,32 @@ class drone_control():
     def on_command(self, msg):
         
         #Change state according to GC command
-        
-        if self.command == 't': #Takeoff
+        command = str(chr(msg.data))
+        command.lower()
+    
+        if command == 't': #Takeoff
             self.set_state('takeoff')
 
-        if self.command == 'h': #Returns the drone to home
+        if command == 'h': #Returns the drone to home
             self.set_state('home')
         
-        if self.command == 'l': #Execute mission
+        if command == 'l': #Execute mission
             self.set_state('loiter')
 
-        if self.command == 'k': # Kill drone
+        if command == 'k': # Kill drone
             rospy.signal_shutdown("test")
 
         #Execute a number of mission tests
-        if self.command == '1':
+        if command == '1':
             self.set_state('estimate_aruco_pose_front_test')
 
-        if self.command == '2':
+        if command == '2':
             self.set_state('follow_aruco_pose_bottom_test')
 
-        if self.command == '3':
+        if command == '3':
             self.set_state('hold_aruco_pose_test')
         
-        self.command = str(chr(msg.data))
-        self.command.lower()
-    
-    
+
     def message_control(self):
 
         if not self.uav_state == 'idle':

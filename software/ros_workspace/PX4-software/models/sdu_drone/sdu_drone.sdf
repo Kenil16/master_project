@@ -832,7 +832,9 @@
       <gaussianNoise>0.1</gaussianNoise>
     </plugin>
 
-    <plugin name="ground_truth" filename="libgazebo_ros_p3d.so">
+    <plugin name="libgazebo_ros_p3d.so" filename="libgazebo_ros_p3d.so">
+      <xyzOffsets>10 0 0</xyzOffsets>
+      <rpyOffsets>0 0 1.5708</rpyOffsets>
       <frameName>map</frameName>
       <bodyName>base_link</bodyName>
       <topicName>odom</topicName>

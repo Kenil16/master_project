@@ -15,6 +15,7 @@ from nav_msgs.msg import Odometry
 from scipy.stats import norm
 from hector_uav_msgs.msg import Altimeter 
 from ukf import UKF
+from log_data import*
 
 class sensor_fusion():
 
@@ -79,12 +80,9 @@ class sensor_fusion():
         self.r_baro_offset[0][0] = 0.2
         
         #For visualisation of data
-        self.plot_sensor_fusion_data = True
-        self.plot_vision_imu_data = True
+        self.write_data_log = True
+        self.log_data = log_data()
 
-        self.sensor_fusion_data_path = '../../../../data/create_ukf/sensor_fusion_data.txt'
-        self.imu_vision_data_path = '../../../../data/create_ukf/imu_vision_data.txt'
-        
         self.x0 = [] #x
         self.x1 = [] #y
         self.x2 = [] #z
@@ -137,10 +135,6 @@ class sensor_fusion():
 
         self.measurements = []
 
-        #IMU update rate 50Hz (rostopic hz /mavros/imu/data)
-        #self.old_imu_time = 0.0
-        #self.new_imu_time = 0.0
-
         #Subscribers/mavros/altitude
         rospy.Subscriber('/mavros/imu/data', Imu, self.imu_callback)
         rospy.Subscriber('/altimeter', Altimeter, self.baro_callback)
@@ -153,6 +147,7 @@ class sensor_fusion():
         self.imux_pub = rospy.Publisher('/onboard/imux',Float64, queue_size=1)
         self.imuy_pub = rospy.Publisher('/onboard/imuy',Float64, queue_size=1)
         self.imuz_pub = rospy.Publisher('/onboard/imuz',Float64, queue_size=1)
+        self.ground_truth_pub = rospy.Publisher('/onboard/ground_truth',PoseStamped, queue_size=1)
         
         #Offset IMU found from test in Gazebo where the drone was in off mode in 20 sec
         self.acc_x_offset = -0.190006656546
@@ -161,32 +156,6 @@ class sensor_fusion():
         self.gyro_x_offset = -0.000143702855887
         self.gyro_y_offset = -0.000105893216729
         self.gyro_z_offset = 0.0018871804653
-
-        #self.pre_acc_x = 0.0
-        #self.pre_acc_y = 0.0
-        #self.pre_acc_z = 0.0
-
-        #Init data textfile
-        data = Path('../../../../data/estimate_imu_noise/data.txt')
-        self.imu_data_path = '../../../../data/estimate_imu_noise/data.txt'
-        if not data.is_file:
-            data = open(self.imu_data_path,'r+')
-            data.truncate(0)
-            data.close
-        else:
-            data = open(self.imu_data_path,'w+')
-            data.close()
-            
-        #Init data textfile
-        data = Path('../../../../data/create_ekf/data.txt')
-        self.create_ekf_path = '../../../../data/create_ekf/data.txt'
-        if not data.is_file:
-            data = open(self.imu_data_path,'r+')
-            data.truncate(0)
-            data.close
-        else:
-            data = open(self.imu_data_path,'w+')
-            data.close()
 
         rospy.Timer(rospy.Duration(self.dt), self.timer_callback)
         rospy.spin()
@@ -217,48 +186,6 @@ class sensor_fusion():
     
     def baro_callback(self, data):
         self.baro_data = data
-        """
-        if self.init_baro_altitude:
-            self.altitude_ref.append(self.baro_data.altitude)
-            if len(self.altitude_ref) == 20:
-                self.altitude_ref = sum(self.altitude_ref)/len(self.altitude_ref)
-                self.init_baro_altitude = False
-        """
-    def write_imu_data(self, acc_x=0, acc_y=0, acc_z=0, gyro_x=0, gyro_y=0, gyro_z=0, time=0):
-
-        data = open(self.imu_data_path,'a')
-        data.write(str(acc_x) + " " + str(acc_y) + " " + str(acc_z) + " " + str(gyro_x) + " " + str(gyro_y) + " " + str(gyro_z) + " " + str(time))
-        data.write('\n')
-        data.close()
-        
-    def write_vision_imu_data(self, x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, baro, time, vision_seq, imu_seq, baro_seq, path, g_roll, g_pitch, g_yaw, g_alt):
-        
-        data = open(path,'a')
-        data.write(str(x) + " " + str(y) + " " + \
-                   str(z) + " " + str(acc_x) + " " + \
-                   str(acc_y) + " " + str(acc_z) + " " + \
-                   str(roll) + " " + str(pitch) + " " + \
-                   str(yaw) + " " + str(gyro_x) + " " + \
-                   str(gyro_y) + " " + str(gyro_z) + " " + \
-                   str(baro) + " " + str(time) + " " + str(vision_seq) + " " +\
-                   str(imu_seq) + " " + str(baro_seq) + " " + str(g_roll) + " " + str(g_pitch) + " " + str(g_yaw) + " " + str(g_alt))
-        data.write('\n')
-        data.close()
-
-    def write_sensor_fusion_data(self, x, y, z, ukf_x, ukf_y, ukf_z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, baro, time, vision_seq, imu_seq, baro_seq, path):
-        
-        data = open(path,'a')
-        data.write(str(x) + " " + str(y) + " " + \
-                   str(z) + " " + str(ukf_x) + " " + \
-                   str(ukf_y) + " " + str(ukf_z) + " " + str(acc_x) + " " +\
-                   str(acc_y) + " " + str(acc_z) + " " + \
-                   str(roll) + " " + str(pitch) + " " + \
-                   str(yaw) + " " + str(gyro_x) + " " + \
-                   str(gyro_y) + " " + str(gyro_z) + " " + \
-                   str(baro) + " " + str(time) + " " + str(vision_seq) + " " +\
-                   str(imu_seq) + " " + str(baro_seq))
-        data.write('\n')
-        data.close()
 
     def eulerAnglesToRotationMatrix(self, theta):
 
@@ -306,7 +233,6 @@ class sensor_fusion():
         
         #Get vision, IMU and baro data
         row = self.get_measurements()
-
         #Update sample time (this is not the same everytime)
         time = self.imu_data.header.stamp.secs + self.imu_data.header.stamp.nsecs/1000000000.
         dt = time-self.last_sample_time
@@ -327,42 +253,6 @@ class sensor_fusion():
         corrected_acc_x = -acc[0] #+ acc_bias[0]
         corrected_acc_y = -acc[1] #+ acc_bias[1]
         corrected_acc_z = row[5] - gravity*np.cos(x[9])*np.cos(x[10])
-
-        """
-        #Mechanical Filtering Window
-        if corrected_acc_x < 0.05 and corrected_acc_x > -0.05:
-            corrected_acc_x = corrected_acc_x*0.0
-
-        if corrected_acc_y < 0.05 and corrected_acc_y > -0.05:
-            corrected_acc_y = corrected_acc_y*0.0
-        
-        if corrected_acc_z < 0.25 and corrected_acc_z > -0.25:
-            corrected_acc_z = corrected_acc_z*0.0
-        
-        #Z attenuation
-        zero_acc = False
-        sign_shift = False
-        if x[8] < 0.005 and x[8] > -0.005:
-            zero_acc = True
-
-        if not self.start_z and not zero_acc:
-            self.start_z = True
-            self.last_step_z = np.sign(x[8])
-            self.inversions_z.append(self.last_step_z)
-
-        if self.start_z and zero_acc:
-            self.start_z = False
-
-        elif self.start_z and np.sign(x[8]) and self.last_step_z and not (self.last_step_z == np.sign(x[8])):
-            self.start_z = False
-
-        if len(self.inversions_z) > 1:
-            if not self.inversions_z[-1] == self.inversions_z[-2]:
-                self.attenuation_vel_z = 0.95
-                self.inversions_z = []
-        elif len(self.inversions_z) == 1:
-            self.attenuation_vel_z = 1.00
-        """
 
         #Rotation matrix to align gyro velocity to the orientation of the world (marker)
         R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])
@@ -393,7 +283,7 @@ class sensor_fusion():
         
         #Prediction step for UKF
         self.state_estimator.predict(dt)
-        
+        #print(vision_data_pos)
         #Update only if new data has been received based on sequence number (ROS messege)
         if not self.seq_aruco_pose == self.aruco_marker_pose.header.seq:
             self.state_estimator.update([0, 1, 2], vision_data_pos, self.r_vision_pos)
@@ -420,57 +310,85 @@ class sensor_fusion():
         self.sensor_fusion_pose.pose.orientation = Quaternion(*quaternion_from_euler(x[9], x[10], x[11],'rxyz'))
         
         self.sensor_fusion_pose_pub.publish(self.sensor_fusion_pose)
-
+        """
         if self.plot_sensor_fusion_data:
             self.write_sensor_fusion_data(row[0], row[1], row[3], x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11], x[12], time, self.seq_aruco_pose, 
                     self.seq_imu, self.seq_baro, self.sensor_fusion_data_path)
-
+        """
     def get_measurements(self):
         
         x, y, z, roll, pitch, yaw = 0., 0., 0., 0., 0., 0.
         acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z = 0., 0., 0., 0., 0., 0.
 
+        #Get orientation of marker
         q = (self.aruco_marker_pose.pose.orientation.x,
              self.aruco_marker_pose.pose.orientation.y,
              self.aruco_marker_pose.pose.orientation.z,
              self.aruco_marker_pose.pose.orientation.w)
-        
         euler = euler_from_quaternion(q)
-        
+        roll = euler[0]
+        pitch = euler[1]
+        yaw = euler[2]
+
+        #Get translation of marker
         x = self.aruco_marker_pose.pose.position.x
         y = self.aruco_marker_pose.pose.position.y
         z = self.aruco_marker_pose.pose.position.z
         vision_seq = self.aruco_marker_pose.header.seq
 
-        
-        roll = euler[0]
-        pitch = euler[1]
-        yaw = euler[2]
-
+        #Get acceleration from accelerometer
         acc_x = self.imu_data.linear_acceleration.x
         acc_y = self.imu_data.linear_acceleration.y 
         acc_z = self.imu_data.linear_acceleration.z
         imu_seq = self.imu_data.header.seq
 
-        
-        ori = euler_from_quaternion( [self.ground_truth.pose.pose.orientation.x, self.ground_truth.pose.pose.orientation.y, 
-            self.ground_truth.pose.pose.orientation.z, self.ground_truth.pose.pose.orientation.w] )
-        alt = self.ground_truth.pose.pose.position.z
+        #Get current ground truth orientation
+        t_g = quaternion_matrix(np.array([self.ground_truth.pose.pose.orientation.x,
+                                          self.ground_truth.pose.pose.orientation.y,
+                                          self.ground_truth.pose.pose.orientation.z,
+                                          self.ground_truth.pose.pose.orientation.w]))
 
+        #Get current ground truth translation
+        t_g[0][3] = self.ground_truth.pose.pose.position.x
+        t_g[1][3] = self.ground_truth.pose.pose.position.y
+        t_g[2][3] = self.ground_truth.pose.pose.position.z
+
+        #Rotation to align ground truth to aruco marker
+        r_m = euler_matrix(0, 0, np.pi/2, 'rxyz')
+
+        #Perform matrix multiplication for pose aligment
+        T =  np.matmul(r_m, t_g)
+
+        #Get angles and translation in degress
+        g_euler = euler_from_matrix(T,'rxyz')
+
+        #Because plugin is initiated in (0,0,0).
+        g_x = T[0][3] + 7.5/2
+        g_y = T[1][3] + 7.5/2
+        g_z = T[2][3]
+        g_roll = np.rad2deg(g_euler[0])
+        g_pitch = np.rad2deg(g_euler[1])
+        g_yaw = np.rad2deg(g_euler[2])
+
+        #Get gyro measurements
         gyro_x = self.imu_data.angular_velocity.x-self.gyro_x_offset
         gyro_y = self.imu_data.angular_velocity.y-self.gyro_y_offset
         gyro_z = self.imu_data.angular_velocity.z-self.gyro_z_offset
 
-        altitude = self.baro_data.altitude #- self.altitude_ref
+        #Get altitude from barometer (altimeter)
+        altitude = self.baro_data.altitude
         baro_seq = self.baro_data.header.seq
 
-        self.imuz_pub.publish(altitude)
-        
+        #Get time of message
         time = self.imu_data.header.stamp.secs + self.imu_data.header.stamp.nsecs/1000000000.
         
-        if self.plot_vision_imu_data:
-            self.write_vision_imu_data(x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, altitude, time, vision_seq, imu_seq, baro_seq, self.imu_vision_data_path,
-                    ori[0], ori[1], ori[2], alt)
+        if not self.init_ukf and self.write_data_log:
+            self.log_data.write_vision_imu_data(x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, altitude, time, vision_seq, imu_seq, baro_seq, g_roll, g_pitch, g_yaw, 
+                    g_x, g_y, g_z)
+
+            i = self.state_estimator.get_state()
+            self.log_data.write_sensor_fusion_data(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9], i[10], i[11], i[12], time, self.seq_aruco_pose,
+                    self.seq_imu, self.seq_baro, g_roll, g_pitch, g_yaw, g_x, g_y, g_z)
         
         self.measurements = [x, y, z, acc_x, acc_y, acc_z, roll, pitch, yaw, gyro_x, gyro_y, gyro_z, altitude]
         return self.measurements
@@ -478,12 +396,9 @@ class sensor_fusion():
     def timer_callback(self,event):
         
         #Start sensor fusion
-        
         if self.start_tracking:
             self.sensor_fusion_update()
-        
-        #self.get_measurements()
-        
+
 
 if __name__ == "__main__":
 

@@ -15,7 +15,7 @@ class ukf():
         self.corr_acc_z = []
         self.data = []
 
-        self.read_data('imu_vision_data.txt')
+        self.read_data('../imu_vision_data.txt')
         self.mx = np.array([item[0] for item in self.data])
         self.my = np.array([item[1] for item in self.data])
         self.mz = np.array([item[2] for item in self.data])
@@ -40,10 +40,13 @@ class ukf():
         self.mimu_seq = np.array([item[15] for item in self.data])
         self.mbaro_seq = np.array([item[16] for item in self.data])
 
-        self.ground_truth_mpsi = np.array([item[17] for item in self.data])
-        self.ground_truth_mphi = np.array([item[18] for item in self.data])
-        self.ground_truth_mtheta = np.array([item[19] for item in self.data])
-        self.ground_truth_alt = np.array([item[20] for item in self.data])
+        self.g_roll = np.array([item[17] for item in self.data])
+        self.g_pitch = np.array([item[18] for item in self.data])
+        self.g_yaw = np.array([item[19] for item in self.data])
+        
+        self.g_x = np.array([item[20] for item in self.data])
+        self.g_y = np.array([item[21] for item in self.data])
+        self.g_z = np.array([item[22] for item in self.data])
         
         self.old_x = 0.0
 
@@ -265,7 +268,7 @@ class ukf():
         # pass all the parameters into the UKF!
         # number of state variables, process noise, initial state, initial coariance, three tuning paramters, and the iterate function
         measurements = np.vstack((self.mx, self.my, self.mz, self.macc_x, self.macc_y, self.macc_z, self.mpsi, self.mphi, self.mtheta, self.mgyro_x, self.mgyro_y, self.mgyro_z, 
-            self.mvision_seq, self.mimu_seq, self.ground_truth_mpsi, self.ground_truth_mphi, self.ground_truth_mtheta, self.mbaro, self.mbaro_seq))
+            self.mvision_seq, self.mimu_seq, self.g_roll, self.g_pitch, self.g_yaw, self.mbaro, self.mbaro_seq))
         m = measurements.shape[1]
         #print(measurements.shape)
         i = measurements
@@ -577,7 +580,7 @@ class ukf():
         plt.scatter(self.mtime, self.x21, s=2, label='Corrected altimeter')
         plt.scatter(self.mtime, self.mbaro, s=2, label='Altimeter')
         plt.scatter(self.mtime, self.mz, s=2, label='Vision altitude')
-        plt.scatter(self.mtime, self.ground_truth_alt, s=2, label='Ground truth')
+        plt.scatter(self.mtime, self.g_z, s=2, label='Ground truth')
         plt.scatter(self.mtime, self.x2, s=2, label='EKF altitude')
 
         # Start/Goal
@@ -678,8 +681,8 @@ if __name__ == "__main__":
     #ukf.create_ground_truth()
     ukf.main()
 
-    labels = ['x','y','z']
-    ys = [ukf.x0, ukf.x1, ukf.x2]
+    labels = ['x','y','z', 'g_x', 'g_y', 'g_z']
+    ys = [ukf.x0, ukf.x1, ukf.x2, ukf.g_x, ukf.g_y, ukf.g_z]
     ukf.plot_state('Position', 'Time [s]', r'Position [$m$]', 'position.png', ukf.mtime, ys)
 
     labels = ['Velocity in x','Velocity in y','Velocity in z']
@@ -690,8 +693,8 @@ if __name__ == "__main__":
     ys = [ukf.x6, ukf.x7, ukf.x8]
     ukf.plot_state('Acceleration [IMU]', 'Time [s]', r'Acceleration [$(\frac{m}{s^2})$]', 'acceleration.png', ukf.mtime, ys)
 
-    labels = ['Roll','Pitch']
-    ys = [ukf.x9, ukf.x10, ukf.x11]
+    labels = ['Roll','Pitch', 'g_roll','g_pitch']
+    ys = [ukf.x9, ukf.x10,  ukf.g_roll, ukf.g_pitch]
     ukf.plot_state('Angle [IMU and vision fusion]', 'Time [s]', r'Angle [Degress]', 'orientation.png', ukf.mtime, ys)
 
     labels = ['x','y','z']
@@ -703,8 +706,4 @@ if __name__ == "__main__":
     
     labels = ['Roll','Pitch', 'Yaw']
     ys = [ukf.x15, ukf.x16, ukf.x17]
-    ukf.plot_state('Angle [IMU and vision fusion]', 'Time [s]', r'Angle [Degress]', 'orientation_gyro.png', ukf.mtime, ys)
-    
-    labels = ['Roll','Pitch', 'Yaw']
-    ys = [ukf.x18, ukf.x19, ukf.x20]
-    ukf.plot_state('Angle [Ground truth]', 'Time [s]', r'Angle [Degress]', 'orientation_ground_truth.png', ukf.mtime, ys)
+    ukf.plot_state('Angle [IMU and vision fusion]', 'Time [s]', r'Angle [Degress]', 'orientation_gyro.png', ukf.mtime, ys) 
