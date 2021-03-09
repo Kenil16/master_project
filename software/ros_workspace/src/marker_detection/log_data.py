@@ -112,13 +112,18 @@ class log_data():
         g_euler = euler_from_matrix(T,'rxyz')
 
         #Because plugin is initiated in (0,0,0).
-        g_x = T[0][3] + 7.5/2
-        g_y = T[1][3] + 7.5/2
+        g_x = T[0][3] + 7.4/2
+        g_y = T[1][3] + 7.4/2
         g_z = T[2][3]
+
         g_roll = np.rad2deg(g_euler[0])
         g_pitch = np.rad2deg(g_euler[1])
         g_yaw = np.rad2deg(g_euler[2])
 
+        #g_roll = np.rad2deg( (360-(g_euler[0]*180)/np.pi + 90 + 180 % 360 - 180) )
+        #g_pitch = np.rad2deg( (360-(g_euler[1]*180)/np.pi + 90 + 180 % 360 - 180) )
+        #g_yaw = np.rad2deg( (360-(g_euler[2]*180)/np.pi + 90 + 180 % 360 - 180) )
+        
         #Get time in seconds
         time = ground_truth.header.stamp.secs + ground_truth.header.stamp.nsecs/1000000000.
 

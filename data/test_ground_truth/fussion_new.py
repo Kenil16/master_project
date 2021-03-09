@@ -41,7 +41,7 @@ class ukf():
                 self.data.append(str_to_float)
 
 
-    def plot_state(self, title, x_label, y_label, fig_name, x, y):
+    def plot_state(self, title, x_label, y_label, fig_name, x, y, g_y, labels, g_labels):
 
         fig, ax = plt.subplots()
         ax.set_axisbelow(True)
@@ -63,6 +63,9 @@ class ukf():
         for label, y in zip(labels, y):
             plt.plot(x, y, linewidth=0.5, label=label)
 
+        for label, y in zip(g_labels, g_y):
+            plt.plot(x, y, linewidth=0.5,linestyle='-.', label=label)
+        
         plt.xlabel(x_label)
         plt.ylabel(y_label)
         plt.title(title)
@@ -104,10 +107,20 @@ class ukf():
 if __name__ == "__main__":
 
     ukf = ukf()
-    labels = ['x','y','z', 'g_x', 'g_y', 'g_z']
-    ys = [ukf.mx, ukf.my, ukf.mz, ukf.g_x, ukf.g_y, ukf.g_z]
-    ukf.plot_state('Position', 'Time [s]', r'Position [$m$]', 'position.png', ukf.mtime, ys)
+    labels = ['x','y','z']
+    g_labels = ['g_x', 'g_y', 'g_z']
+    ys = [ukf.mx, ukf.my, ukf.mz]
+    g_ys = [ukf.g_x, ukf.g_y, ukf.g_z]
+    ukf.plot_state('Position', 'Time [s]', r'Position [$m$]', 'position.png', ukf.mtime, ys, g_ys, labels, g_labels)
     
+    """
     labels = ['Roll','Pitch', 'g_roll', 'g_pitch']
     ys = [ukf.mpsi, ukf.mphi, ukf.g_roll, ukf.g_pitch]
     ukf.plot_state('Angle [Ground truth]', 'Time [s]', r'Angle [Degress]', 'orientation_ground_truth.png', ukf.mtime, ys)
+    """
+    labels = ['Roll','Pitch','Yaw', 'g_roll', 'g_pitch', 'g_yaw']
+    ys = [ukf.mpsi, ukf.mphi, ukf.mtheta]
+    g_ys = [ukf.g_roll, ukf.g_pitch,ukf.g_yaw]
+    g_labels = ['g_roll', 'g_pitch', 'g_yaw']
+    
+    ukf.plot_state('Angle [Ground truth]', 'Time [s]', r'Angle [Degress]', 'orientation_ground_truth.png', ukf.mtime, ys, g_ys, labels, g_labels)

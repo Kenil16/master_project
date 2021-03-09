@@ -246,8 +246,8 @@ class ukf():
         r_imu_acc[0][0] = 0.05 #acc x
         r_imu_acc[1][1] = 0.05 #acc y
         r_imu_acc[2][2] = 10.5 #acc z
-        r_imu_gyro_v[0][0] = 0.5 #gyro roll
-        r_imu_gyro_v[1][1] = 0.5 #gyro pitch
+        r_imu_gyro_v[0][0] = 0.05 #gyro roll
+        r_imu_gyro_v[1][1] = 0.05 #gyro pitch
         r_imu_gyro_v[2][2] = 0.5 #gyro yaw
         
         r_vision_pos = np.zeros([3, 3])
@@ -255,9 +255,9 @@ class ukf():
         r_vision_pos[0][0] = 0.5 #x
         r_vision_pos[1][1] = 0.5 #y
         r_vision_pos[2][2] = 0.05 #z
-        r_vision_ori[0][0] = 0.5 #roll rate
-        r_vision_ori[1][1] = 0.5 #pitch rate
-        r_vision_ori[2][2] = 0.5 #yaw rate
+        r_vision_ori[0][0] = 55.5 #roll rate
+        r_vision_ori[1][1] = 55.5 #pitch rate
+        r_vision_ori[2][2] = 15.5 #yaw rate
         
         r_baro = np.zeros([1,1])
         r_baro[0][0] = 5.2
@@ -416,8 +416,11 @@ class ukf():
                 self.attenuation_vel_z = 1.00
  
             #Rotation matrix to align gyro velocity to the orientation of the world (marker)
-            R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])
-            corrected_gyro = np.matmul(R3, np.array([row[10], row[9], row[11]]))
+            #R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])
+            #corrected_gyro = np.matmul(R3, np.array([row[10], row[9], row[11]]))
+            
+            R3 = self.eulerAnglesToRotationMatrix([0, 0, -x[11]+np.pi])
+            corrected_gyro = np.matmul(R3, np.array([-row[10], -row[9], row[11]]))
             
             vision_x = row[0]
             vision_y = row[1]
