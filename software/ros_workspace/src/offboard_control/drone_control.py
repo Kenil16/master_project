@@ -157,9 +157,9 @@ class drone_control():
             if self.uav_state == 'follow_aruco_pose_bottom_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
-                #self.pub_msg(self.sensor_fusion, self.pub_vision_pose)
+                self.pub_msg(self.sensor_fusion, self.pub_vision_pose)
                 
-                self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
+                #self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
             
             if self.uav_state == 'hold_aruco_pose_test':
                 output_msg = self.autonomous_flight_pose_msg

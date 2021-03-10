@@ -14,7 +14,9 @@ from geometry_msgs.msg import PoseStamped, Quaternion
 from pid import*
 from std_msgs.msg import (String, Int8, Float64, Bool)
 from timeit import default_timer as timer
-import sys
+from os import sys, path
+
+from log_data import* 
 
 class autonomous_flight():
 
@@ -28,6 +30,7 @@ class autonomous_flight():
 
         #Init flight modes 
         self.flight_mode = flight_modes()
+        self.log_data = log_data()
         
         #Init PID controllers
         self.pid_x = PID(0.1, 0.0, 1.7, 50, -50) #(0.8, 0.2, 1.3, 50, -50)
@@ -55,6 +58,7 @@ class autonomous_flight():
         #self.mission = self.read_mission('../../../../missions/mission3.txt')
         
         self.next_waypoint = PoseStamped()
+        self.ground_truth = Odometry()
 
         #Publishers
         self.pub_local_pose = rospy.Publisher('/onboard/setpoint/autonomous_flight', PoseStamped, queue_size=1)
@@ -70,6 +74,7 @@ class autonomous_flight():
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.on_position_change)
         #rospy.Subscriber('/onboard/next_board_found', Bool, self.next_board_found_callback)
         rospy.Subscriber('/onboard/aruco_board_found', Bool, self.aruco_board_found_callback)
+        rospy.Subscriber('/odom', Odometry, self.ground_truth_callback)
         self.new_uav_local_pose = PoseStamped()
         
         self.init_data_files()
@@ -88,10 +93,9 @@ class autonomous_flight():
         self.uav_local_setpoint = msg
         pass
 
-    """
-    def next_board_found_callback(self, msg):
-        self.next_board_found = msg
-    """
+    def ground_truth_callback(self, data):
+        self.ground_truth = data
+
     def aruco_board_found_callback(self, msg):
         self.aruco_board_found = msg
 
@@ -121,9 +125,9 @@ class autonomous_flight():
         i = [self.uav_local_pose.pose.orientation.x, self.uav_local_pose.pose.orientation.y, self.uav_local_pose.pose.orientation.z, self.uav_local_pose.pose.orientation.w]
         ori =  euler_from_quaternion(i)
         self.delta_ori = ori[2]-np.deg2rad(setpoint[3])
-        #self.delta_ori = np.rad2deg(ori[2])-setpoint[3]
+        
         error = np.sqrt(np.power(self.delta_x,2) + np.power(self.delta_y,2) + np.power(self.delta_z,2) + np.power(self.delta_ori,2))
-        #print(self.delta_ori)
+        
         if error < threshold:
             return True
         else:
@@ -208,18 +212,12 @@ class autonomous_flight():
 
     def estimate_aruco_pose_front_test(self):
 
-        #Enable aruco detection
-        #self.pub_enable_aruco_detection.publish(True)
-        #aruco_ids = mavlink_lora_aruco()
-        #aruco_ids.id.append(500)
-        #self.pub_aruco_ids.publish(aruco_ids)
-
         #UAV valocity
         self.flight_mode.set_param('MPC_XY_VEL_MAX', 2.5, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 1.0, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 1.0, 5)
 
-        alt_ = 1.7
+        alt_ = 2.5
         self.drone_takeoff(alt = alt_)
 
         self.set_state('estimate_aruco_pose_front_test')
@@ -233,7 +231,7 @@ class autonomous_flight():
         dis_to_aruco_x = 2
         dx = 0
         dy = 4
-        alt = 1.7
+        alt = alt_
 
         for row in range(7): #Resolution in y
             for col in range(9): #Resolution in x
@@ -265,7 +263,12 @@ class autonomous_flight():
             index = index + 1
 
             #wait until waypoint reached
-            while(not self.waypoint_check(setpoint = [waypoint.pose.position.x, waypoint.pose.position.y, waypoint.pose.position.z])):
+            angle = euler_from_quaternion([waypoint.pose.orientation.x,
+                                           waypoint.pose.orientation.y,
+                                           waypoint.pose.orientation.z,
+                                           waypoint.pose.orientation.w])
+
+            while(not self.waypoint_check(setpoint = [waypoint.pose.position.x, waypoint.pose.position.y, waypoint.pose.position.z, np.rad2deg(angle[2])])):
                 if not self.uav_state == 'estimate_aruco_pose_front_test':
                     rospy.loginfo('Autonomous_flight: Estimate the aruco pose utilising the front camera test disrupted!')
                     return
@@ -274,49 +277,80 @@ class autonomous_flight():
             #Get ArUco position, mean and STD
             start_time = rospy.get_rostime()
             timeout = rospy.Duration(5) #Test each position for x seconds 
-            aruco_pos_x = []
-            aruco_pos_y = []
-            aruco_pos_z = []
+            
+            #Pose
+            aruco_x = []
+            aruco_y = []
+            aruco_z = []
+            aruco_roll = []
+            aruco_pitch = []
+            aruco_yaw = []
             
             while (rospy.get_rostime() - start_time) < timeout:
-                aruco_pos_x.append(self.aruco_pose.pose.position.x)
-                aruco_pos_y.append(self.aruco_pose.pose.position.y)
-                aruco_pos_z.append(self.aruco_pose.pose.position.z)
 
-            #Find mean, STD and error from real ArUco pos
-            if index and index % 7 == 0:
-                dis_to_aruco_x = dis_to_aruco_x + 1
-            mean_x = sum(aruco_pos_x)/len(aruco_pos_x)
-            diff = 0.0
-            for pos in aruco_pos_x:
-                diff += (pos-mean_x)*(pos-mean_x)
-            std_x = np.sqrt(diff/len(aruco_pos_x))
-            error_x = abs(dis_to_aruco_x+mean_x)
+                ground_truth = self.ground_truth
+                #Rotation to align ground truth to aruco marker
+                r_m = euler_matrix(0, 0, np.pi/2, 'rxyz')
 
-            mean_y = sum(aruco_pos_y)/len(aruco_pos_y)
-            diff = 0.0
-            for pos in aruco_pos_y:
-                diff += (pos-mean_y)*(pos-mean_y)
-            std_y = np.sqrt(diff/len(aruco_pos_y))
-            error_y = abs(mean_y - self.uav_local_pose.pose.position.y)
+                #Get current ground truth orientation
+                t_g = quaternion_matrix(np.array([ground_truth.pose.pose.orientation.x,
+                                                  ground_truth.pose.pose.orientation.y,
+                                                  ground_truth.pose.pose.orientation.z,
+                                                  ground_truth.pose.pose.orientation.w]))
+
+                #Get current ground truth translation
+                t_g[0][3] = ground_truth.pose.pose.position.x
+                t_g[1][3] = ground_truth.pose.pose.position.y
+                t_g[2][3] = ground_truth.pose.pose.position.z
+
+                #Perform matrix multiplication for pose aligment
+                T =  np.matmul(r_m, t_g)
+
+                #Get angles and translation in degress
+                g_euler = euler_from_matrix(T,'rxyz')
+
+                #Because plugin is initiated in (0,0,0).
+                g_x = T[0][3] + 7.4/2
+                g_y = T[1][3] + 7.4/2
+                g_z = T[2][3]
+
+                g_roll = np.rad2deg(g_euler[0])
+                g_pitch = np.rad2deg(-g_euler[1])
+                g_yaw = np.rad2deg(g_euler[2])
+
                 
-            mean_z = sum(aruco_pos_z)/len(aruco_pos_z)
-            diff = 0.0
-            for pos in aruco_pos_z:
-                diff += (pos-mean_z)*(pos-mean_z)
+                angle = euler_from_quaternion([self.aruco_pose.pose.orientation.x,
+                                               self.aruco_pose.pose.orientation.y,
+                                               self.aruco_pose.pose.orientation.z,
+                                               self.aruco_pose.pose.orientation.w])
 
-            std_z = np.sqrt(diff/len(aruco_pos_z))
-            error_z = mean_z
+                error_x = abs(self.aruco_pose.pose.position.x-g_x)
+                error_y = abs(self.aruco_pose.pose.position.y-g_y)
+                error_z = abs(self.aruco_pose.pose.position.z-g_z)
+                error_roll = abs(angle[0]-g_roll)
+                error_pitch = abs(angle[1]-g_pitch)
+                error_yaw = abs(angle[2]-g_yaw)
 
-            #Write data to file for analyzing 
-            data = open('../../../../data/estimate_aruco_pose_front/data.txt','a')
+                aruco_x.append(error_x)
+                aruco_y.append(error_y)
+                aruco_z.append(error_z)
+                aruco_roll.append(error_roll)
+                aruco_pitch.append(error_pitch)
+                aruco_yaw.append(error_yaw)
+
+            mean_x = sum(aruco_x)/len(aruco_x)
+            mean_y = sum(aruco_y)/len(aruco_y)
+            mean_z = sum(aruco_z)/len(aruco_z)
+
+            mean_roll = sum(aruco_roll)/len(aruco_roll)
+            mean_pitch = sum(aruco_pitch)/len(aruco_pitch)
+            mean_yaw = sum(aruco_yaw)/len(aruco_yaw)
+
             x = waypoint.pose.position.x
-            y = waypoint.pose.position.y
-            z = waypoint.pose.position.z
-            data.write(str(x) + " " + str(std_x) + " " + str(error_x) + " " + str(y) + " " + str(std_y) + " " + str(error_y) + " "+ str(z) + " " + str(std_z) + " " + str(error_z))
-            data.write('\n')
-            data.close()
+            y = waypoint.pose.position.x
 
+            self.log_data.write_GPS2Vision_marker_detection_data(x, y, mean_x, mean_y, mean_z, mean_roll, mean_pitch, mean_yaw)
+        
         #Return home
         self.set_state('home')
         self.drone_return_home()
@@ -324,133 +358,6 @@ class autonomous_flight():
         rospy.loginfo('Autonomous_flight: Estimate the aruco pose utilising the front camera test complete')
         self.set_state('loiter')
 
-    """
-    def follow_aruco_pose_bottom_test(self):
-
-        #The three different routes the drone can fly in the simulation 
-        gps2vision = [[-3.55, -1.123, 2.36, -90]]
-        
-        vision1 = [[-3.65,-1.10,1.5,-90], [-3.65,-4.25,1.5,-90], [-3.65,-4.25,1.5, -90], [-0.4,-4.25,1.5, -90], [-0.4,-4.25,1.5,-90], [-0.4,-7.1,1.5,-90], [-0.4,-7.1, 1.0,-90]]
-        vision_back1 = [[-0.4,-7.0, 1.0,-90], [-0.4,-7.0,1.5, 90], [-0.4,-4.25,1.5, 90], [-0.4,-4.25,1.5, -180], [-3.65,-4.25,1.5, -180], [-3.65,-4.25,1.5, 90], [-3.65,-1.10,1.5,90]]
-
-        vision2 = [[-3.65,-1.10,1.5,-90], [-3.65,-7.1,1.5, -90], [-3.65,-7.1, 1.0,-90]]
-        vision_back2 = [[-3.65,-7.1, 1.0,-90], [-3.65,-7.1,1.5, 90], [-3.65,-1.10,1.5,90]]
-        
-        vision3 = [[-3.65,-1.10,1.5,-90], [-3.65,-4.25,1.5,-90], [-3.65,-4.25,1.5, -90], [-7.1,-4.25,1.5,-90], [-7.1,-4.25,1.5,-90], [-7.1,-7.1,1.5,-90], [-7.1,-7.1, 1.0,-90]]
-        vision_back3 = [[-7.1,-7.1, 1.0,-90], [-7.1,-7.1,1.5, 90], [-7.1,-4.25,1.5, 90], [-7.1,-4.25,1.5, 90], [-3.65,-4.25,1.5, 90], [-3.65,-4.25,1.5, 90], [-3.65,-1.10,1.5,90]]
-        
-        #Landing route one
-        land1 = [[-0.4,-7.1,0.5,-90], [-0.4,-7.1,0.1,-90]]
-        land_back1 = [[-0.4,-7.1,0.5,-90]]
-
-        #Landing route two
-        land2 = [[-3.75,-7.1,0.5,-90], [-3.75,-7.1,0.1,-90]]
-        land_back2 = [[-3.75,-7.1,0.5,-90]]
-        
-        #Landing route three
-        land3 = [[-7.1,-7.1,0.5,-90], [-7.1,-7.1,0.1,-90]]
-        land_back3 = [[-7.1,-7.1,0.5,-90]]
-        
-        waypoints = [gps2vision, vision3, land3, land_back3, vision_back3]
-        route = 'route3'
-        
-        #Enable aruco detection, cam use and start index board 
-        self.pub_aruco_board.publish(1)
-        
-        #Set UAV maximum linear and angular velocities in m/s and deg/s respectively 
-        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.1, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.1, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.1, 5)
-    
-        self.flight_mode.set_param('MC_ROLLRATE_MAX', 0.1, 5)
-        self.flight_mode.set_param('MC_PITCHRATE_MAX', 0.1, 5)
-        self.flight_mode.set_param('MC_YAWRATE_MAX', 0.1, 5)
-        
-        self.drone_takeoff(alt = 2.5)
-
-        self.set_state('follow_aruco_pose_bottom_test')
-        rospy.loginfo('Autonomous_flight: Follow aruco pose utilising the bottom camera test startet')
-
-        self.flight_mode.set_param('EKF2_AID_MASK', 24, 5)
-        self.flight_mode.set_param('EKF2_HGT_MODE', 3, 5)
-        self.flight_mode.set_param('EKF2_EV_DELAY', 20., 5)
-        
-        while not self.aruco_board_found:
-            pass
-
-        #See elapsed time
-        start = timer()
-        time_sec = 0.0
-
-        data = open('../../../../data/follow_aruco_pose_bottom/data.txt','a')
-        
-        for sub_route in range(len(waypoints)):
-            
-            if not len(waypoints[sub_route]):
-                continue
-            
-            if sub_route == 1:
-                self.pub_aruco_board.publish(2)
-            elif sub_route == 2:
-                if route == 'route1':
-                    self.pub_aruco_board.publish(3)
-                if route == 'route2':
-                    self.pub_aruco_board.publish(4)
-                if route == 'route3':
-                    self.pub_aruco_board.publish(5)
-            elif sub_route == 4: 
-                self.pub_aruco_board.publish(2)
-            
-            start_time = rospy.get_rostime()
-            timeout = rospy.Duration(1)
-            
-            new_pose = PoseStamped()
-            new_pose.pose.position.x = waypoints[sub_route][0][0]
-            new_pose.pose.position.y = waypoints[sub_route][0][1]
-            new_pose.pose.position.z = waypoints[sub_route][0][2]
-            new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(waypoints[sub_route][0][3]),'rxyz'))
-
-            while(rospy.get_rostime() - start_time) < timeout:
-                self.pub_msg(new_pose, self.pub_local_pose)
-                
-            #if sub_route == 0:
-            self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.5, 5)
-            self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.5, 5)
-            self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.5, 5)
-        
-            self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)
-            self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)
-            self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
-            
-            for waypoint in waypoints[sub_route]:
-                print(waypoint)
-                while True:
-                
-                    new_pose.pose.position.x = waypoint[0]
-                    new_pose.pose.position.y = waypoint[1]
-                    new_pose.pose.position.z = waypoint[2]
-                    new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(waypoint[3]),'rxyz'))
-
-                    x = self.uav_local_pose.pose.position.x
-                    y = self.uav_local_pose.pose.position.y
-                    z = self.uav_local_pose.pose.position.z
-                    self.pub_msg(new_pose, self.pub_local_pose)
-                    
-                    if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold= 0.10):
-                        break
-
-                    time_sec = timer()-start
-                    data.write(str(x) + " " + str(waypoint[0]) + " " + str(y) + " " + str(waypoint[1]) + " " + str(z) + " " + str(waypoint[2]) + " " + str(time_sec))
-                    data.write('\n')
-            
-
-        data.close()
-        self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
-        self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
-            
-        rospy.loginfo('Autonomous_flight: Follow aruco pose utilising the bottom camera test complete')
-        self.set_state('loiter')
-    """
     def follow_aruco_pose_bottom_test(self):
 
         #Inialize parameters 

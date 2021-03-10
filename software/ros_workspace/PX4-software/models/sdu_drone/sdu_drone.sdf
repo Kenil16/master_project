@@ -822,7 +822,7 @@
     </plugin>
     
     <plugin filename="libhector_gazebo_ros_baro.so" name="quadrotor_baro_sim">
-      <updateRate>10.0</updateRate>
+      <updateRate>50.0</updateRate>
       <bodyName>base_link</bodyName>
       <frameId>base_link</frameId>
       <topicName>pressure_height</topicName>

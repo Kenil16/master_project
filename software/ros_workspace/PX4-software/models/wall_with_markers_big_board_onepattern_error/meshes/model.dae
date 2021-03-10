@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.92.0 commit date:2021-02-24, commit time:16:25, hash:02948a2cab44</authoring_tool>
     </contributor>
-    <created>2021-03-09T14:36:33</created>
-    <modified>2021-03-09T14:36:33</modified>
+    <created>2021-03-10T09:53:18</created>
+    <modified>2021-03-10T09:53:18</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -1533,7 +1533,7 @@
         <instance_geometry url="#Cube_003-mesh" name="Cube.002"/>
       </node>
       <node id="grid_board_new_200_big_onepattern_errors" name="grid_board_new_200_big_onepattern_errors" type="NODE">
-        <matrix sid="transform">-3.23464e-7 -7.4 0 0 7.4 -3.23464e-7 0 0 0 0 1 0 0 0 0 1</matrix>
+        <matrix sid="transform">-3.23464e-7 -7.4 0 0 7.4 -3.23464e-7 0 0 0 0 1 0.02 0 0 0 1</matrix>
         <instance_geometry url="#grid_board_new_200_big_onepattern_errors-mesh" name="grid_board_new_200_big_onepattern_errors">
           <bind_material>
             <technique_common>

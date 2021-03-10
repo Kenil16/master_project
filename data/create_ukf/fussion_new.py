@@ -85,7 +85,7 @@ class ukf():
         self.new_route_y = []
         self.new_route_z = []
 
-        self.create_ground_truth()
+        #self.create_ground_truth()
         
         self.prev_acc_x = 0.0
         self.prev_acc_y = 0.0
@@ -201,19 +201,15 @@ class ukf():
         ret[0] = x[0] + 0.6*x[3]*dt
         ret[1] = x[1] + 0.6*x[4]*dt
         ret[2] = x[2]  # x[5]*dt
-        ret[3] = x[6] #x[3]*self.attenuation_vel_x + x[6]*dt
-        ret[4] = x[7] #x[4]*self.attenuation_vel_y + x[7]*dt
-        ret[5] = x[5]*self.attenuation_vel_z + x[8]*dt
-        ret[6] = x[6] 
-        ret[7] = x[7] 
+        ret[3] = x[3] #x[3]*self.attenuation_vel_x + x[6]*dt
+        ret[4] = x[4] #x[4]*self.attenuation_vel_y + x[7]*dt
+        ret[5] = x[5] + x[9]*dt # #+ np.arctan2(x[6], x[8]+off)
+        ret[6] = x[6] + x[8]*dt #+ np.arctan2(-x[7], np.sqrt(x[6]**2 + x[8]**2)+off)
+        ret[7] = x[7] + x[10]*dt
         ret[8] = x[8]
-        ret[9] = x[9] + x[13]*dt # #+ np.arctan2(x[6], x[8]+off)
-        ret[10] = x[10] + x[12]*dt #+ np.arctan2(-x[7], np.sqrt(x[6]**2 + x[8]**2)+off)
-        ret[11] = x[11] + x[14]*dt
-        ret[12] = x[12]
-        ret[13] = x[13]
-        ret[14] = x[14]
-        ret[15] = x[15]
+        ret[9] = x[9]
+        ret[10] = x[10]
+        ret[11] = x[11]
         return ret
     
     def main(self):
@@ -221,33 +217,28 @@ class ukf():
         np.set_printoptions(precision=3)
         
         # Process Noise
-        q = np.eye(16)
+        q = np.eye(12)
         q[0][0] = 0.5 #x
         q[1][1] = 0.5 #y
         q[2][2] = 0.05 #z
         q[3][3] = 0.05 #vel x
         q[4][4] = 0.05 #vel y
-        q[5][5] = 0.5 #vel z 
-        q[6][6] = 0.05 #acc x
-        q[7][7] = 0.05 #acc y
-        q[8][8] = 0.5 #acc z
-        q[9][9] = 0.05 #roll
-        q[10][10] = 0.05#pitch
-        q[11][11] = 0.05 #yaw
-        q[12][12] = 0.05 #roll rate
-        q[13][13] = 0.05 #pitch rate
-        q[14][14] = 0.05 #yaw rate
-        q[15][15] = 0.5 #baro rate
+        q[5][5] = 0.05 #roll
+        q[6][6] = 0.05 #pitch
+        q[7][7] = 0.05 #yaw
+        q[8][8] = 0.05 #rate roll
+        q[9][9] = 0.05 #rate pitch
+        q[10][10] = 0.05#rate yaw
+        q[11][11] = 0.05 #baro bias
         
         
         # Create measurement noise covariance matrices
-        r_imu_acc = np.zeros([3, 3])
+        r_imu_acc = np.zeros([2, 2])
         r_imu_gyro_v = np.zeros([3, 3])
         r_imu_acc[0][0] = 0.05 #acc x
         r_imu_acc[1][1] = 0.05 #acc y
-        r_imu_acc[2][2] = 10.5 #acc z
-        r_imu_gyro_v[0][0] = 0.05 #gyro roll
-        r_imu_gyro_v[1][1] = 0.05 #gyro pitch
+        r_imu_gyro_v[0][0] = 0.005 #gyro roll
+        r_imu_gyro_v[1][1] = 0.005 #gyro pitch
         r_imu_gyro_v[2][2] = 0.5 #gyro yaw
         
         r_vision_pos = np.zeros([3, 3])
@@ -255,9 +246,9 @@ class ukf():
         r_vision_pos[0][0] = 0.5 #x
         r_vision_pos[1][1] = 0.5 #y
         r_vision_pos[2][2] = 0.05 #z
-        r_vision_ori[0][0] = 55.5 #roll rate
-        r_vision_ori[1][1] = 55.5 #pitch rate
-        r_vision_ori[2][2] = 15.5 #yaw rate
+        r_vision_ori[0][0] = 0.5 #roll rate
+        r_vision_ori[1][1] = 0.5 #pitch rate
+        r_vision_ori[2][2] = 0.5 #yaw rate
         
         r_baro = np.zeros([1,1])
         r_baro[0][0] = 5.2
@@ -273,9 +264,9 @@ class ukf():
         #print(measurements.shape)
         i = measurements
         #print(m)
-        x_init = [i[0,0], i[1,0], i[2,0], 0, 0, 0, 0, 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0, 0]
+        x_init = [i[0,0], i[1,0], i[2,0], 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0, 0]
         
-        state_estimator = UKF(16, q, x_init, 0.0001*np.eye(16), 0.04, 15.0, 2.0, self.iterate_x)
+        state_estimator = UKF(12, q, x_init, 0.0001*np.eye(12), 0.04, 15.0, 2.0, self.iterate_x)
         time =0
         dt = 0.0
         for j in range(m):
@@ -295,8 +286,8 @@ class ukf():
 
 
             #Rotation matrix to align angle to that of the acceleration of the drone. Hences the gravity can be subtracted
-            R1 = self.eulerAnglesToRotationMatrix([0, 0, 2*x[11] + np.pi/2])
-            a = np.matmul(R1, np.array([x[9], x[10], x[11]]))
+            R1 = self.eulerAnglesToRotationMatrix([0, 0, 2*x[7] + np.pi/2])
+            a = np.matmul(R1, np.array([x[6], x[5], x[7]]))
 
             pitch = row[15]
             roll = row[14]
@@ -307,7 +298,7 @@ class ukf():
             acc_y = row[4] #+ gravity_y  # - np.sin(np.arctan2(row[4], row[5]+off))*self.gravity            
             
             #Correct for acceleration shift for the orientation of the drone and bias for x and y
-            R2 = self.eulerAnglesToRotationMatrix([x[10], x[9], x[11]])            
+            R2 = self.eulerAnglesToRotationMatrix([x[6], x[5], x[7]])            
             acc = np.matmul(R2, np.array([acc_x, acc_y, 0]))
             acc_bias = np.matmul(R2, np.array([bias[0], bias[1], 0]))
 
@@ -329,98 +320,12 @@ class ukf():
             
             time = time + dt
             
-            """
-            #X attenuation 
-            zero_acc = False
-            sign_shift = False
-            if x[6] < 0.005 and x[6] > -0.005:
-                zero_acc = True
-            
-            if not self.start_x and not zero_acc:
-                self.start_x = True
-                self.last_step_x = np.sign(x[6])
-                print(self.last_step_x)
-                print('start_x' + " " + str(time))
-                self.inversions_x.append(self.last_step_x)
-
-            if self.start_x and zero_acc:
-                self.start_x = False
-                print('End x' + " " + str(time))
-            
-            elif self.start_x and np.sign(x[6]) and self.last_step_x and not (self.last_step_x == np.sign(x[6])):
-                self.start_x = False
-                print('End' + " " + str(time))
-
-            if len(self.inversions_x) > 1:
-                if not self.inversions_x[-1] == self.inversions_x[-2]:
-                    self.attenuation_vel_x = 0.95
-                    self.inversions_x = []
-            elif len(self.inversions_x) == 1:
-                self.attenuation_vel_x = 1.00
-            
-            #Y attenuation 
-            zero_acc = False
-            sign_shift = False
-            if x[7] < 0.005 and x[7] > -0.005:
-                zero_acc = True
-            
-            if not self.start_y and not zero_acc:
-                self.start_y = True
-                self.last_step_y = np.sign(x[7])
-                print(self.last_step_y)
-                print('start y' + " " + str(time))
-                self.inversions_y.append(self.last_step_y)
-
-            if self.start_y and zero_acc:
-                self.start_y = False
-                print('End y' + " " + str(time))
-            
-            elif self.start_y and np.sign(x[7]) and self.last_step_y and not (self.last_step_y == np.sign(x[7])):
-                self.start_y = False
-                print('End y' + " " + str(time))
-
-            if len(self.inversions_y) > 1:
-                if not self.inversions_y[-1] == self.inversions_y[-2]:
-                    self.attenuation_vel_y = 0.95
-                    self.inversions_y = []
-            elif len(self.inversions_y) == 1:
-                self.attenuation_vel_y = 1.00
-            
-            """
-            #Z attenuation 
-            zero_acc = False
-            sign_shift = False
-            if x[8] < 0.005 and x[8] > -0.005:
-                zero_acc = True
-            
-            if not self.start_z and not zero_acc:
-                self.start_z = True
-                self.last_step_z = np.sign(x[8])
-                print(self.last_step_z)
-                print('start z' + " " + str(time))
-                self.inversions_z.append(self.last_step_z)
-
-            if self.start_z and zero_acc:
-                self.start_z = False
-                print('End z' + " " + str(time))
-            
-            elif self.start_z and np.sign(x[8]) and self.last_step_z and not (self.last_step_z == np.sign(x[8])):
-                self.start_z = False
-                print('End z' + " " + str(time))
-
-            if len(self.inversions_z) > 1:
-                if not self.inversions_z[-1] == self.inversions_z[-2]:
-                    self.attenuation_vel_z = 0.95
-                    self.inversions_z = []
-            elif len(self.inversions_z) == 1:
-                self.attenuation_vel_z = 1.00
- 
             #Rotation matrix to align gyro velocity to the orientation of the world (marker)
             #R3 = self.eulerAnglesToRotationMatrix([0, 0, x[11]-np.pi])
             #corrected_gyro = np.matmul(R3, np.array([row[10], row[9], row[11]]))
             
-            R3 = self.eulerAnglesToRotationMatrix([0, 0, -x[11]+np.pi])
-            corrected_gyro = np.matmul(R3, np.array([-row[10], -row[9], row[11]]))
+            R3 = self.eulerAnglesToRotationMatrix([0, 0, x[7]+np.pi])
+            corrected_gyro = np.matmul(R3, np.array([row[10], -row[9], row[11]]))
             
             vision_x = row[0]
             vision_y = row[1]
@@ -431,14 +336,14 @@ class ukf():
 
             imu_accX =  corrected_acc_x
             imu_accY = corrected_acc_y
-            imu_accZ = corrected_acc_z
+            #imu_accZ = corrected_acc_z
             imu_rollV = corrected_gyro[0]
             imu_pitchV =corrected_gyro[1]
             imu_yawV = corrected_gyro[2]
 
             vision_data_pos = np.array([vision_x, vision_y, vision_z])
             vision_data_ori = np.array([vision_roll, vision_pitch, vision_yaw])
-            imu_data_acc = np.array([imu_accX, imu_accY, imu_accZ])
+            imu_data_acc = np.array([imu_accX, imu_accY])
             imu_data_gyro_v = np.array([imu_rollV, imu_pitchV, imu_yawV])
             
             baro_data = np.array([row[17]])
@@ -449,17 +354,17 @@ class ukf():
 
             if not self.vision_seq == row[12]:
                 state_estimator.update([0, 1, 2], vision_data_pos, r_vision_pos)
-                state_estimator.update([9, 10, 11], vision_data_ori, r_vision_ori)
-                state_estimator.update([15], baro_offset, r_baro_offset)
+                state_estimator.update([5, 6, 7], vision_data_ori, r_vision_ori)
+                state_estimator.update([11], baro_offset, r_baro_offset)
                 self.vision_seq = row[12]
             
             if not self.imu_seq == row[13]:
-                state_estimator.update([6, 7, 8], imu_data_acc, r_imu_acc)
-                state_estimator.update([12, 13, 14], imu_data_gyro_v, r_imu_gyro_v)
+                state_estimator.update([3, 4], imu_data_acc, r_imu_acc)
+                state_estimator.update([8, 9, 10], imu_data_gyro_v, r_imu_gyro_v)
                 self.imu_seq = row[13]
             
             if not self.baro_seq == row[18]:
-                state_estimator.update([2], baro_data + x[15], r_baro)
+                state_estimator.update([2], baro_data + x[11], r_baro)
                 self.baro_seq = row[18]
             
             self.old_x = row[0]
@@ -471,16 +376,12 @@ class ukf():
             self.x2.append(float(x[2]))
             self.x3.append(float(x[3]))
             self.x4.append(float(x[4]))
-            self.x5.append(float(x[5]))
-            self.x6.append(float(x[6]))
-            self.x7.append(float(x[7]))
-            self.x8.append(float(x[8]))
+            self.x5.append(float(np.rad2deg(x[5])))
+            self.x6.append(float(np.rad2deg(x[6])))
+            self.x7.append(float(np.rad2deg(x[7])))
+            self.x8.append(float(np.rad2deg(x[8])))
             self.x9.append(float(np.rad2deg(x[9])))
             self.x10.append(float(np.rad2deg(x[10])))
-            self.x11.append(float(np.rad2deg(x[11])))
-            self.x12.append(float(np.rad2deg(x[12])))
-            self.x13.append(float(np.rad2deg(x[13])))
-            self.x14.append(float(np.rad2deg(x[14])))
             
             self.gyro_x = self.gyro_x + row[9]*dt
             self.gyro_y = self.gyro_y + row[10]*dt
@@ -495,7 +396,7 @@ class ukf():
             self.x19.append(float(np.rad2deg(row[15])))
             self.x20.append(float(np.rad2deg(row[16])))
             
-            self.x21.append(float(baro_data+x[15]))
+            self.x21.append(float(baro_data+x[11]))
             #self.test = self.test + 1
             #print(self.test)
             
@@ -633,41 +534,6 @@ class ukf():
 
         plt.savefig('position_ground_truth.png')
 
-    def create_ground_truth(self):
-        
-        route = [[-3.65,-1.10,1.5], [-3.65,-4.25,1.5], [-3.65,-4.25,1.5], [-7.1,-4.25,1.5], [-7.1,-4.25,1.5], [-7.1,-7.1,1.5], [-7.1,-7.1, 1.0,]]
-        waypoints = 335
-        
-        int_points = waypoints/(len(route)-1)
-        if int(int_points) < int_points:
-            int_points = int_points + 1
-        
-        #print(int_points)
-        
-        for i in range(1, len(route)):
-            point1 = route[i-1]
-            point2 = route[i]
-    
-            new_points = np.linspace(point1[0],point2[0],int(int_points))
-            for i in new_points:    
-                self.new_route_x.append(i)
-        
-            new_points = np.linspace(point1[1],point2[1],int(int_points))
-            for i in new_points:    
-                self.new_route_y.append(i)
-            
-            new_points = np.linspace(point1[2],point2[2],int(int_points))
-            for i in new_points:    
-                self.new_route_z.append(i)
-        
-        while len(self.new_route_x) > waypoints:
-            self.new_route_x.pop()
-            self.new_route_y.pop()
-            self.new_route_z.pop()
-        
-        #print(len(self.new_route_x))
-        #self.plot_ground_truth(self.new_route_x, self.new_route_y)
-        
     def load_chromosome(self,file_name):
         chromosome = []
         with open(file_name,"r") as ga_file:
@@ -688,20 +554,26 @@ if __name__ == "__main__":
     ys = [ukf.x0, ukf.x1, ukf.x2, ukf.g_x, ukf.g_y, ukf.g_z]
     ukf.plot_state('Position', 'Time [s]', r'Position [$m$]', 'position.png', ukf.mtime, ys)
 
-    labels = ['Velocity in x','Velocity in y','Velocity in z']
-    ys = [ukf.x3, ukf.x4, ukf.x5]
+    labels = ['Velocity in x','Velocity in y']
+    ys = [ukf.x3, ukf.x4]
     ukf.plot_state('Velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{m}{s})$]', 'velocity.png', ukf.mtime, ys)
     
+    """
     labels = ['acc_x','acc_y','acc_z']
     ys = [ukf.x6, ukf.x7, ukf.x8]
     ukf.plot_state('Acceleration [IMU]', 'Time [s]', r'Acceleration [$(\frac{m}{s^2})$]', 'acceleration.png', ukf.mtime, ys)
-
+    """
+    
     labels = ['Roll','Pitch', 'g_roll','g_pitch']
-    ys = [ukf.x9, ukf.x10,  ukf.g_roll, ukf.g_pitch]
+    ys = [ukf.x5, ukf.x6,  ukf.g_roll, ukf.g_pitch]
     ukf.plot_state('Angle [IMU and vision fusion]', 'Time [s]', r'Angle [Degress]', 'orientation.png', ukf.mtime, ys)
 
+    labels = ['Roll','Pitch', 'g_roll','g_pitch']
+    ys = [ukf.mpsi, ukf.mphi, ukf.g_roll, ukf.g_pitch]
+    ukf.plot_state('Angle [vision fusion]', 'Time [s]', r'Angle [Degress]', 'orientation_vision.png', ukf.mtime, ys)
+    
     labels = ['x','y','z']
-    ys = [ukf.x12, ukf.x13, ukf.x14]
+    ys = [ukf.x8, ukf.x9, ukf.x10]
     ukf.plot_state('Angular velocity [IMU]', 'Time [s]', r'Angular velocity [$(\frac{r}{s})$]', 'angular_velocity.png', ukf.mtime, ys)
     
     ukf.plot_position()

@@ -158,47 +158,11 @@ class log_data():
         data.write('\n')
         data.close()
         
-    def write_GPS2Vision_marker_detection_data(self, setpoint_x, setpoint_y, setpoint_z, x, y, z, roll, pitch, yaw, ground_truth):
-
-        #Rotation to align ground truth to aruco marker
-        r_m = euler_matrix(0, 0, np.pi/2, 'rxyz')
-
-        #Get current ground truth orientation
-        t_g = quaternion_matrix(np.array([ground_truth.pose.pose.orientation.x,
-                                          ground_truth.pose.pose.orientation.y,
-                                          ground_truth.pose.pose.orientation.z,
-                                          ground_truth.pose.pose.orientation.w]))
-
-        #Get current ground truth translation
-        t_g[0][3] = ground_truth.pose.pose.position.x
-        t_g[1][3] = ground_truth.pose.pose.position.y
-        t_g[2][3] = ground_truth.pose.pose.position.z
-
-        #Perform matrix multiplication for pose aligment
-        T =  np.matmul(r_m, t_g)
-
-        #Get angles and translation in degress
-        g_euler = euler_from_matrix(T,'rxyz')
-
-        #Because plugin is initiated in (0,0,0).
-        g_x = T[0][3] + 7.4/2
-        g_y = T[1][3] + 7.4/2
-        g_z = T[2][3]
-
-        g_roll = np.rad2deg(g_euler[0])
-        g_pitch = np.rad2deg(-g_euler[1])
-        g_yaw = np.rad2deg(g_euler[2])
-
-        error_x = abs(x-g_x)
-        error_y = abs(y-g_y)
-        error_z = abs(z-g_z)
-        error_roll = abs(roll-g_roll)
-        error_pitch = abs(pitch-g_pitch)
-        error_yaw = abs(yaw-g_yaw)
+    def write_GPS2Vision_marker_detection_data(self, setpoint_x, setpoint_y, error_x, error_y, error_z, error_roll, error_pitch, error_yaw):
 
         #Write data to file for analyzing
         data = open(self.GPS2Vision_aruco_pose_estimation_path,'a')
-        data.write(str(setpoint_x) + " " + str(setpoint_y) + " " + str(setpoint_z) + " " + \
+        data.write(str(setpoint_x) + " " + str(setpoint_y) + " " + \
                    str(error_x) + " " + str(error_y) + " " + str(error_z) + " " + \
                    str(error_roll) + " " + str(error_pitch) + " " + str(error_yaw))
         data.write('\n')

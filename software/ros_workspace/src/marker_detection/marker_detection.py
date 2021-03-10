@@ -83,7 +83,7 @@ class marker_detection:
         self.aruco_pose = PoseStamped()
         self.aruco_pose_without_kf = PoseStamped()
 
-        self.aruco_board = 2
+        self.aruco_board = 1
         
         #Subscribers
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)
@@ -212,8 +212,8 @@ class marker_detection:
             T = euler_matrix(np.pi, 0, 0, 'rxyz')
             r = np.matmul(r,T)
             euler = euler_from_matrix(r,'rxyz')
-            print('t' + str(t))
-            print('T_front_to_ground'+ str(T_front_to_ground))
+            #print('t' + str(t))
+            #print('T_front_to_ground'+ str(T_front_to_ground))
             t = np.dot(T_front_to_ground,t)
             q_new = Quaternion(*quaternion_from_euler(-euler[2], -euler[0], euler[1] + 1.5708,'rxyz'))
             
