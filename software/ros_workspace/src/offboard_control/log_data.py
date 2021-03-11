@@ -56,11 +56,11 @@ class log_data():
         data = Path('../../../../data/GPS2Vision_aruco_pose_estimation.txt')
         self.GPS2Vision_aruco_pose_estimation_path = '../../../../data/GPS2Vision_aruco_pose_estimation.txt'
         if not data.is_file:
-            data = open(self.imu_noise_data_path,'r+')
+            data = open(self.GPS2Vision_aruco_pose_estimation_path,'r+')
             data.truncate(0)
             data.close
         else:
-            data = open(self.imu_noise_data_path,'w+')
+            data = open(self.GPS2Vision_aruco_pose_estimation_path,'w+')
             data.close()
 
     #To be used in sensor fusion 

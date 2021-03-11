@@ -18,9 +18,9 @@
     <env name="PX4_ESTIMATOR" value="$(arg est)" />
 
     <!-- gazebo configs -->
-    <arg name="gui" value="true"/>
-    <arg name="headless" value="false"/>
-    <arg name="recording" value="True"/>
+    <arg name="gui" value="false"/>
+    <arg name="headless" value="true"/>
+    <arg name="recording" value="false"/>
     <arg name="debug" default="false"/>
     <arg name="verbose" default="false"/>
     <arg name="paused" default="false"/>

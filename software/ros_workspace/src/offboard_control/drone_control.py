@@ -130,7 +130,9 @@ class drone_control():
 
         if command == '3':
             self.set_state('hold_aruco_pose_test')
-        
+
+        if command == '4':
+            self.set_state('GPS2Vision_test')
 
     def message_control(self):
 
@@ -153,7 +155,12 @@ class drone_control():
             if self.uav_state == 'estimate_aruco_pose_front_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
-            
+
+            if self.uav_state == 'GPS2Vision_test':
+                output_msg = self.autonomous_flight_pose_msg
+                self.pub_msg(output_msg, self.pub_local_pose)
+                self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
+
             if self.uav_state == 'follow_aruco_pose_bottom_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)

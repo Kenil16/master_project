@@ -349,12 +349,20 @@
        <pose>-12 -8 3 0 0 0.785398</pose>
      </camera>
    </gui>
-<!--
-   <gui>
-     <camera name="gzclient_camera">
-       <pose>0 0 15 0 1.5708 1.5708</pose>
-     </camera>
-   </gui>
--->
+
+    <plugin name='wind_plugin' filename='libgazebo_wind_plugin.so'>
+      <frameId>base_link</frameId>
+      <!--<robotNamespace/>-->
+      <namespace>/foo/bar</namespace>
+      <xyzOffset>1 0 0</xyzOffset>
+      <windDirectionMean>0 1 0</windDirectionMean>
+      <windVelocityMean>0.0</windVelocityMean>
+      <windGustDirection>1 0 0</windGustDirection>
+      <windGustDuration>0</windGustDuration>
+      <windGustStart>10</windGustStart>
+      <windGustVelocityMean>0</windGustVelocityMean>
+      <windPubTopic>world_wind</windPubTopic>
+    </plugin>
+
   </world>
 </sdf>

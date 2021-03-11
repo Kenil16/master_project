@@ -3,7 +3,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import griddata
-
+from mpl_toolkits.axes_grid1 import ImageGrid
+import matplotlib as mpl
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 class graphics_plot:
 
     def __init__(self):
@@ -21,41 +23,11 @@ class graphics_plot:
                 str_to_float = [float(item) for item in items]
                 self.data.append(str_to_float)
 
-    
-    #A function to plot the Kalman filter against data points    
-    def plot_kf_data(self, file_name, title, xlabel, ylabel, fig_path_name, pos_index, kf_index, time_index):
-        
-        fig, ax = plt.subplots()
-        ax.set_axisbelow(True)
-        ax.set_facecolor('#E6E6E6')
-        plt.grid(color='w', linestyle='solid')
-
-        for spine in ax.spines.values():
-            spine.set_visible(False)
-
-        ax.xaxis.tick_bottom()
-        ax.yaxis.tick_left()
-        ax.tick_params(colors='gray', direction='out')
-
-        for tick in ax.get_xticklabels():
-            tick.set_color('gray')
-        for tick in ax.get_yticklabels():
-            tick.set_color('gray')
-
-        self.read_data(file_name)
-        pos = np.array([item[pos_index] for item in self.data])
-        kf = np.array([item[kf_index] for item in self.data])
-        time = np.array([item[time_index] for item in self.data])
-
-        ax.scatter(time, pos, label='Data points')
-        ax.plot(time, kf, label='Kalman filter',color='red',markersize=2)
-        ax.set_title(title)
-        ax.legend()
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.savefig(fig_path_name)
-
     def plot_aruco_pose_est(self, fig_name, file_name, x_label, y_label, title, index):
+        
+        
+        plt.rcParams.update({
+        "text.usetex": True})
         
         data = []
         with open(file_name,"r") as text_file:
@@ -66,7 +38,7 @@ class graphics_plot:
                 data.append(str_to_float)
 
 
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(7,5),constrained_layout=True)
         ax.set_axisbelow(True)
         ax.set_facecolor('#E6E6E6')
         plt.grid(color='w', linestyle='solid')
@@ -89,40 +61,41 @@ class graphics_plot:
         COLORS  = 'viridis'
         
         x = np.array([item[0] for item in data])
-        y = np.array([item[3] for item in data])
+        y = np.array([item[1] for item in data])
         z = np.array([item[index] for item in data])
 
-        mesh= np.meshgrid(x, y)
-        
         min_z, max_z = np.amin(z), np.amax(z)
+        
         z = np.reshape(z, (-1, 9))
         print(z)
         
-        #ax = fig.add_axes([0.125, 0.175, 0.75, 0.75])
-        plt.imshow(z, interpolation=METHODS[2], cmap=COLORS, vmin=min_z, vmax=max_z)
-        #ax.plot(mesh[0], mesh[1], marker='.', ms=4, color='k', lw=0)
+        im =plt.imshow(z, interpolation=METHODS[2], cmap=COLORS, vmin=min_z, vmax=max_z)
+
+        x_ = range(0,9, 1)
+        y_ = range(0,7, 1)
+       
+        xticks = ['0', '1', '3', '4', '5', '6', '7', '8', '9']
+        yticks = ['-2', '-3', '-4', '-5', '-6', '-7', '-8']
         
-        #plt.xlim(x.min(), x.max()+10.5)
-        
-        #plt.ylim(y.min()-0.5, y.max()+0.5)
-        plt.xlabel(x_label)
-        plt.ylabel(y_label)
-        #cax = fig.add_axes([0.125, 0.075, 0.75, 0.03])
-        plt.colorbar(orientation='vertical')        
+        plt.xticks(x_, xticks,fontsize=20)
+        plt.yticks(y_, yticks,fontsize=20)
+
+        plt.xlabel(y_label,fontsize=20)
+        plt.ylabel(x_label,fontsize=20)
+        plt.title(title,fontsize=20)
+        cbar = plt.colorbar(im, cax = fig.add_axes([0.905, 0.15, 0.03, 0.78]))
+        for t in cbar.ax.get_yticklabels():
+            t.set_fontsize(20)
+
         plt.savefig(fig_name)
 
 if __name__ == "__main__":
     gp = graphics_plot()
 
-    #Plot estimated ArUco positions vs Kalman filter to see the difference and avantage of using this filter
-    #gp.plot_kf_data('aruco_pos_kf/data.txt','Estimated ArUco marker position','Time [s]', 'x [m]','aruco_pos_kf/kf_pos_x.png',0,3,6)
-    #gp.plot_kf_data('aruco_pos_kf/data.txt','Estimated ArUco marker position','Time [s]', 'y [m]','aruco_pos_kf/kf_pos_y.png',1,4,6)
-    #gp.plot_kf_data('aruco_pos_kf/data.txt','Estimated ArUco marker position','Time [s]', 'z [m]','aruco_pos_kf/kf_pos_z.png',2,5,6)
-
     #Plot estimated AruCo positions from test 
-    gp.plot_aruco_pose_est('std_x.png','test1.txt','y [m]', 'x [m]','STD x in ArUco position',1)
-    gp.plot_aruco_pose_est('std_y.png','test1.txt','y [m]', 'x [m]','STD y in ArUco position',4)
-    gp.plot_aruco_pose_est('std_z.png','test1.txt','y [m]', 'x [m]','STD z in ArUco position',7)
-    gp.plot_aruco_pose_est('error_x.png','test1.txt','y [m]', 'x [m]','Error x in ArUco position',2)
-    gp.plot_aruco_pose_est('error_y.png','test1.txt','y [m]', 'x [m]','Error y in ArUco position',5)
-    gp.plot_aruco_pose_est('error_z.png','test1.txt','y [m]', 'x [m]','Error z in ArUco position',8)
+    gp.plot_aruco_pose_est('aruco_pose_estimation_error_x.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in x (ArUco pose estimation) in meters',2)
+    gp.plot_aruco_pose_est('aruco_pose_estimation_error_y.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in y (ArUco pose estimation) in meters',3)
+    gp.plot_aruco_pose_est('aruco_pose_estimation_error_z.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in x (ArUco pose estimation) in meters',4)
+    gp.plot_aruco_pose_est('aruco_pose_estimation_error_roll.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in roll (ArUco pose estimation) in degress ',5)
+    gp.plot_aruco_pose_est('aruco_pose_estimation_error_pitch.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in pitch (ArUco pose estimation) in degress ',6)
+    gp.plot_aruco_pose_est('aruco_pose_estimation_error_yaw.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in yaw (ArUco pose estimation) in degress ',7)
