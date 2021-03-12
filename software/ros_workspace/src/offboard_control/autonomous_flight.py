@@ -50,6 +50,9 @@ class autonomous_flight():
 
         self.waypoint_check_pose_error = 0.25
 
+        self.aruco_offset = PoseStamped()
+        self.uav_offset = PoseStamped()
+
         self.delta_x = 0.0
         self.delta_y = 0.0
         self.delta_z = 0.0
@@ -67,6 +70,9 @@ class autonomous_flight():
         #self.pub_aruco_ids = rospy.Publisher('/onboard/aruco_ids', mavlink_lora_aruco, queue_size=1)
         #self.pub_change_aruco_board = rospy.Publisher('/onboard/change_aruco_board', Bool, queue_size=1)
         self.pub_aruco_board = rospy.Publisher('/onboard/aruco_board', Int8, queue_size=1)
+
+        self.pub_aruco_offset = rospy.Publisher('/onboard/aruco_offset', PoseStamped, queue_size=1)
+        self.pub_uav_offset = rospy.Publisher('/onboard/uav_offset', PoseStamped, queue_size=1)
 
         #Subscribers
         rospy.Subscriber('/onboard/state', String, self.on_uav_state)
@@ -390,50 +396,51 @@ class autonomous_flight():
                     
                     if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold = self.waypoint_check_pose_error):
                         break
-        """
-
-        while not self.aruco_board_found:
-            
-            self.pub_msg(self.next_waypoint, self.pub_local_pose)
-
-            x = self.uav_local_pose.pose.position.x
-            y = self.uav_local_pose.pose.position.y
-            z = self.uav_local_pose.pose.position.z
-            
-            while(not self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold = self.waypoint_check_pose_error])):
-                self.pub_msg(waypoint, self.pub_local_pose)
-
-
-            if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold = self.waypoint_check_pose_error):
-                break
-
-        """
         
         if self.aruco_board_found:
             
             rospy.loginfo('Autonomous_flight: Aruco board found!')
             
+            self.aruco_offset = self.aruco_pose
+            self.uav_offset = self.uav_local_pose
+
+            self.pub_aruco_offset.publish(self.aruco_offset)
+            self.pub_uav_offset.publish(self.uav_offset)
+
+            self.aruco_ofset_mapping = [[self.uav_offset.pose.position.x, self.aruco_offset.pose.position.x],
+                                        [self.uav_offset.pose.position.y, self.aruco_offset.pose.position.y],
+                                        [self.uav_offset.pose.position.z, self.aruco_offset.pose.position.z]]
+            
             #Inialize parameters
             while not self.mission[0][0] == '-':
                 self.update_mission()
-
-
+            
             waypoint = [float(self.mission[0][3]), float(self.mission[0][4]), float(self.mission[0][5]), float(self.mission[0][8])]
 
             #Get ArUco position, mean and STD
             start_time = rospy.get_rostime()
             timeout = rospy.Duration(1) #Test each position for x seconds 
-            self.update_mission()
-            print(self.next_waypoint)
-            i = self.next_waypoint
+            #self.update_mission()
+            #print(self.next_waypoint)
+            #i = self.next_waypoint
+
+            #new_pose_set, waypoint = self.vision2local(self.aruco_ofset_mapping, i)
             
-            while(not self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold = self.waypoint_check_pose_error)):
-                self.pub_msg(i, self.pub_local_pose)
-                if not initiate_high_speed and (rospy.get_rostime() - start_time) < timeout:
-                    initiate_high_speed = True
-                    while not self.mission[0][0] == '-':
-                        self.update_mission()
-        
+            while len(self.mission):
+                
+                i = self.next_waypoint
+                print(self.mission[0])
+                self.update_mission()
+
+                new_pose_set, waypoint = self.vision2local(self.aruco_ofset_mapping, i)
+
+                while(not self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold = self.waypoint_check_pose_error)):
+                    self.pub_msg(new_pose_set, self.pub_local_pose)
+                    if not initiate_high_speed and (rospy.get_rostime() - start_time) < timeout:
+                        initiate_high_speed = True
+                        while not self.mission[0][0] == '-':
+                            self.update_mission()
+
         self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
         self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
 
@@ -613,6 +620,23 @@ class autonomous_flight():
                 waypoints.append(waypoint)
         
         return waypoints
+
+    def vision2local(self, aruco_ofset_mapping, aruco_pose):
+
+        new_pose = PoseStamped()
+        new_pose.pose.position.x = aruco_ofset_mapping[0][0] - (aruco_ofset_mapping[0][1] - aruco_pose.pose.position.x)
+        new_pose.pose.position.y = aruco_ofset_mapping[1][0] - (aruco_ofset_mapping[1][1] - aruco_pose.pose.position.y)
+        new_pose.pose.position.z = aruco_ofset_mapping[2][0] - (aruco_ofset_mapping[2][1] - aruco_pose.pose.position.z)
+        new_pose.pose.orientation = aruco_pose.pose.orientation
+        
+        angle = euler_from_quaternion([aruco_pose.pose.orientation.x,
+                                       aruco_pose.pose.orientation.y,
+                                       aruco_pose.pose.orientation.z,
+                                       aruco_pose.pose.orientation.w])
+
+        return new_pose, [new_pose.pose.position.x, new_pose.pose.position.y, new_pose.pose.position.z, np.rad2deg(angle[2])]
+
+
 
     def update_mission(self):
 

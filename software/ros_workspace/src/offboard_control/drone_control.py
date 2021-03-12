@@ -34,8 +34,12 @@ class drone_control():
         self.autonomous_fligt_state_msg = None
         self.loiter_pilot_msg = PoseStamped()
         self.sensor_fusion = PoseStamped()
+        self.aruco_ofset_mapping = [[0,0],
+                                    [0,0],
+                                    [0,0]]
 
         self.aruco_pose_covariance = PoseWithCovarianceStamped()
+        self.aruco_pose_corrected = PoseStamped()
 
         #Subscribers
         rospy.Subscriber('/mavros/state', State, self.cb_uav_state) 
@@ -44,6 +48,9 @@ class drone_control():
         rospy.Subscriber('/onboard/state', String, self.on_uav_state)
         rospy.Subscriber('/onboard/setpoint/loiter_pilot', PoseStamped, self.lp_setpoint_change)
         rospy.Subscriber('/onboard/aruco_marker_pose', PoseStamped, self.amp_change)
+        
+        rospy.Subscriber('/onboard/aruco_offset', PoseStamped, self.aruco_offset_callback)
+        rospy.Subscriber('/onboard/uav_offset', PoseStamped, self.uav_offset_callback)
         
         rospy.Subscriber('/onboard/sensor_fusion', PoseStamped, self.sensor_fusion_callback)
         
@@ -93,6 +100,21 @@ class drone_control():
 
     def sensor_fusion_callback(self,msg):
         self.sensor_fusion = msg 
+    
+    def aruco_offset_callback(self,msg):
+        offset = msg
+        print(offset)
+        self.aruco_ofset_mapping[0][1] = offset.pose.position.x
+        self.aruco_ofset_mapping[1][1] = offset.pose.position.y
+        self.aruco_ofset_mapping[2][1] = offset.pose.position.z
+
+
+    def uav_offset_callback(self,msg):
+        offset = msg
+        print(offset)
+        self.aruco_ofset_mapping[0][0] = offset.pose.position.x
+        self.aruco_ofset_mapping[1][0] = offset.pose.position.y
+        self.aruco_ofset_mapping[2][0] = offset.pose.position.z
     
     def on_uav_state(self,msg):
         self.uav_state = msg.data
@@ -159,7 +181,11 @@ class drone_control():
             if self.uav_state == 'GPS2Vision_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
-                self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
+                
+                new_pose = self.vision2local(self.aruco_ofset_mapping, self.aruco_marker_pose_msg)
+                self.pub_msg(new_pose, self.pub_vision_pose)
+                
+                #self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
 
             if self.uav_state == 'follow_aruco_pose_bottom_test':
                 output_msg = self.autonomous_flight_pose_msg
@@ -180,6 +206,16 @@ class drone_control():
 
     def cb_uav_state(self, msg):
         self.mavros_state = msg
+
+    def vision2local(self, aruco_ofset_mapping, aruco_pose):
+
+        new_pose = PoseStamped()
+        new_pose.pose.position.x = aruco_ofset_mapping[0][0] - (aruco_ofset_mapping[0][1] - aruco_pose.pose.position.x)
+        new_pose.pose.position.y = aruco_ofset_mapping[1][0] - (aruco_ofset_mapping[1][1] - aruco_pose.pose.position.y)
+        new_pose.pose.position.z = aruco_ofset_mapping[2][0] - (aruco_ofset_mapping[2][1] - aruco_pose.pose.position.z)
+        new_pose.pose.orientation = aruco_pose.pose.orientation
+
+        return new_pose
         
     def run(self):
         while not rospy.is_shutdown():
