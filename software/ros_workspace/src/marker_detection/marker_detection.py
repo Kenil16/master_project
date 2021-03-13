@@ -30,9 +30,9 @@ class marker_detection:
         rospy.init_node('marker_detection')
 
         #Init data test plotting
-        self.plot_data = True
-        self.cycle_time = (1./10.) #1./40.
-        self.plot_timer = int(((20)/self.cycle_time)) #Set to run 10 seconds before plot
+        #self.plot_data = True
+        self.cycle_time = (1./10.)
+        #self.plot_timer = int(((20)/self.cycle_time)) #Set to run 10 seconds before plot
 
         self.plot_time = []
         self.log_data = log_data()
@@ -40,7 +40,6 @@ class marker_detection:
 
         self.ground_truth = Odometry()
 
-        #self.enable_aruco_detection = False
         self.draw_markers = True
         self.draw_marker_axis = True
         self.aruco_board_found = False
@@ -48,6 +47,10 @@ class marker_detection:
         self.bottom_img = None 
         self.front_img = None
 
+        #To be used in statistics for marker pose estimation presicion
+        self.aruco_pose_estimate = []
+        self.estimates_length_before_eval = 100
+        self.write_rolling_statistics = True
         self.time = 0.0
         
         #Transformation matrix from gps to vision marker to the ground wrt the drone
@@ -166,7 +169,6 @@ class marker_detection:
             if retval:
 
                 self.aruco_board_found = True 
-                self.aruco_marker_found_pub.publish(True)
 
                 pose.pose.position.x = _tvec[0]
                 pose.pose.position.y = _tvec[1]
@@ -176,8 +178,6 @@ class marker_detection:
                 #Draw detected axis of markers
                 if self.draw_marker_axis:
                     image_markers = cv2.aruco.drawAxis(image_markers, camera_matrix, distortion_coefficients, _rvec, _tvec, 0.1)
-            else:
-                self.aruco_marker_found_pub.publish(False)
         
         self.marker_pose = pose
         img = self.bridge.cv2_to_imgmsg(image_markers,"bgr8")
@@ -230,7 +230,22 @@ class marker_detection:
         #print(euler_from_quaternion([self.aruco_pose.pose.orientation.x,self.aruco_pose.pose.orientation.y,self.aruco_pose.pose.orientation.z,self.aruco_pose.pose.orientation.w]))
         #print "Ori: {} x: {} y: {} z: {} \n".format(euler,self.aruco_pose.pose.position.x,self.aruco_pose.pose.position.y,self.aruco_pose.pose.position.z)
         #self.aruco_marker_found_pub.publish(True)
+        
         self.aruco_marker_pose_pub.publish(self.aruco_pose)
+
+        if len(self.aruco_pose_estimate) == self.estimates_length_before_eval:
+            
+            if self.write_rolling_statistics:
+                for i in self.aruco_pose_estimate:
+                    self.log_data.write_rolling_statistics(i[0], i[1], i[2], i[3], i[4], i[5])
+
+            self.aruco_pose_estimate = []
+
+        else:
+            self.aruco_pose_estimate.append([self.aruco_pose.pose.position.x,
+                                             self.aruco_pose.pose.position.y,
+                                             self.aruco_pose.pose.position.z,
+                                             euler[0], euler[1], euler[2]])
     
     def write_aruco_pos(self, x, y, z, kf_x, kf_y, kf_z, time):
         
@@ -281,7 +296,7 @@ class marker_detection:
             if self.aruco_board_found:
                 self.estimate_marker_pose(self.aruco_board, self.T_landingMarker3_to_ground)
 
-        #print(self.aruco_board)
+        self.aruco_marker_found_pub.publish(self.aruco_board_found)
 
 if __name__ == "__main__":
     node = marker_detection()

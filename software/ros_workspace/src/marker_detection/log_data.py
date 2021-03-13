@@ -19,6 +19,17 @@ class log_data():
             data = open(self.aruco_pose_estimation,'w+')
             data.close()
         
+        #Rolling statistics of aruco pose estimation 
+        data = Path('../../../../data/aruco_pose_estimation_rolling_statistics.txt')
+        self.aruco_pose_estimation_rolling_statistics = '../../../../data/aruco_pose_estimation_rolling_statistics.txt'
+        if not data.is_file:
+            data = open(self.aruco_pose_estimation_rolling_statistics,'r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open(self.aruco_pose_estimation_rolling_statistics,'w+')
+            data.close()
+        
         #IMU, vision and ground truth data to be used in creating UKF
         data = Path('../../../../data/imu_vision_data.txt')
         self.imu_vision_data_path = '../../../../data/imu_vision_data.txt'
@@ -203,6 +214,16 @@ class log_data():
                    str(error_roll) + " " + str(error_pitch) + " " + str(error_yaw))
         data.write('\n')
         data.close()
+
+    def write_rolling_statistics(self, x, y, z, roll, pitch, yaw):
+        
+        #Write data to file for analyzing
+        data = open(self.aruco_pose_estimation_rolling_statistics,'a')
+        data.write(str(x) + " " + str(y) + " " + str(z) + " " + \
+                   str(roll) + " " + str(pitch) + " " + str(yaw))
+        data.write('\n')
+        data.close()
+
 
 if __name__ == "__main__":
     ld = log_data()

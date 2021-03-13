@@ -8,7 +8,7 @@
 
     <include>
       <uri>model://sdu_mono_cam_bottom</uri>
-      <pose>0 0 -0.05 0 1.57 -1.57</pose>
+      <pose>0 0 -0.05 0 1.57 -1.57</pose> <!-- -1.57 -->
     </include>
 
     <include>

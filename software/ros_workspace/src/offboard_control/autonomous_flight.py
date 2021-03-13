@@ -66,9 +66,6 @@ class autonomous_flight():
         #Publishers
         self.pub_local_pose = rospy.Publisher('/onboard/setpoint/autonomous_flight', PoseStamped, queue_size=1)
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=10)
-        #self.pub_enable_aruco_detection = rospy.Publisher('/onboard/enable_aruco_detection', Bool, queue_size=1)
-        #self.pub_aruco_ids = rospy.Publisher('/onboard/aruco_ids', mavlink_lora_aruco, queue_size=1)
-        #self.pub_change_aruco_board = rospy.Publisher('/onboard/change_aruco_board', Bool, queue_size=1)
         self.pub_aruco_board = rospy.Publisher('/onboard/aruco_board', Int8, queue_size=1)
 
         self.pub_aruco_offset = rospy.Publisher('/onboard/aruco_offset', PoseStamped, queue_size=1)
@@ -78,7 +75,6 @@ class autonomous_flight():
         rospy.Subscriber('/onboard/state', String, self.on_uav_state)
         rospy.Subscriber('/onboard/aruco_marker_pose', PoseStamped, self.on_aruco_change)
         rospy.Subscriber('/mavros/local_position/pose', PoseStamped, self.on_position_change)
-        #rospy.Subscriber('/onboard/next_board_found', Bool, self.next_board_found_callback)
         rospy.Subscriber('/onboard/aruco_board_found', Bool, self.aruco_board_found_callback)
         rospy.Subscriber('/odom', Odometry, self.ground_truth_callback)
         self.new_uav_local_pose = PoseStamped()
@@ -103,7 +99,7 @@ class autonomous_flight():
         self.ground_truth = data
 
     def aruco_board_found_callback(self, msg):
-        self.aruco_board_found = msg
+        self.aruco_board_found = msg.data
 
     #Fuction for updating onboard state
     def set_state(self, state):
@@ -371,19 +367,21 @@ class autonomous_flight():
     def GPS2Vision_test(self):
 
         #This test initiates the transition from using GPS to vision based navigation.
-
         initiate_high_speed = False
+        keep_orientation2GPS2Vision_marker = True
         
         #Inialize parameters
         while not self.mission[0][0] == '-':
             self.update_mission()
         
-        self.drone_takeoff(alt = 2.5)
+        alt_ = 2.5
+        self.drone_takeoff(alt = alt_)
 
         self.set_state('GPS2Vision_test')
         rospy.loginfo('Autonomous_flight: GPS to vision test startet')
         waypoint = []
 
+        #Step 1 -> Move to final position using GPS 
         while not self.mission[0][3] == '-':
             
             print(self.mission[0])
@@ -397,6 +395,37 @@ class autonomous_flight():
                     if self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold = self.waypoint_check_pose_error):
                         break
         
+        #Step 2 -> Look for ArUco marker in the image from last waypoint if not found
+        index = 0
+        
+        #Directions for initializing new places to search the GPS2Vision marker in meters if not found from last waypoint
+        searching_waypoints = []
+        shifts_x = [-1, -2, -3, -4]
+        shifts_y = [0]
+        shifts_yaw = [45, 0, -45] #This goes for each new waypoint
+
+        for x in shifts_x:
+            for y in shifts_y:
+                for yaw in shifts_yaw:
+                    pose = PoseStamped()
+                    pose.pose.position.x = waypoint[0] + x
+                    pose.pose.position.y = waypoint[1] + y
+                    pose.pose.position.z = waypoint[2]
+                    pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(yaw+waypoint[3]),'rxyz'))
+                    searching_waypoints.append([pose, waypoint[0] + x, waypoint[1] + y, alt_, yaw + waypoint[3]])
+
+        while not self.aruco_board_found:
+            
+            next_waypoint = searching_waypoints[index]
+            print(next_waypoint)
+            
+            while(not self.waypoint_check(setpoint = [next_waypoint[1], next_waypoint[2], next_waypoint[3], next_waypoint[4]], threshold = 0.25)):
+                self.pub_msg(next_waypoint[0], self.pub_local_pose)
+
+            index += 1
+
+
+        #Step 3 -> Now do final step by going from GPS2Vision navigation
         if self.aruco_board_found:
             
             rospy.loginfo('Autonomous_flight: Aruco board found!')
@@ -417,15 +446,10 @@ class autonomous_flight():
             
             waypoint = [float(self.mission[0][3]), float(self.mission[0][4]), float(self.mission[0][5]), float(self.mission[0][8])]
 
-            #Get ArUco position, mean and STD
+            #wait x seconds to start high speeds
             start_time = rospy.get_rostime()
-            timeout = rospy.Duration(1) #Test each position for x seconds 
-            #self.update_mission()
-            #print(self.next_waypoint)
-            #i = self.next_waypoint
+            timeout = rospy.Duration(0.5) 
 
-            #new_pose_set, waypoint = self.vision2local(self.aruco_ofset_mapping, i)
-            
             while len(self.mission):
                 
                 i = self.next_waypoint
@@ -435,11 +459,25 @@ class autonomous_flight():
                 new_pose_set, waypoint = self.vision2local(self.aruco_ofset_mapping, i)
 
                 while(not self.waypoint_check(setpoint = [waypoint[0], waypoint[1], waypoint[2], waypoint[3]], threshold = self.waypoint_check_pose_error)):
-                    self.pub_msg(new_pose_set, self.pub_local_pose)
-                    if not initiate_high_speed and (rospy.get_rostime() - start_time) < timeout:
+                    
+                    if not initiate_high_speed and (rospy.get_rostime() - start_time) > timeout:
                         initiate_high_speed = True
                         while not self.mission[0][0] == '-':
                             self.update_mission()
+
+                    if keep_orientation2GPS2Vision_marker:
+                        
+                        delta_x = self.aruco_pose.pose.position.x - 3.2 - 0.5 #Known GPS2Visiom marker pos with 0.5 offset to center
+                        delta_y = self.aruco_pose.pose.position.y - 3.0
+
+                        theta = np.arctan2(delta_y, delta_x)
+                        if theta < 0:
+                            theta = theta + np.pi
+                        new_pose_set.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, theta,'rxyz'))
+
+                    self.pub_msg(new_pose_set, self.pub_local_pose)
+
+                keep_orientation2GPS2Vision_marker = False
 
         self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
         self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)

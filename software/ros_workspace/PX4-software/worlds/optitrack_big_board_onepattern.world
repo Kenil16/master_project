@@ -22,7 +22,7 @@
 
     <!-- A aruco marker track for the drone to follow -->
     <model name="wall_with_markers">
-      <pose> 0 0 0 0 0 3.16</pose>
+      <pose> -0 0 0 0 0 3.16</pose>
       <include>
         <uri>model://wall_with_markers_big_board_onepattern</uri>
       </include>
@@ -341,6 +341,19 @@
       <real_time_update_rate>250</real_time_update_rate>
       <magnetic_field>6.0e-6 2.3e-5 -4.2e-5</magnetic_field>
     </physics>
+
+    <plugin name='wind_plugin' filename='libgazebo_wind_plugin.so'>
+      <frameId>base_link</frameId>
+      <!--<robotNamespace/>-->
+      <namespace>/foo/bar</namespace>
+      <xyzOffset>1 0 0</xyzOffset>
+      <windDirectionMean>0 1 0</windDirectionMean>
+      <windDirectionVariance>0.0</windDirectionVariance>
+      <windVelocityMean>0.0</windVelocityMean>
+      <windVelocityVariance>0.0</windVelocityVariance>
+      <windGustDirection>1 0 0</windGustDirection>
+      <windPubTopic>world_wind</windPubTopic>
+    </plugin>
 
    <!--Change default camera pose-->
 
