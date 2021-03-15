@@ -50,15 +50,15 @@ class marker_detection:
         #To be used in statistics for marker pose estimation presicion
         self.aruco_pose_estimate = []
         self.estimates_length_before_eval = 100
-        self.write_rolling_statistics = True
+        self.write_rolling_average = True
         self.time = 0.0
         
         #Transformation matrix from gps to vision marker to the ground wrt the drone
         self.T_gps2visionMarker_to_ground = identity_matrix()
         self.T_gps2visionMarker_to_ground = euler_matrix(np.pi/2, 0, 0, 'rxyz')
-        self.T_gps2visionMarker_to_ground[0][3] = -3.2 # 7.4/2 - 2*0.2 - 0.1 - 0.05 3.036 # 
-        self.T_gps2visionMarker_to_ground[1][3] = -3.00 # Blender model 7.4/2 - 0.712  3.023
-        self.T_gps2visionMarker_to_ground[2][3] = -2.58 # Blender model 2.82 - 0.25 (half of height) - 0.02 (because ground marker is 0.02 above gazebo)  -2.36
+        self.T_gps2visionMarker_to_ground[0][3] = -3.2 #+ 0.275#
+        self.T_gps2visionMarker_to_ground[1][3] = -3.00 #
+        self.T_gps2visionMarker_to_ground[2][3] = -2.58 #+ 0.125#
         
         #Transformation matrix from landing marker 1 to the ground wrt the drone
         self.T_landingMarker1_to_ground = identity_matrix()
@@ -234,10 +234,13 @@ class marker_detection:
         self.aruco_marker_pose_pub.publish(self.aruco_pose)
 
         if len(self.aruco_pose_estimate) == self.estimates_length_before_eval:
+
+            #Just clear file before writing
+            self.log_data.write_rolling_average(0,0,0,0,0,0,True)
             
-            if self.write_rolling_statistics:
+            if self.write_rolling_average:
                 for i in self.aruco_pose_estimate:
-                    self.log_data.write_rolling_statistics(i[0], i[1], i[2], i[3], i[4], i[5])
+                    self.log_data.write_rolling_average(i[0], i[1], i[2], i[3], i[4], i[5], False)
 
             self.aruco_pose_estimate = []
 

@@ -29,7 +29,6 @@
     </model>
 
     <!-- OptiTrack setup -->
-
     <model name="stand0">
       <pose>6 6 3 0 0 0</pose>
       <include>

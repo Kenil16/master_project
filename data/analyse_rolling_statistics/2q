@@ -1,0 +1,58 @@
+import pandas as pd
+import numpy as np
+
+import matplotlib.pyplot as plt
+from matplotlib import style
+style.use('fivethirtyeight')
+
+
+class calculate_rolling_averrage:
+
+    def __init__(self):
+        pass
+
+    def plot_data(self,file_nam, index, label_x_fig1, label_x_fig2, label_y_fig1, label_y_fig2,title):
+
+        df = pd.read_csv('../aruco_pose_estimation_rolling_statistics.txt', delimiter = " ")
+
+        """
+        # some sample data
+        ts = pd.Series(np.random.randn(1000), index=pd.date_range('1/1/2000', periods=1000)).cumsum()
+
+        #plot the time series
+        ts.plot(style='k--')
+
+        # calculate a 60 day rolling mean and plot
+        #pd.rolling_mean(ts, 60).plot(style='k')
+
+        ax = ts.rolling(60).mean().plot(style='k')
+        # add the 20 day rolling variance:
+
+        ax = ts.rolling(20).std().plot(style='b')
+        """
+
+        fig = plt.figure()
+        ax1 = plt.subplot2grid((2,1), (0,0))
+        ax2 = plt.subplot2grid((2,1), (1,0), sharex=ax1)
+
+        df = pd.read_csv('../aruco_pose_estimation_rolling_statistics.txt', delimiter = " ")
+        ts = pd.Series(df.iloc[:,0])
+
+        data_mean = ts.rolling(200).mean()
+        data_std = ts.rolling(200).std()
+
+        ts.plot(ax=ax1, label='Measurements')
+        ts.rolling(10).mean().plot(ax=ax1,label='Mean')
+        ts.rolling(10).std().plot(ax=ax2, label='STD')
+        ax1.legend(loc='best')
+        ax2.legend(loc='best')
+        plt.xlabel(label_x_fig1)
+        plt.ylabel(label_y_fig1)
+        plt.title(title)
+
+        plt.savefig('test.png')
+
+if __name__=="__main__":
+
+    cra = calculate_rolling_averrage()
+    cra.plot_data('../aruco_pose_estimation_rolling_statistics.txt', 0, 'Iteration','Iteration','Mean','STD','Calculated rolling avarage in x with mean and STD')

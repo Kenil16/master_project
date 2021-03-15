@@ -38,7 +38,7 @@ class graphics_plot:
                 data.append(str_to_float)
 
 
-        fig, ax = plt.subplots(figsize=(7,5),constrained_layout=True)
+        fig, ax = plt.subplots(figsize=(7.4,5),constrained_layout=True)
         ax.set_axisbelow(True)
         ax.set_facecolor('#E6E6E6')
         plt.grid(color='w', linestyle='solid')
@@ -63,10 +63,11 @@ class graphics_plot:
         x = np.array([item[0] for item in data])
         y = np.array([item[1] for item in data])
         z = np.array([item[index] for item in data])
-
+        
+        print(z)
         min_z, max_z = np.amin(z), np.amax(z)
         
-        z = np.reshape(z, (-1, 9))
+        z = np.reshape(z, (-1, 9)) #15
         print(z)
         
         im =plt.imshow(z, interpolation=METHODS[2], cmap=COLORS, vmin=min_z, vmax=max_z)
@@ -74,16 +75,24 @@ class graphics_plot:
         x_ = range(0,9, 1)
         y_ = range(0,7, 1)
        
-        xticks = ['0', '1', '3', '4', '5', '6', '7', '8', '9']
+        xticks = ['-4', '-3', '-2', '-1', '0', '1', '2', '3','4']
         yticks = ['-2', '-3', '-4', '-5', '-6', '-7', '-8']
         
         plt.xticks(x_, xticks,fontsize=20)
         plt.yticks(y_, yticks,fontsize=20)
 
+        #Only for illustration of where the rolling average testt positions where made. Could also
+        #also be used to illustrate the place where the interpolation where made (points)
+        cir1=plt.Circle((7, 6.0), 0.1, color='r')
+        cir2=plt.Circle((4, 3.0), 0.1, color='black')
+        
+        ax.add_patch(cir1)
+        ax.add_patch(cir2)
+        
         plt.xlabel(y_label,fontsize=20)
         plt.ylabel(x_label,fontsize=20)
         plt.title(title,fontsize=20)
-        cbar = plt.colorbar(im, cax = fig.add_axes([0.905, 0.15, 0.03, 0.78]))
+        cbar = plt.colorbar(im, cax = fig.add_axes([0.88, 0.1525, 0.03, 0.78]))
         for t in cbar.ax.get_yticklabels():
             t.set_fontsize(20)
 
@@ -95,7 +104,7 @@ if __name__ == "__main__":
     #Plot estimated AruCo positions from test 
     gp.plot_aruco_pose_est('aruco_pose_estimation_error_x.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in x (ArUco pose estimation) in meters',2)
     gp.plot_aruco_pose_est('aruco_pose_estimation_error_y.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in y (ArUco pose estimation) in meters',3)
-    gp.plot_aruco_pose_est('aruco_pose_estimation_error_z.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in x (ArUco pose estimation) in meters',4)
+    gp.plot_aruco_pose_est('aruco_pose_estimation_error_z.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in z (ArUco pose estimation) in meters',4)
     gp.plot_aruco_pose_est('aruco_pose_estimation_error_roll.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in roll (ArUco pose estimation) in degress ',5)
     gp.plot_aruco_pose_est('aruco_pose_estimation_error_pitch.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in pitch (ArUco pose estimation) in degress ',6)
     gp.plot_aruco_pose_est('aruco_pose_estimation_error_yaw.png','../GPS2Vision_aruco_pose_estimation.txt','y [m]', 'x [m]','Error in yaw (ArUco pose estimation) in degress ',7)
