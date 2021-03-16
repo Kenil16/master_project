@@ -17,6 +17,8 @@ from std_msgs.msg import Float64, Bool, Int8
 from mavlink_msgs.msg import mavlink_lora_aruco
 from nav_msgs.msg import Odometry
 
+from pandas import Series
+
 from sensor_fusion import*
 from log_data import *
 
@@ -48,9 +50,12 @@ class marker_detection:
         self.front_img = None
 
         #To be used in statistics for marker pose estimation presicion
+        self.write_aruco_pose_estimate = []
         self.aruco_pose_estimate = []
-        self.estimates_length_before_eval = 100
+        self.write_iterations_rolling_average = 100
+        self.iterations_rolling_average = 5
         self.write_rolling_average = True
+        self.max_std_rolling_average = 0.03
         self.time = 0.0
         
         #Transformation matrix from gps to vision marker to the ground wrt the drone
@@ -99,7 +104,8 @@ class marker_detection:
         self.aruco_marker_image_pub = rospy.Publisher('/onboard/aruco_marker_image', Image, queue_size=1)
         self.aruco_marker_pose_pub = rospy.Publisher('/onboard/aruco_marker_pose', PoseStamped, queue_size=1)
         self.aruco_marker_found_pub = rospy.Publisher('/onboard/aruco_board_found', Bool, queue_size=1)
-        #self.aruco_marker_pose_cov = rospy.Publisher('/onboard/aruco_marker_pose_cov', PoseWithCovarianceStamped, queue_size=1)
+        self.aruco_marker_pose_stable_pub = rospy.Publisher('/onboard/aruco_marker_pose_stable', Bool, queue_size=1)
+        self.aruco_marker_board_center_pub = rospy.Publisher('/onboard/aruco_marker_board_center', PoseStamped, queue_size=1)
 
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
@@ -125,7 +131,7 @@ class marker_detection:
         rospy.Timer(rospy.Duration(self.cycle_time), self.timer_callback)
         rospy.spin()
 
-    def local_position_callback(self, data):
+    def  local_position_callback(self, data):
         self.local_position = data
  
     def aruco_board_callback(self, data):
@@ -178,7 +184,11 @@ class marker_detection:
                 #Draw detected axis of markers
                 if self.draw_marker_axis:
                     image_markers = cv2.aruco.drawAxis(image_markers, camera_matrix, distortion_coefficients, _rvec, _tvec, 0.1)
-        
+
+                #This is only used in GPS2Vision if pose estimate is very unstable
+                if self.aruco_board == 1:
+                    self.center_aruco_board(marker_ids, marker_corners)
+
         self.marker_pose = pose
         img = self.bridge.cv2_to_imgmsg(image_markers,"bgr8")
         self.aruco_marker_image_pub.publish(img)
@@ -233,22 +243,59 @@ class marker_detection:
         
         self.aruco_marker_pose_pub.publish(self.aruco_pose)
 
-        if len(self.aruco_pose_estimate) == self.estimates_length_before_eval:
+        #Only use in the transition from GPS2Vision
+        if aruco_board == 1:
 
-            #Just clear file before writing
-            self.log_data.write_rolling_average(0,0,0,0,0,0,True)
-            
             if self.write_rolling_average:
-                for i in self.aruco_pose_estimate:
-                    self.log_data.write_rolling_average(i[0], i[1], i[2], i[3], i[4], i[5], False)
 
-            self.aruco_pose_estimate = []
+                if len(self.write_aruco_pose_estimate) == self.write_iterations_rolling_average:
 
-        else:
-            self.aruco_pose_estimate.append([self.aruco_pose.pose.position.x,
-                                             self.aruco_pose.pose.position.y,
-                                             self.aruco_pose.pose.position.z,
-                                             euler[0], euler[1], euler[2]])
+                    #Just clear file before writing
+                    self.log_data.write_rolling_average(0,0,0,0,0,0,True)
+                    
+                    for i in self.aruco_pose_estimate:
+                        self.log_data.write_rolling_average(i[0], i[1], i[2], i[3], i[4], i[5], False)
+
+                    self.write_aruco_pose_estimate = []
+
+                else:
+                    self.write_aruco_pose_estimate.append([self.aruco_pose.pose.position.x,
+                                                           self.aruco_pose.pose.position.y,
+                                                           self.aruco_pose.pose.position.z,
+                                                           euler[0], euler[1], euler[2]])
+            
+            if len(self.aruco_pose_estimate) == self.iterations_rolling_average:
+
+                x = Series(np.array([item[0] for item in self.aruco_pose_estimate]))
+                x_std = x.rolling(5).std()
+
+                x = Series(np.array([item[1] for item in self.aruco_pose_estimate]))
+                y_std = x.rolling(5).std()
+                
+                z = Series(np.array([item[2] for item in self.aruco_pose_estimate]))
+                z_std = x.rolling(5).std()
+                
+                roll = Series(np.array([item[3] for item in self.aruco_pose_estimate]))
+                roll_std = x.rolling(5).std()
+                
+                pitch = Series(np.array([item[4] for item in self.aruco_pose_estimate]))
+                pitch_std = x.rolling(5).std()
+
+                yaw = Series(np.array([item[5] for item in self.aruco_pose_estimate]))
+                yaw_std = x.rolling(5).std()
+
+                if (x_std[4] and y_std[4] and z_std[4] and roll_std[4] and pitch_std[4] and yaw_std[4]) < self.max_std_rolling_average:
+                    self.aruco_marker_pose_stable_pub.publish(True)
+                else:
+                    self.aruco_marker_pose_stable_pub.publish(False)
+
+                self.aruco_pose_estimate = []
+
+            else:
+                self.aruco_pose_estimate.append([self.aruco_pose.pose.position.x,
+                                                 self.aruco_pose.pose.position.y,
+                                                 self.aruco_pose.pose.position.z,
+                                                 euler[0], euler[1], euler[2]])
     
     def write_aruco_pos(self, x, y, z, kf_x, kf_y, kf_z, time):
         
@@ -273,31 +320,55 @@ class marker_detection:
             yaw = 0
             
         return np.array([roll, pitch, yaw])
+
+    def center_aruco_board(self, marker_ids, marker_corners):
+        
+        centers_y = []
+        centers_x = []
+
+        for corner, id_ in zip(marker_corners, marker_ids):
+            if id_ > 99 and id_ < 109: #GPS2Vision marker only
+                centerX = (corner[0][0][0] + corner[0][1][0] + corner[0][2][0] + corner[0][3][0]) / 4
+                centerY = (corner[0][0][1] + corner[0][1][1] + corner[0][2][1] + corner[0][3][1]) / 4
+                
+                centers_x.append(centerX)
+                centers_y.append(centerY)
+        
+        if len(centers_x) and len(centers_y):
+            center_mean_x = sum(centers_x)/len(centers_x)
+            center_mean_y = sum(centers_y)/len(centers_y)
+
+            pose = PoseStamped()
+            pose.pose.position.x = center_mean_x
+            pose.pose.position.y = center_mean_y
+            self.aruco_marker_board_center_pub.publish(pose)
     
     def timer_callback(self,event):
         
         #print(self.aruco_board)
         #Either go from GPS to vision, navigate through ground markers or perform a landing (1, 2, 3) all using vision. Zero means do not detect markers
-        if self.aruco_board == 1:
+        aruco_board = self.aruco_board
+
+        if aruco_board == 1:
             self.find_aruco_markers(self.front_img, self.aruco_board_gps2vision, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
-                self.estimate_marker_pose(self.aruco_board, self.T_gps2visionMarker_to_ground)
-        elif self.aruco_board == 2:
+                self.estimate_marker_pose(aruco_board, self.T_gps2visionMarker_to_ground)
+        elif aruco_board == 2:
             self.find_aruco_markers(self.bottom_img, self.aruco_board_vision, self.camera_matrix_bottom, self.distortion_coefficients_bottom)
             if self.aruco_board_found:
-                self.estimate_marker_pose(self.aruco_board)
-        elif self.aruco_board == 3:
+                self.estimate_marker_pose(aruco_board)
+        elif aruco_board == 3:
             self.find_aruco_markers(self.front_img, self.aruco_board_landing, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
-                self.estimate_marker_pose(self.aruco_board, self.T_landingMarker1_to_ground)
-        elif self.aruco_board == 4:
+                self.estimate_marker_pose(aruco_board, self.T_landingMarker1_to_ground)
+        elif aruco_board == 4:
             self.find_aruco_markers(self.front_img, self.aruco_board_landing, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
-                self.estimate_marker_pose(self.aruco_board, self.T_landingMarker2_to_ground)
-        elif self.aruco_board == 5:
+                self.estimate_marker_pose(aruco_board, self.T_landingMarker2_to_ground)
+        elif aruco_board == 5:
             self.find_aruco_markers(self.front_img, self.aruco_board_landing, self.camera_matrix_front, self.distortion_coefficients_front)
             if self.aruco_board_found:
-                self.estimate_marker_pose(self.aruco_board, self.T_landingMarker3_to_ground)
+                self.estimate_marker_pose(aruco_board, self.T_landingMarker3_to_ground)
 
         self.aruco_marker_found_pub.publish(self.aruco_board_found)
 

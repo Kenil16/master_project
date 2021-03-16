@@ -22,7 +22,7 @@ class calculate_rolling_average:
         ax2 = plt.subplot2grid((2,1), (1,0), sharex=ax1)
         
         ax1.legend(loc='best',fontsize=60)
-        df = pd.read_csv('test2/aruco_pose_estimation_rolling_average.txt', delimiter = " ")
+        df = pd.read_csv('test1/aruco_pose_estimation_rolling_average.txt', delimiter = " ")
         ts = pd.Series(df.iloc[:,index])
 
         data_mean = ts.rolling(200).mean()
@@ -46,17 +46,18 @@ class calculate_rolling_average:
         
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.1, top=0.93, hspace=0.2, wspace=0)
-        plt.savefig(fig_name,  facecolor=fig.get_facecolor())
+        plt.savefig(fig_name, facecolor=fig.get_facecolor())
 
 if __name__=="__main__":
 
     cra = calculate_rolling_average()
 
+    
     cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 0, 'Iteration','Iteration','Mean','STD','Rolling average in x in meters',
             'Calculated_rolling_average_in_x_with_mean_and_STD.png')
     cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 1, 'Iteration','Iteration','Mean','STD','Rolling average in y in meters',
             'Calculated_rolling_average_in_y_with_mean_and_STD.png')
-    cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 2, 'Iteration','Iteration','Mean','STD','Rolling average in z in meters',
+    cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 2, 'Iteration','Iteration','Mean','STD','Rolling average in x in degress',
             'Calculated_rolling_average_in_z_with_mean_and_STD.png')
     cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 3, 'Iteration','Iteration','Mean','STD','Rolling average in roll in degress',
             'Calculated_rolling_average_in_roll_with_mean_and_STD.png')
@@ -64,3 +65,16 @@ if __name__=="__main__":
             'Calculated_rolling_average_in_pitch_with_mean_and_STD.png')
     cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 5, 'Iteration','Iteration','Mean','STD','Rolling average in yaw in degress',
             'Calculated_rolling_average_in_yaw_with_mean_and_STD.png')
+    
+    """
+    cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 3, 'Iteration','Iteration','Mean','STD','Rolling average in roll in degress',
+    cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 3, 'Iteration','Iteration','Mean','STD','Rolling average in roll in degress',
+    cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 3, 'Iteration','Iteration','Mean','STD','Rolling average in roll in degress',
+    
+            cra.plot_data('../aruco_pose_estimation_rolling_average.txt', 3, 'Iteration','Iteration','Mean','STD','Rolling average in roll in degress',
+            'Calculated_rolling_average_in_roll_with_mean_and_STD.png')
+            'Calculated_rolling_average_in_pitch_with_mean_and_STD.png')
+            'Calculated_rolling_average_in_pitch_with_mean_and_STD.png')
+            'Calculated_rolling_average_in_yaw_with_mean_and_STD.png')
+
+    """
