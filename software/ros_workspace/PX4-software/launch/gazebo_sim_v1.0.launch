@@ -62,6 +62,6 @@
     <node pkg="offboard_control" type="ground_control.py" name="ground_control"  launch-prefix="gnome-terminal --command"></node>
     <node pkg="offboard_control" type="loiter_pilot.py" name="loiter_pilot" output="screen"></node>
     <node pkg="offboard_control" type="autonomous_flight.py" name="autonomous_flight" output="screen" cwd="node" args="$(arg autonomous_flight_args)"></node>
-    <node pkg="marker_detection" type="marker_detection.py" name="marker_detection" output="screen" cwd="node"></node>
+    <node pkg="marker_detection" type="marker_detection_ros_interface.py" name="marker_detection" output="screen" cwd="node"></node>
     <node pkg="marker_detection" type="sensor_fusion.py" name="sensor_fusion" output="screen" cwd="node"></node>
 </launch>

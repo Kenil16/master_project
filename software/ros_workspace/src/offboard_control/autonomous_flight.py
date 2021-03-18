@@ -33,9 +33,9 @@ class autonomous_flight():
         self.log_data = log_data()
         
         #Init PID controllers
-        self.pid_x = PID(0.1, 0.0, 1.7, 50, -50) #(0.8, 0.2, 1.3, 50, -50)
-        self.pid_y = PID(0.1, 0.0, 1.7, 50, -50) #(0.8, 0.2, 1.3, 50, -50)
-        self.pid_z = PID(1.0, 0.05, 1.0, 50, -50) # (0.5, 0.5, 0.5, 3, -3)
+        #self.pid_x = PID(0.1, 0.0, 1.7, 50, -50) #(0.8, 0.2, 1.3, 50, -50)
+        #self.pid_y = PID(0.1, 0.0, 1.7, 50, -50) #(0.8, 0.2, 1.3, 50, -50)
+        #self.pid_z = PID(1.0, 0.05, 1.0, 50, -50) # (0.5, 0.5, 0.5, 3, -3)
         #self.pid_yaw = PID(1.,1.,1.,1,-1)
 
         #Initialize objects for uav commands and status 
@@ -66,6 +66,8 @@ class autonomous_flight():
         self.next_waypoint = PoseStamped()
         self.ground_truth = Odometry()
 
+        self.r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
+
         #Publishers
         self.pub_local_pose = rospy.Publisher('/onboard/setpoint/autonomous_flight', PoseStamped, queue_size=1)
         self.pub_state = rospy.Publisher('/onboard/state', String, queue_size=10)
@@ -86,7 +88,7 @@ class autonomous_flight():
         rospy.Subscriber('/odom', Odometry, self.ground_truth_callback)
         self.new_uav_local_pose = PoseStamped()
 
-        self.init_data_files()
+        #self.init_data_files()
 
         #Initialize uav flightmodes
         self.flight_mode.wait_for_topics(60)
@@ -97,6 +99,15 @@ class autonomous_flight():
             print(self.uav_local_pose)
             self.uav_home_pose = self.uav_local_pose
             self.init_uav_home_pose = True
+        
+        """
+        angle = euler_from_quaternion([self.uav_local_pose.pose.orientation.x,
+                                       self.uav_local_pose.pose.orientation.y,
+                                       self.uav_local_pose.pose.orientation.z,
+                                       self.uav_local_pose.pose.orientation.w])
+
+        print(angle)
+        """
 
     def on_setpoint_change(self, msg):
         self.uav_local_setpoint = msg
@@ -379,6 +390,8 @@ class autonomous_flight():
 
     def GPS2Vision_test(self):
 
+        self.mission = self.read_mission(self.args[1])
+
         #This test initiates the transition from using GPS to vision based navigation.
         initiate_high_speed = False
         keep_orientation2GPS2Vision_marker = True
@@ -485,12 +498,46 @@ class autonomous_flight():
         self.aruco_offset = self.aruco_pose
         self.uav_offset = self.uav_local_pose
 
-        self.pub_aruco_offset.publish(self.aruco_offset)
         self.pub_uav_offset.publish(self.uav_offset)
+        self.pub_aruco_offset.publish(self.aruco_offset)
 
-        self.aruco_ofset_mapping = [[self.uav_offset.pose.position.x, self.aruco_offset.pose.position.x],
-                                    [self.uav_offset.pose.position.y, self.aruco_offset.pose.position.y],
-                                    [self.uav_offset.pose.position.z, self.aruco_offset.pose.position.z]]
+        angle_uav = euler_from_quaternion([self.uav_offset.pose.orientation.x,
+                                           self.uav_offset.pose.orientation.y,
+                                           self.uav_offset.pose.orientation.z,
+                                           self.uav_offset.pose.orientation.w])
+
+        angle_aruco = euler_from_quaternion([self.aruco_offset.pose.orientation.x,
+                                             self.aruco_offset.pose.orientation.y,
+                                             self.aruco_offset.pose.orientation.z,
+                                             self.aruco_offset.pose.orientation.w])
+        
+        r_uav = quaternion_matrix([self.uav_offset.pose.orientation.x,
+                                           self.uav_offset.pose.orientation.y,
+                                           self.uav_offset.pose.orientation.z,
+                                           self.uav_offset.pose.orientation.w])
+
+
+        r_aruco = quaternion_matrix([self.aruco_offset.pose.orientation.x,
+                                             self.aruco_offset.pose.orientation.y,
+                                             self.aruco_offset.pose.orientation.z,
+                                             self.aruco_offset.pose.orientation.w])
+
+        self.r = np.matmul(r_aruco.T, r_uav)
+
+        #self.r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
+        
+        t = np.array([self.aruco_offset.pose.position.x,
+                      self.aruco_offset.pose.position.y,
+                      self.aruco_offset.pose.position.z, 1])
+        print(t)
+        t = np.dot(self.r,t)
+
+        self.aruco_ofset_mapping = [[self.uav_offset.pose.position.x, t[0]],
+                                    [self.uav_offset.pose.position.y, t[1]],
+                                    [self.uav_offset.pose.position.z, t[2]],
+                                    [angle_uav[2], angle_aruco[2]]]
+        
+        #self.aruco_ofset_mapping = [self.uav_offset, self.aruco_offset]
         
         #Inialize parameters
         while not self.mission[0][0] == '-':
@@ -501,9 +548,10 @@ class autonomous_flight():
         #wait x seconds to start high speeds
         start_time = rospy.get_rostime()
         timeout = rospy.Duration(0.5) 
-
+        
+        new_pose_set = PoseStamped()
         while len(self.mission):
-            
+            print('sds')
             i = self.next_waypoint
             print(self.mission[0])
             self.update_mission()
@@ -516,7 +564,7 @@ class autonomous_flight():
                     initiate_high_speed = True
                     while not self.mission[0][0] == '-':
                         self.update_mission()
-
+                
                 if keep_orientation2GPS2Vision_marker:
                     
                     delta_x = self.aruco_pose.pose.position.x - 3.2 - 0.5 #Known GPS2Visiom marker pos with 0.5 offset to center
@@ -525,22 +573,65 @@ class autonomous_flight():
                     theta = np.arctan2(delta_y, delta_x)
                     if theta < 0:
                         theta = theta + np.pi
+                    
+                    theta = (self.aruco_ofset_mapping[3][0] - (self.aruco_ofset_mapping[3][1] - theta))
+                    
                     new_pose_set.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, theta,'rxyz'))
 
                 self.pub_msg(new_pose_set, self.pub_local_pose)
 
             keep_orientation2GPS2Vision_marker = False
 
-        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.10, 5)
-        #self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.1, 5)
-        #self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.1, 5)
 
+        angle = euler_from_quaternion([self.aruco_offset.pose.orientation.x,
+                       self.aruco_offset.pose.orientation.y,
+                       self.aruco_offset.pose.orientation.z,
+                       self.aruco_offset.pose.orientation.w])
+
+        theta = (self.aruco_ofset_mapping[3][0] - (self.aruco_ofset_mapping[3][1] - angle[2]))
+        pose = PoseStamped()
+        pose.pose.position.x = new_pose_set.pose.position.x
+        pose.pose.position.y = new_pose_set.pose.position.y
+        pose.pose.position.z = new_pose_set.pose.position.z
+        pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, theta,'rxyz')) #self.aruco_offset.pose.orientation
+ 
+        while(not self.waypoint_check(setpoint = [pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, np.rad2deg(theta)], threshold = 0.10)):
+            self.pub_msg(pose, self.pub_local_pose)
+        
         self.flight_mode.set_param('MC_ROLLRATE_MAX', 1.0, 5)
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 1.0, 5)
         self.flight_mode.set_param('MC_YAWRATE_MAX', 1.0, 5)
 
         self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
         self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
+
+        #wait x seconds to start high speeds
+
+        pose = PoseStamped()
+        pose.pose.position.x = self.uav_offset.pose.position.x
+        pose.pose.position.y = self.uav_offset.pose.position.y
+        pose.pose.position.z = self.uav_offset.pose.position.z
+        pose.pose.orientation = self.uav_offset.pose.orientation
+
+        angle = euler_from_quaternion([pose.pose.orientation.x,
+                               pose.pose.orientation.y,
+                               pose.pose.orientation.z,
+                               pose.pose.orientation.w])
+
+        setpoint = [self.uav_offset.pose.position.x, self.uav_offset.pose.position.y, self.uav_offset.pose.position.z, np.rad2deg(angle[2])]
+        start_time = rospy.get_rostime()
+        timeout = rospy.Duration(1.0)
+
+        while (rospy.get_rostime() - start_time) < timeout:
+            self.pub_msg(pose, self.pub_local_pose)
+            pass
+
+        self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)
+        self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)
+        self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
+
+        while(not self.waypoint_check(setpoint = [self.uav_offset.pose.position.x, self.uav_offset.pose.position.y, self.uav_offset.pose.position.z, np.rad2deg(angle[2])], threshold = 0.10)):
+            self.pub_msg(pose, self.pub_local_pose)
 
         rospy.loginfo('Autonomous_flight: Follow aruco pose utilising the bottom camera test complete')
         self.set_state('loiter')
@@ -552,7 +643,7 @@ class autonomous_flight():
         while not self.mission[0][0] == '-':
             self.update_mission()
         self.mission.pop(0)
-        
+
         self.drone_takeoff(alt = 2.5)
 
         self.set_state('follow_aruco_pose_bottom_test')
@@ -616,14 +707,13 @@ class autonomous_flight():
 
         #Set UAV maximum linear and angular velocities in m/s and deg/s respectively
         
-        self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.1, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.1, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.1, 5)
+        #self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.1, 5)
+        #self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.1, 5)
+        #self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.1, 5)
 
-        
-        self.flight_mode.set_param('MC_ROLLRATE_MAX', 0.1, 5)
-        self.flight_mode.set_param('MC_PITCHRATE_MAX', 0.1, 5)
-        self.flight_mode.set_param('MC_YAWRATE_MAX', 0.1, 5)
+        self.flight_mode.set_param('MC_ROLLRATE_MAX', 1.0, 5)
+        self.flight_mode.set_param('MC_PITCHRATE_MAX', 1.0, 5)
+        self.flight_mode.set_param('MC_YAWRATE_MAX', 1.0, 5)
 
         alt_ = 2.5
         self.drone_takeoff(alt = alt_)
@@ -658,7 +748,6 @@ class autonomous_flight():
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)
         self.flight_mode.set_param('MC_YAWRATE_MAX', 135.0, 5)
 
-
         #See elapsed time
         start = timer()
         time_sec = 0.0
@@ -692,6 +781,7 @@ class autonomous_flight():
         rospy.loginfo('Autonomous_flight: Hold position by using the aruco marker test complete')
         self.set_state('loiter')
     
+    """
     #Helper functions
     def generate_route(self, moves, alt):
     
@@ -718,23 +808,42 @@ class autonomous_flight():
                 waypoints.append(waypoint)
         
         return waypoints
+    """
 
     def vision2local(self, aruco_ofset_mapping, aruco_pose):
 
-        new_pose = PoseStamped()
-        new_pose.pose.position.x = aruco_ofset_mapping[0][0] - (aruco_ofset_mapping[0][1] - aruco_pose.pose.position.x)
-        new_pose.pose.position.y = aruco_ofset_mapping[1][0] - (aruco_ofset_mapping[1][1] - aruco_pose.pose.position.y)
-        new_pose.pose.position.z = aruco_ofset_mapping[2][0] - (aruco_ofset_mapping[2][1] - aruco_pose.pose.position.z)
-        new_pose.pose.orientation = aruco_pose.pose.orientation
-        
         angle = euler_from_quaternion([aruco_pose.pose.orientation.x,
                                        aruco_pose.pose.orientation.y,
                                        aruco_pose.pose.orientation.z,
                                        aruco_pose.pose.orientation.w])
 
-        return new_pose, [new_pose.pose.position.x, new_pose.pose.position.y, new_pose.pose.position.z, np.rad2deg(angle[2])]
+        
+        new_yaw = (aruco_ofset_mapping[3][0] - (aruco_ofset_mapping[3][1] - angle[2]))
 
+        print("NEW YAW SETPOINT: " + str(new_yaw))
 
+        """
+        new_pose = PoseStamped()
+        new_pose.pose.position.x = aruco_ofset_mapping[0][0] - (aruco_ofset_mapping[0][1] - aruco_pose.pose.position.x)
+        new_pose.pose.position.y = aruco_ofset_mapping[1][0] - (aruco_ofset_mapping[1][1] - aruco_pose.pose.position.y)
+        new_pose.pose.position.z = aruco_ofset_mapping[2][0] - (aruco_ofset_mapping[2][1] - aruco_pose.pose.position.z)
+        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, new_yaw,'rxyz'))
+        new_pose.pose.orientation = aruco_pose.pose.orientation
+        """
+        #r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
+        t = np.array([aruco_pose.pose.position.x,
+                      aruco_pose.pose.position.y,
+                      aruco_pose.pose.position.z, 1])
+        print(t)
+        t = np.dot(self.r,t)
+
+        new_pose = PoseStamped()
+        new_pose.pose.position.x = aruco_ofset_mapping[0][0] - (aruco_ofset_mapping[0][1] - t[0])
+        new_pose.pose.position.y = aruco_ofset_mapping[1][0] - (aruco_ofset_mapping[1][1] - t[1])
+        new_pose.pose.position.z = aruco_ofset_mapping[2][0] - (aruco_ofset_mapping[2][1] - t[2])
+        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, new_yaw,'rxyz'))
+
+        return new_pose, [new_pose.pose.position.x, new_pose.pose.position.y, new_pose.pose.position.z, np.rad2deg(new_yaw)]
 
     def update_mission(self):
 
@@ -809,6 +918,7 @@ class autonomous_flight():
                 self.GPS2Vision_test()
             self.rate.sleep()
 
+    """
     def write_pose_error(self, time, setpoint, file_path):
         
         #Write data to file for analyzing 
@@ -821,7 +931,7 @@ class autonomous_flight():
         data.write(str(x) + " " + str(setpoint[0]) + " " + str(y) + " " + str(setpoint[1]) + " " + str(z) + " " + str(setpoint[2]) + " " + str(time))
         data.write('\n')
         data.close()
-
+    
     def init_data_files(self):
         
         #Init data textfile for aruco pose estimation for front camera 
@@ -853,6 +963,8 @@ class autonomous_flight():
         else:
             data = open('../../../../data/hold_aruco_pose/data.txt','w+')
             data.close()
+
+    """
 if __name__ == "__main__":
     af = autonomous_flight()
     af.run() 

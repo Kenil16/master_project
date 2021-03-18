@@ -4,7 +4,7 @@ import numpy as np
 import rospy
 from  mavros_msgs.msg import State
 from mavros_msgs.srv import SetMode
-
+from tf.transformations import*
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import (String, Int8, Float64, Bool)
 from geometry_msgs.msg import PoseStamped, Quaternion, PoseWithCovarianceStamped
@@ -36,10 +36,18 @@ class drone_control():
         self.sensor_fusion = PoseStamped()
         self.aruco_ofset_mapping = [[0,0],
                                     [0,0],
+                                    [0,0],
                                     [0,0]]
 
         self.aruco_pose_covariance = PoseWithCovarianceStamped()
         self.aruco_pose_corrected = PoseStamped()
+
+        self.aruco_offset = PoseStamped()
+        self.uav_offset = PoseStamped()
+        self.aruco_offset_init = False
+        self.uav_offset_init = False
+
+        self.r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
 
         #Subscribers
         rospy.Subscriber('/mavros/state', State, self.cb_uav_state) 
@@ -104,18 +112,63 @@ class drone_control():
     def aruco_offset_callback(self,msg):
         offset = msg
         print(offset)
-        self.aruco_ofset_mapping[0][1] = offset.pose.position.x
-        self.aruco_ofset_mapping[1][1] = offset.pose.position.y
-        self.aruco_ofset_mapping[2][1] = offset.pose.position.z
 
+        self.aruco_offset = msg
+        self.aruco_offset_init = True
+        """
+        
+        #r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
+        t = np.array([offset.pose.position.x,
+                      offset.pose.position.y,
+                      offset.pose.position.z, 1])
+        
+        r_uav = quaternion_matrix([offset.pose.orientation.x,
+                                   offset.pose.orientation.y,
+                                   offset.pose.orientation.z,
+                                   offset.pose.orientation.w])
+
+
+        r_aruco = quaternion_matrix([offset.pose.orientation.x,
+                                     offset.pose.orientation.y,
+                                     offset.pose.orientation.z,
+                                     offset.pose.orientation.w])
+
+        self.r = np.matmul(r_a.T,r_b)
+        t = np.dot(self.r,t)
+
+        angle = euler_from_quaternion([offset.pose.orientation.x,
+                       offset.pose.orientation.y,
+                       offset.pose.orientation.z,
+                       offset.pose.orientation.w])
+        
+        print("aruco_offset: " + str(angle[2]))
+        
+        self.aruco_ofset_mapping[0][1] = t[0]
+        self.aruco_ofset_mapping[1][1] = t[1]
+        self.aruco_ofset_mapping[2][1] = t[2]
+        self.aruco_ofset_mapping[3][1] = angle[2]
+        """
 
     def uav_offset_callback(self,msg):
         offset = msg
+
+        self.uav_offset = msg
+        self.uav_offset_init = True
+        
+        """
+        angle = euler_from_quaternion([offset.pose.orientation.x,
+               offset.pose.orientation.y,
+               offset.pose.orientation.z,
+               offset.pose.orientation.w])
+
         print(offset)
+        print("uav_offset: " + str(angle[2]))
         self.aruco_ofset_mapping[0][0] = offset.pose.position.x
         self.aruco_ofset_mapping[1][0] = offset.pose.position.y
         self.aruco_ofset_mapping[2][0] = offset.pose.position.z
-    
+        self.aruco_ofset_mapping[3][0] = angle[2]
+        """
+
     def on_uav_state(self,msg):
         self.uav_state = msg.data
 
@@ -209,11 +262,86 @@ class drone_control():
 
     def vision2local(self, aruco_ofset_mapping, aruco_pose):
 
+        if self.aruco_offset_init and self.uav_offset_init:
+            
+            angle_uav = euler_from_quaternion([self.uav_offset.pose.orientation.x,
+                                               self.uav_offset.pose.orientation.y,
+                                               self.uav_offset.pose.orientation.z,
+                                               self.uav_offset.pose.orientation.w])
+
+            angle_aruco = euler_from_quaternion([self.aruco_offset.pose.orientation.x,
+                                                 self.aruco_offset.pose.orientation.y,
+                                                 self.aruco_offset.pose.orientation.z,
+                                                 self.aruco_offset.pose.orientation.w])
+
+            r_uav = quaternion_matrix([self.uav_offset.pose.orientation.x,
+                                       self.uav_offset.pose.orientation.y,
+                                       self.uav_offset.pose.orientation.z,
+                                       self.uav_offset.pose.orientation.w])
+
+
+            r_aruco = quaternion_matrix([self.aruco_offset.pose.orientation.x,
+                                         self.aruco_offset.pose.orientation.y,
+                                         self.aruco_offset.pose.orientation.z,
+                                         self.aruco_offset.pose.orientation.w])
+
+            t = np.array([self.aruco_offset.pose.position.x,
+                          self.aruco_offset.pose.position.y,
+                          self.aruco_offset.pose.position.z, 1])
+            
+            self.r = np.matmul(r_aruco.T, r_uav)
+            print(euler_from_matrix(self.r,'rxyz'))
+            #self.r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
+            
+            t = np.dot(self.r,t)
+
+            self.aruco_ofset_mapping = [[self.uav_offset.pose.position.x, t[0]],
+                                        [self.uav_offset.pose.position.y, t[1]],
+                                        [self.uav_offset.pose.position.z, t[2]],
+                                        [angle_uav[2], angle_aruco[2]]]
+            
+            self.aruco_offset_init = False
+            self.uav_offset_init = False
+
+        
+        angle = euler_from_quaternion([aruco_pose.pose.orientation.x,
+                               aruco_pose.pose.orientation.y,
+                               aruco_pose.pose.orientation.z,
+                               aruco_pose.pose.orientation.w])
+        
+        
+        new_yaw = (aruco_ofset_mapping[3][0] - (aruco_ofset_mapping[3][1] - angle[2]))
+        #print("NEW YAW: " + str(new_yaw) + " " + str(aruco_ofset_mapping[3][0]) + " " + str(aruco_ofset_mapping[3][1]) + " " + str(angle[2]))
+        
+        r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
+        t = np.array([aruco_pose.pose.position.x,
+                      aruco_pose.pose.position.y,
+                      aruco_pose.pose.position.z, 1])
+        #print(t)
+        t = np.dot(self.r,t)
+
+        new_pose = PoseStamped()
+        new_pose.pose.position.x = aruco_ofset_mapping[0][0] - (aruco_ofset_mapping[0][1] - t[0])
+        new_pose.pose.position.y = aruco_ofset_mapping[1][0] - (aruco_ofset_mapping[1][1] - t[1])
+        new_pose.pose.position.z = aruco_ofset_mapping[2][0] - (aruco_ofset_mapping[2][1] - t[2])
+        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(angle[0], angle[1], new_yaw,'rxyz'))
+        
+        """
         new_pose = PoseStamped()
         new_pose.pose.position.x = aruco_ofset_mapping[0][0] - (aruco_ofset_mapping[0][1] - aruco_pose.pose.position.x)
         new_pose.pose.position.y = aruco_ofset_mapping[1][0] - (aruco_ofset_mapping[1][1] - aruco_pose.pose.position.y)
         new_pose.pose.position.z = aruco_ofset_mapping[2][0] - (aruco_ofset_mapping[2][1] - aruco_pose.pose.position.z)
-        new_pose.pose.orientation = aruco_pose.pose.orientation
+        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(angle[0], angle[1], new_yaw,'rxyz'))
+        """
+        
+        """
+        new_pose = PoseStamped()
+        new_pose.pose.position.x = aruco_ofset_mapping[0][0] - (aruco_ofset_mapping[0][1] - aruco_pose.pose.position.x)
+        new_pose.pose.position.y = aruco_ofset_mapping[1][0] - (aruco_ofset_mapping[1][1] - aruco_pose.pose.position.y)
+        new_pose.pose.position.z = aruco_ofset_mapping[2][0] - (aruco_ofset_mapping[2][1] - aruco_pose.pose.position.z)
+        #new_pose.pose.orientation = aruco_pose.pose.orientation
+        new_pose.pose.orientation = Quaternion(*quaternion_from_euler(angle[0], angle[1], angle[2],'rxyz'))
+        """
 
         return new_pose
         
