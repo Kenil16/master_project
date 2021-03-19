@@ -35,7 +35,7 @@ class marker_detection:
         self.write_iterations_rolling_average = 100
         self.iterations_rolling_average = 5
         self.write_rolling_average = True
-        self.max_std_rolling_average = 0.03
+        self.max_std_rolling_average = 0.01
         self.time = 0.0
 
         #Variables for aruco pose estimate before transformations
@@ -150,7 +150,6 @@ class marker_detection:
             self.marker_pose.pose.orientation = q_new
         
         else:
-            
             T = euler_matrix(np.deg2rad(180), 0, 0, 'rxyz')
             r = np.matmul(r,T[:3, :3])
             t = np.dot(T_front_to_ground[:3, :3],t)
@@ -165,11 +164,7 @@ class marker_detection:
         
         
         #Only used for valification of marker pose estimate 
-        #print(euler_from_quaternion([self.marker_pose.pose.orientation.x,
-        #                             self.marker_pose.pose.orientation.y,
-        #                             self.marker_pose.pose.orientation.z,
-        #                             self.marker_pose.pose.orientation.w]))
-        
+        #print(euler_from_quaternion([self.marker_pose.pose.orientation.x, self.marker_pose.pose.orientation.y, self.marker_pose.pose.orientation.z, self.marker_pose.pose.orientation.w]))
         #euler = euler_from_matrix(r,'rxyz')
         #print "Ori: {} x: {} y: {} z: {} \n".format(euler, self.marker_pose.pose.position.x, self.marker_pose.pose.position.y, self.marker_pose.pose.position.z)
 

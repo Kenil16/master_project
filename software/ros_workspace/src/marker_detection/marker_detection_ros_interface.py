@@ -115,6 +115,7 @@ class marker_detection_ros_interface:
         #Publish only if using GPS2Vision aruco board (if the estimated pose is stable(based on rolling average))
         if aruco_board == 1:
             self.aruco_marker_pose_stable_pub.publish(self.marker_detection.aruco_marker_pose_stable)
+            self.aruco_marker_board_center_pub.publish(self.marker_detection.center_of_board)
 
         #Publish only if wanted aruco board is found
         if self.marker_detection.aruco_board_found:

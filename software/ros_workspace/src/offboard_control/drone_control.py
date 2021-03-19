@@ -243,9 +243,10 @@ class drone_control():
             if self.uav_state == 'follow_aruco_pose_bottom_test':
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
-                self.pub_msg(self.sensor_fusion, self.pub_vision_pose)
+                #self.pub_msg(self.sensor_fusion, self.pub_vision_pose)
+                new_pose = self.vision2local(self.aruco_ofset_mapping, self.aruco_marker_pose_msg)
                 
-                #self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
+                self.pub_msg(new_pose, self.pub_vision_pose)
             
             if self.uav_state == 'hold_aruco_pose_test':
                 output_msg = self.autonomous_flight_pose_msg
@@ -290,7 +291,7 @@ class drone_control():
                           self.aruco_offset.pose.position.z, 1])
             
             self.r = np.matmul(r_aruco.T, r_uav)
-            print(euler_from_matrix(self.r,'rxyz'))
+            print("teeeeees:" + str(euler_from_matrix(self.r,'rxyz')))
             #self.r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
             
             t = np.dot(self.r,t)
