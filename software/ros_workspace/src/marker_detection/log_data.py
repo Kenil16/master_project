@@ -127,8 +127,8 @@ class log_data():
         t_g[2][3] = ground_truth.pose.pose.position.z
 
         #Perform matrix multiplication for pose aligment
-        T =  np.matmul(r_m, t_g)
-
+        T = np.matmul(r_m, t_g)
+        
         #Get angles and translation in degress
         g_euler = euler_from_matrix(T,'rxyz')
 

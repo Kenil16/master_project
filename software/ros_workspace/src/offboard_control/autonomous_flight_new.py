@@ -64,6 +64,23 @@ class autonomous_flight():
                                   [0,0],
                                   [0,0],
                                   [0,0]]
+
+        #Waypoints for routes to landing station one, two and three
+        self.landing_station_one_waypoints = [[[3.65, 1.10, 1.5, -90], [3.65, 4.25, 1.5, -90], [3.65, 4.25, 1.5, 45],
+                                               [0.40, 4.25, 1.5, 45], [0.40, 7.10, 1.5, 90]],
+                                              [[0.40, 7.10, 1.5, 90], [0.40, 4.25, 1.5, 90], [3.65, 4.25, 1.5, 90],
+                                               [3.65, 4.25, 1.5, 90], [3.65, 1.10, 1.5, 90]]]
+
+        self.landing_station_two_waypoints = [[[3.65, 1.10, 1.5, -90], [3.65, 7.10, 1.5, 90]],
+                                              [[7.10, 7.10, 1.5, 45], [3.65, 1.10, 1.5, 90]]]
+
+        self.landing_station_three_waypointd = [[[3.65, 1.10, 1.5, -90], [3.65, 4.25, 1.5, -90], [3.65, 4.25, 1.5, 45],
+                                                 [0.40, 4.25, 1.5, 45], [0.40, 7.10, 1.5, 90]],
+                                                [[0.40, 7.10, 1.5, 90], [0.40, 4.25, 1.5, 90], [3.65, 4.25, 1.5, 90],
+                                                 [3.65, 4.25, 1.5, 90], [3.65, 1.10, 1.5, 90]]]
+
+        #Variable to keep track of the used landing station 
+        self.landing_station = 3
         
         self.mission = self.read_mission(self.args[1])
         #self.mission = self.read_mission('../../../../missions/mission3.txt')
@@ -630,20 +647,30 @@ class autonomous_flight():
 
 
         #self.mission = self.read_mission(self.args[1])
-
+        
         self.drone_takeoff(alt = 2.5)
         self.set_state('follow_aruco_pose_bottom_test')
         rospy.loginfo('Autonomous_flight: Follow aruco pose utilising the bottom camera test startet')
 
-        self.GPS_navigation(waypoints_xyzYaw=[[8, 0, 2.5, 0]])
+        self.GPS_navigation(waypoints_xyzYaw=[[8, 10, 2.5, 0]])
         self.GPS2Vision_navigation()
 
-        waypoints_xyzYaw = [[3.65, 1.10, 1.5, 90], [3.65, 4.25, 1.5, 90], [3.65, 4.25, 1.5, 90],
-                            [0.40, 4.25, 1.5, 90], [0.40, 7.1, 1.5, 90]]
+        waypoints_xyzYaw = [[3.65, 1.10, 1.5, -90], [3.65, 4.25, 1.5, -90], [3.65, 4.25, 1.5, 45],
+                            [0.40, 4.25, 1.5, 45], [0.40, 7.1, 1.5, 90]]
 
         self.vision_navigation(waypoints_xyzYaw=waypoints_xyzYaw)
-        self.vision_landing_navigation(1)
-        self.vision_takeoff_navigation(1)
+        
+
+        self.vision_landing_navigation(3)
+
+        start_time = rospy.get_rostime()
+        timeout = rospy.Duration(10.0)
+
+        while (rospy.get_rostime() - start_time) < timeout:
+            pass
+        
+
+        self.vision_takeoff_navigation(3)
 
         waypoints_xyzYaw = [[0.40, 7.10, 1.5, 90], [0.40, 4.25, 1.5, 90], [3.65, 4.25, 1.5, 90],
                             [3.65, 4.25, 1.5, 90], [3.65, 1.10, 1.5, 90]]
@@ -654,6 +681,65 @@ class autonomous_flight():
         self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
             
         rospy.loginfo('Autonomous_flight: Follow aruco pose utilising the bottom camera test complete')
+        self.set_state('loiter')
+
+    def return_to_landing_station_one(self):
+
+        self.drone_takeoff(alt = 2.5)
+        self.set_state('return_to_landing_station_one')
+        rospy.loginfo('Autonomous_flight: Returning to landing station one!')
+
+        self.GPS_navigation(waypoints_xyzYaw=[[8, 10, 2.5, 0]])
+        self.GPS2Vision_navigation()
+        self.vision_navigation(waypoints_xyzYaw=self.landing_station_one_waypoints[0])
+        self.vision_landing_navigation(3)
+
+        self.landing_station = 3
+
+        rospy.loginfo('Autonomous_flight: Drone returned to landing station one complete')
+        self.set_state('idle')
+    
+    def return_to_landing_station_two(self):
+
+        self.drone_takeoff(alt = 2.5)
+        self.set_state('return_to_landing_station_two')
+        rospy.loginfo('Autonomous_flight: Returning to landing station two!')
+
+        self.GPS_navigation(waypoints_xyzYaw=[[8, 10, 2.5, 0]])
+        self.GPS2Vision_navigation()
+        self.vision_navigation(waypoints_xyzYaw=self.landing_station_two_waypoints[0])
+        self.vision_landing_navigation(4)
+        
+        self.landing_station = 4
+
+        rospy.loginfo('Autonomous_flight: Drone returned to landing station two complete')
+        self.set_state('idle')
+
+
+    def return_to_landing_station_three(self):
+
+        self.drone_takeoff(alt = 2.5)
+        self.set_state('return_to_landing_station_three')
+        rospy.loginfo('Autonomous_flight: Returning to landing station three!')
+
+        self.GPS_navigation(waypoints_xyzYaw=[[8, 10, 2.5, 0]])
+        self.GPS2Vision_navigation()
+        self.vision_navigation(waypoints_xyzYaw=self.landing_station_three_waypoints[0])
+        self.vision_landing_navigation(5)
+
+        self.landing_station = 5
+
+        rospy.loginfo('Autonomous_flight: Drone returned to landing station three complete')
+        self.set_state('idle')
+
+    def move2GPS_locations_from_vision(self):
+        
+        rospy.loginfo('Autonomous_flight: Drone navigation from vision to GPS locations started!')
+
+        self.vision2GPS_navigation()
+        #self.fly_route(waypoints_xyzYaw=[[-8, 0, 2.5, 0],[-8, -5, 2.5, 0]])
+        
+        rospy.loginfo('Autonomous_flight: Drone navigation from vision to GPS locations completed!')
         self.set_state('loiter')
     
     def hold_aruco_pose_test(self):
@@ -851,11 +937,27 @@ class autonomous_flight():
 
     def vision2GPS_navigation(self):
         
-        #Using data from bottom camera
-        self.pub_aruco_board.publish(2)
+        #This substate performs a smooth transition between using vision to GPS navigation
+        rospy.loginfo('Autonomous_flight: Vision2GPS started!')
 
+        #Use the landing station where the drone is positioned
+        self.pub_aruco_board.publish(self.landing_station)
 
-        pass
+        self.vision_takeoff_navigation(self.landing_station)
+        
+        if self.landing_station == 3:
+            waypoints_xyzYaw = self.landing_station_one_waypoints[1]
+
+        if self.landing_station == 4:
+            waypoints_xyzYaw = self.landing_station_two_waypoints[1]
+        
+        if self.landing_station == 5:
+            waypoints_xyzYaw = self.landing_station_three_waypoints[1]
+        print(waypoints_xyzYaw)
+        self.vision_navigation(waypoints_xyzYaw=waypoints_xyzYaw)
+        self.GPS_navigation(waypoints_poseStamped=[self.uav_local_pose])
+
+        rospy.loginfo('Autonomous_flight: Vision2GPS complete!')
 
     def locate_marker_board(self, uav_pose, start_x, end_x, steps_x, start_y, end_y, steps_y, start_yaw, end_yaw, steps_yaw):
         
@@ -968,17 +1070,15 @@ class autonomous_flight():
         #Using data from front camera to landing marker 
         self.pub_aruco_board.publish(landing_station)
     
-        if landing_station == 1:
-            waypoints_xyzYaw = [[0.4, 7.1, 1.5, 90], [0.4, 7.1, 0.2, 90]]
-        elif landing_station == 2:
+        if landing_station == 3:
+            waypoints_xyzYaw = [[0.4, 7.1, 1.5, 90], [0.4, 7.1, 1.5, 90]]
+        elif landing_station == 4:
             waypoints_xyzYaw = [[3.75, 7.1, 1.5, 90], [3.75, 7.1, 0.2, 90]]
-        elif landing_station == 3:
+        elif landing_station == 5:
             waypoints_xyzYaw = [[7.1, 7.1, 1.5, 90], [7.1, 7.1, 0.2, 90]]
 
-        self.fly_route(waypoints_poseStamped, waypoints_xyzYaw, self.GPS2Vision_offset)
-
-        #Disarm drone when close tyo ground
-        self.flight_mode.set_arm(False,5)
+        self.fly_route(waypoints_xyzYaw=waypoints_xyzYaw, GPS2Vision_offset=self.GPS2Vision_offset)
+        self.flight_mode.set_mode('AUTO.LAND',10)
 
         rospy.loginfo('Autonomous_flight: Vision landing completed!')
     
@@ -990,16 +1090,42 @@ class autonomous_flight():
         #Using data from front camera to landing marker
         self.pub_aruco_board.publish(landing_station)
         
-        #Disarm drone when close tyo ground
+        #See if vision is already used as pose estimation 
+        ret = self.flight_mode.get_param_uav(param_id='EKF2_AID_MASK')
+        if ret == None or not ret.success:
+            rospy.sleep(5)
+
+        #Arm drone and go into offboard control
         self.flight_mode.set_arm(True,5)
-        
-        if landing_station == 1:
+        self.flight_mode.set_mode('OFFBOARD',5)
+
+        #Set to vision estimates if not enabled
+        EKF2_AID_MASK = self.flight_mode.get_param('EKF2_AID_MASK')
+
+        if not EKF2_AID_MASK.value.integer == 24:
+
+            #Now make transformation of the aruco pose to that of the GPS to insure a smooth GPS2Vision transition
+            self.map_GPS_pose_to_vision(self.aruco_pose, self.uav_local_pose)
+            
+            #Set maximum horizontal and vertical volocities
+            self.flight_mode.set_param('MPC_XY_VEL_MAX', 1.0, 5)
+            self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 1.0, 5)
+            self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 1.0, 5)
+            #Set maximum angular velocities
+            self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)
+            self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)
+            self.flight_mode.set_param('MC_YAWRATE_MAX', 135.0, 5)
+            #Set to use vision as pose estimate
+            self.flight_mode.set_param('EKF2_AID_MASK', 24, 5)
+            self.flight_mode.set_param('EKF2_HGT_MODE', 3, 5)
+
+        if landing_station == 3:
             waypoints_xyzYaw = [[0.4, 7.1, 1.5, 90]]
-        elif landing_station == 2:
+        elif landing_station == 4:
             waypoints_xyzYaw = [[3.75, 7.1, 1.5, 90]]
-        elif landing_station == 3:
+        elif landing_station == 5:
             waypoints_xyzYaw = [[7.1, 7.1, 1.5, 90]]
-        self.fly_route(waypoints_poseStamped, waypoints_xyzYaw, self.GPS2Vision_offset)
+        self.fly_route(waypoints_xyzYaw=waypoints_xyzYaw, GPS2Vision_offset=self.GPS2Vision_offset)
 
         rospy.loginfo('Autonomous_flight: Vision takeoff completed!')
 
@@ -1058,7 +1184,7 @@ class autonomous_flight():
                 pose.pose.position.x = waypoint[0]
                 pose.pose.position.y = waypoint[1]
                 pose.pose.position.z = waypoint[2]
-                pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, waypoint[3],'rxyz'))
+                pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(waypoint[3]),'rxyz'))
                 
                 if not GPS2Vision_offset == None:
                     pose = self.calculate_GPS2Vision_offset(GPS2Vision_offset, pose)
@@ -1089,6 +1215,8 @@ class autonomous_flight():
         pose.pose.position.y = GPS2Vision_offset[1][0] - (GPS2Vision_offset[1][1] - t[1])
         pose.pose.position.z = GPS2Vision_offset[2][0] - (GPS2Vision_offset[2][1] - t[2])
         pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, yaw,'rxyz'))
+
+        print(euler_from_quaternion([pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w]))
 
         return pose
 
@@ -1123,7 +1251,6 @@ class autonomous_flight():
         #Find the rotation between the aruco board and that of the drone to map 
         #vision to the original coordinate system used by the drone 
         self.r = np.matmul(r_aruco.T, r_uav)
-        print("test " + str(euler_from_matrix(self.r,'rxyz')))
         t = np.array([aruco_pose.pose.position.x,
                       aruco_pose.pose.position.y,
                       aruco_pose.pose.position.z, 1])
@@ -1209,6 +1336,10 @@ class autonomous_flight():
                 self.follow_aruco_pose_bottom_test()
             elif self.uav_state == 'GPS2Vision_test':
                 self.GPS2Vision_test()
+            elif self.uav_state == 'return_to_landing_station_one':
+                self.return_to_landing_station_one()
+            elif self.uav_state == 'move2GPS_locations_from_vision':
+                self.move2GPS_locations_from_vision()
             self.rate.sleep()
 
     """

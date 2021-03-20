@@ -54,7 +54,7 @@ class marker_detection:
         self.T_landingMarker1_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
         self.T_landingMarker1_to_ground[0][3] = 0.04 
         self.T_landingMarker1_to_ground[1][3] = 8.53
-        self.T_landingMarker1_to_ground[2][3] = 0.08
+        self.T_landingMarker1_to_ground[2][3] = 0.18
         
         #Transformation matrix from landing marker 2 to the ground wrt the drone
         self.T_landingMarker2_to_ground = identity_matrix()
@@ -138,8 +138,8 @@ class marker_detection:
 
         if aruco_board_config == 2: #If bottom cam is used
             
-            T = euler_matrix(0, np.deg2rad(180), 0, 'rxyz')
-            r = np.matmul(r, T[:3, :3])
+            T = euler_matrix(0, np.pi, 0, 'rxyz')
+            r = np.matmul(r.T, T[:3, :3])
             euler = euler_from_matrix(r,'rxyz')
             q_new = Quaternion(*quaternion_from_euler(euler[0], euler[1], euler[2],'rxyz'))
             
@@ -150,11 +150,11 @@ class marker_detection:
             self.marker_pose.pose.orientation = q_new
         
         else:
-            T = euler_matrix(np.deg2rad(180), 0, 0, 'rxyz')
-            r = np.matmul(r,T[:3, :3])
+            T = euler_matrix(np.pi, 0, 0, 'rxyz')
+            r = np.matmul(r.T,T[:3, :3])
             t = np.dot(T_front_to_ground[:3, :3],t)
             euler = euler_from_matrix(r,'rxyz')
-            q_new = Quaternion(*quaternion_from_euler(-euler[0], -euler[2], euler[1] + np.deg2rad(90),'rxyz'))
+            q_new = Quaternion(*quaternion_from_euler(-euler[2], -euler[0], euler[1] + np.deg2rad(90),'rxyz'))
             
             #Update ArUco marker pose
             self.marker_pose.pose.position.x = t[0] + T_front_to_ground[0][3]
@@ -254,6 +254,6 @@ class marker_detection:
             pose.pose.position.y = center_mean_y
         
         return pose
-    
+
 if __name__ == "__main__":
     node = marker_detection()

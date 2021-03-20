@@ -209,6 +209,12 @@ class drone_control():
         if command == '4':
             self.set_state('GPS2Vision_test')
 
+        if command == '5':
+            self.set_state('return_to_landing_station_one')
+
+        if command == '6':
+            self.set_state('move2GPS_locations_from_vision')
+
     def message_control(self):
 
         if not self.uav_state == 'idle':
@@ -244,7 +250,8 @@ class drone_control():
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
                 #self.pub_msg(self.sensor_fusion, self.pub_vision_pose)
-                new_pose = self.vision2local(self.aruco_ofset_mapping, self.aruco_marker_pose_msg)
+                #new_pose = self.vision2local(self.aruco_ofset_mapping, self.aruco_marker_pose_msg)
+                new_pose = self.vision2local(self.aruco_ofset_mapping, self.sensor_fusion)
                 
                 self.pub_msg(new_pose, self.pub_vision_pose)
             
@@ -252,7 +259,19 @@ class drone_control():
                 output_msg = self.autonomous_flight_pose_msg
                 self.pub_msg(output_msg, self.pub_local_pose)
                 self.pub_msg(self.aruco_marker_pose_msg, self.pub_vision_pose)
-            
+
+            if self.uav_state == 'return_to_landing_station_one':
+                output_msg = self.autonomous_flight_pose_msg
+                self.pub_msg(output_msg, self.pub_local_pose)
+                new_pose = self.vision2local(self.aruco_ofset_mapping, self.aruco_marker_pose_msg) 
+                self.pub_msg(new_pose, self.pub_vision_pose)
+
+            if self.uav_state == 'move2GPS_locations_from_vision':
+                output_msg = self.autonomous_flight_pose_msg
+                self.pub_msg(output_msg, self.pub_local_pose)
+                new_pose = self.vision2local(self.aruco_ofset_mapping, self.aruco_marker_pose_msg) 
+                self.pub_msg(new_pose, self.pub_vision_pose)
+
             if output_msg == None:
                 rospy.logfatal_once("Drone control received no message: Has a pilot crashed?")
                 self.set_mode(0, "AUTO.LOITER")
@@ -314,7 +333,7 @@ class drone_control():
         new_yaw = (aruco_ofset_mapping[3][0] - (aruco_ofset_mapping[3][1] - angle[2]))
         #print("NEW YAW: " + str(new_yaw) + " " + str(aruco_ofset_mapping[3][0]) + " " + str(aruco_ofset_mapping[3][1]) + " " + str(angle[2]))
         
-        r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
+        self.r = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
         t = np.array([aruco_pose.pose.position.x,
                       aruco_pose.pose.position.y,
                       aruco_pose.pose.position.z, 1])

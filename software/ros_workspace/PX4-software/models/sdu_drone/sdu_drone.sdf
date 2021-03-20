@@ -834,7 +834,7 @@
 
     <plugin name="libgazebo_ros_p3d.so" filename="libgazebo_ros_p3d.so">
       <xyzOffsets>10 0 0</xyzOffsets>
-      <rpyOffsets>0 0 1.5708</rpyOffsets>
+      <rpyOffsets>0 0 0</rpyOffsets>
       <frameName>map</frameName>
       <bodyName>base_link</bodyName>
       <topicName>odom</topicName>

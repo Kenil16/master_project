@@ -218,12 +218,19 @@ class flight_modes:
 
         try:
             ret = self.get_param_uav(param_id=param_id)
+            return ret
+        except rospy.ServiceException as ex:
+            raise IOError(str(ex))
+
+        """
+        try:
+            ret = self.get_param_uav(param_id=param_id)
         except rospy.ServiceException as ex:
             raise IOError(str(ex))
     
         if not ret.success:
             raise IOError("uav_flight_modes: Request failed.")
-              
+        """   
     def wait_for_topics(self, timeout):
         
         """wait for simulation to be ready, make sure we're getting topic info

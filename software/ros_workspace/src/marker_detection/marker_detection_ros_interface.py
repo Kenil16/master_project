@@ -26,7 +26,7 @@ class marker_detection_ros_interface:
 
         #Configuration of marker board 1(GPS2Vision) 2(Vision navigation) 3(Vision landing 1)
         #4(Vision landing 2) and 5(Vision landing 3)
-        self.aruco_board = 1
+        self.aruco_board = 2
         
         #Subscribers
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)
@@ -88,7 +88,7 @@ class marker_detection_ros_interface:
                                                      self.marker_detection.distortion_coefficients_front,
                                                      self.draw_markers)
             if self.marker_detection.aruco_board_found:
-                self.marker_detection.estimate_marker_pose(aruco_board, self.T_landingMarker1_to_ground, self.ground_truth)
+                self.marker_detection.estimate_marker_pose(aruco_board, self.marker_detection.T_landingMarker1_to_ground, self.ground_truth)
         #Using bottom camera (Vision landing 2)
         elif aruco_board == 4:
             self.marker_detection.find_aruco_markers(self.front_img, 
