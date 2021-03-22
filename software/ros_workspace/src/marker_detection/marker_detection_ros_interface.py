@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
-import rospy
-from sensor_msgs.msg import Image
-from std_msgs.msg import Bool, Int8
-from nav_msgs.msg import Odometry
+#import rospy
+#from sensor_msgs.msg import Image
+#from std_msgs.msg import Bool, Int8
+#from nav_msgs.msg import Odometry
 from marker_detection import*
 
 class marker_detection_ros_interface:
@@ -21,12 +21,12 @@ class marker_detection_ros_interface:
         
         #Variables for marker detection
         self.ground_truth = Odometry()
-        self.aruco_pose = PoseStamped()
+        #self.aruco_pose = PoseStamped()
         self.draw_markers = True
 
         #Configuration of marker board 1(GPS2Vision) 2(Vision navigation) 3(Vision landing 1)
         #4(Vision landing 2) and 5(Vision landing 3)
-        self.aruco_board = 2
+        self.aruco_board = 1
         
         #Subscribers
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)
@@ -79,7 +79,7 @@ class marker_detection_ros_interface:
                                                      self.marker_detection.distortion_coefficients_bottom,
                                                      self.draw_markers)
             if self.marker_detection.aruco_board_found:
-                self.marker_detection.estimate_marker_pose(aruco_board, ground_truth = self.ground_truth)
+                self.marker_detection.estimate_marker_pose(aruco_board_config=aruco_board, ground_truth=self.ground_truth)
         #Using bottom camera (Vision landing 1)
         elif aruco_board == 3:
             self.marker_detection.find_aruco_markers(self.front_img, 

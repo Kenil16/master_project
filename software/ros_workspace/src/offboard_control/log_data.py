@@ -1,12 +1,27 @@
 #!/usr/bin/env python2
+
 from pathlib import Path
 from tf.transformations import euler_matrix, euler_from_matrix, quaternion_from_euler, euler_from_quaternion, quaternion_matrix, quaternion_from_matrix
-from geometry_msgs.msg import PoseStamped, Quaternion, PoseWithCovariance, PoseWithCovarianceStamped, Point
+from geometry_msgs.msg import PoseStamped, Quaternion
 from nav_msgs.msg import Odometry
 import numpy as np
+
 class log_data():
 
     def __init__(self):
+
+        
+        #Variables for aruco pose estimation error 
+        self.aruco_x = []
+        self.aruco_y = []
+        self.aruco_z = []
+        self.aruco_roll = []
+        self.aruco_pitch = []
+        self.aruco_yaw = []
+        
+        self.delta_x = 0.0
+        self.delta_y = 0.0
+        self.delta_z = 0.0
 
         #Aruco pose estimation 
         data = Path('../../../../data/aruco_pose_estimation.txt')
@@ -52,6 +67,7 @@ class log_data():
             data = open(self.imu_noise_data_path,'w+')
             data.close()
 
+
         #GPS2Vision data for analysing error in aruco pose estimation 
         data = Path('../../../../data/GPS2Vision_aruco_pose_estimation.txt')
         self.GPS2Vision_aruco_pose_estimation_path = '../../../../data/GPS2Vision_aruco_pose_estimation.txt'
@@ -63,6 +79,17 @@ class log_data():
             data = open(self.GPS2Vision_aruco_pose_estimation_path,'w+')
             data.close()
 
+        #Hold pose data for analysing error in keeping the current pose from aruco marker estimation
+        data = Path('../../../../data/hold_pose_using_aruco_pose_estimation.txt')
+        self.hold_pose_using_aruco_pose_estimation_path = '../../../../data/hold_pose_using_aruco_pose_estimation.txt'
+        if not data.is_file:
+            data = open(self.hold_pose_using_aruco_pose_estimation_path,'r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open(self.hold_pose_using_aruco_pose_estimation_path,'w+')
+            data.close()
+    
     #To be used in sensor fusion 
     def write_vision_imu_data(self, x, y, z, acc_x, acc_y, acc_z, roll, pitch, 
                               yaw, gyro_x, gyro_y, gyro_z, baro, time, vision_seq, 
@@ -78,6 +105,29 @@ class log_data():
                    str(baro) + " " + str(time) + " " + str(vision_seq) + " " + \
                    str(imu_seq) + " " + str(baro_seq) + " " + str(g_roll) + " " + \
                    str(g_pitch) + " " + str(g_yaw) + " " + str(g_x) + " " + str(g_y) + " " + str(g_z))
+        data.write('\n')
+        data.close()
+
+    def write_hold_pose_using_aruco_pose_estimation_data(self, marker_pose, 
+                                                         setpoint_x, setpoint_y, setpoint_z,
+                                                         setpoint_roll, setpoint_pitch, setpoint_yaw):
+        
+        #Get time
+        time = marker_pose.header.stamp.secs + marker_pose.header.stamp.nsecs/1000000000.
+        #Get setpoint data
+        x = marker_pose.pose.position.x
+        y = marker_pose.pose.position.y
+        z = marker_pose.pose.position.z
+        euler = euler_from_quaternion([marker_pose.pose.orientation.x,
+                                       marker_pose.pose.orientation.y,
+                                       marker_pose.pose.orientation.z,
+                                       marker_pose.pose.orientation.w])
+
+        data = open(self.hold_pose_using_aruco_pose_estimation_path,'a')
+        data.write(str(x) + " " + str(y) + " " + str(z) + " " + \
+                   str(np.rad2deg(euler[0])) + " " + str(np.rad2deg(euler[1])) + " " + str(np.rad2deg(euler[2])) + " " + \
+                   str(setpoint_x) + " " + str(setpoint_y) + " " + str(setpoint_z) + " " + \
+                   str(setpoint_roll) + " " + str(setpoint_pitch) + " " + str(setpoint_yaw) + " " + str(time))
         data.write('\n')
         data.close()
 
@@ -158,15 +208,116 @@ class log_data():
         data.write('\n')
         data.close()
         
-    def write_GPS2Vision_marker_detection_data(self, setpoint_x, setpoint_y, error_x, error_y, error_z, error_roll, error_pitch, error_yaw):
+    def write_GPS2Vision_marker_detection_data(self, setpoint_x, setpoint_y):
+        
+        mean_error_x = sum(self.aruco_x)/len(self.aruco_x)
+        mean_error_y = sum(self.aruco_y)/len(self.aruco_y)
+        mean_error_z = sum(self.aruco_z)/len(self.aruco_z)
+
+        mean_error_roll = sum(self.aruco_roll)/len(self.aruco_roll)
+        mean_error_pitch = sum(self.aruco_pitch)/len(self.aruco_pitch)
+        mean_error_yaw = sum(self.aruco_yaw)/len(self.aruco_yaw)
 
         #Write data to file for analyzing
         data = open(self.GPS2Vision_aruco_pose_estimation_path,'a')
         data.write(str(setpoint_x) + " " + str(setpoint_y) + " " + \
-                   str(error_x) + " " + str(error_y) + " " + str(error_z) + " " + \
-                   str(error_roll) + " " + str(error_pitch) + " " + str(error_yaw))
+                   str(mean_error_x) + " " + str(mean_error_y) + " " + str(mean_error_z) + " " + \
+                   str(mean_error_roll) + " " + str(mean_error_pitch) + " " + str(mean_error_yaw))
         data.write('\n')
         data.close()
+
+        self.aruco_x = []
+        self.aruco_y = []
+        self.aruco_z = []
+        self.aruco_roll = []
+        self.aruco_pitch = []
+        self.aruco_yaw = []
+
+    def calculate_error_pose(self, aruco_pose, ground_truth):
+
+        #Rotation to align ground truth to aruco marker
+        r_m = euler_matrix(0, 0, np.pi/2, 'rxyz')
+
+        #Get current ground truth orientation
+        t_g = quaternion_matrix(np.array([ground_truth.pose.pose.orientation.x,
+                                          ground_truth.pose.pose.orientation.y,
+                                          ground_truth.pose.pose.orientation.z,
+                                          ground_truth.pose.pose.orientation.w]))
+
+        #Get current ground truth translation
+        t_g[0][3] = ground_truth.pose.pose.position.x
+        t_g[1][3] = ground_truth.pose.pose.position.y
+        t_g[2][3] = ground_truth.pose.pose.position.z
+
+        #Perform matrix multiplication for pose aligment
+        T =  np.matmul(r_m, t_g)
+
+        #Get angles and translation in degress
+        g_euler = euler_from_matrix(T,'rxyz')
+
+        #Because plugin is initiated in (0,0,0).
+        g_x = T[0][3] + 7.4/2
+        g_y = T[1][3] + 7.4/2
+        g_z = T[2][3]
+
+        g_roll = np.rad2deg(g_euler[0])
+        g_pitch = np.rad2deg(-g_euler[1])
+        g_yaw = np.rad2deg(g_euler[2])
+
+
+        angle = euler_from_quaternion([aruco_pose.pose.orientation.x,
+                                       aruco_pose.pose.orientation.y,
+                                       aruco_pose.pose.orientation.z,
+                                       aruco_pose.pose.orientation.w])
+
+        error_x = abs(aruco_pose.pose.position.x-g_x)
+        error_y = abs(aruco_pose.pose.position.y-g_y)
+        error_z = abs(aruco_pose.pose.position.z-g_z)
+        error_roll = abs(np.rad2deg(angle[0])-g_roll)
+        error_pitch = abs(np.rad2deg(angle[1])-g_pitch)
+        error_yaw = abs(np.rad2deg(angle[2])-g_yaw)
+
+        self.aruco_x.append(error_x)
+        self.aruco_y.append(error_y)
+        self.aruco_z.append(error_z)
+        self.aruco_roll.append(error_roll)
+        self.aruco_pitch.append(error_pitch)
+        self.aruco_yaw.append(error_yaw)
+
+    def generate_waypoints(self, x, y, alt):
+
+        #Initialize waypoints
+        waypoints = []
+        dis_to_aruco_x = 2
+        dx = 0
+        dy = 4
+
+        #Initiate waypoints as a grid where the drone faces the aruco marker at all time
+        for row in range(7): #Steps in y in meters
+            for col in range(9): #Steps in x in meters
+
+                pose = PoseStamped()
+                pose.pose.position.x = x+dx
+                pose.pose.position.y = y+dy
+                pose.pose.position.z = alt
+
+                #To be used so that the drone always facing the marker
+                if (y+dy) < 0:
+                    yaw = np.deg2rad(90) - np.arctan((dis_to_aruco_x/abs(y+dy)))
+                elif (y+dy) > 0:
+                    yaw = -1*(np.deg2rad(90) - np.arctan((dis_to_aruco_x/abs(y+dy))))
+                else:
+                    yaw = 0
+
+                pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, yaw))
+                dy = dy - 1
+                waypoints.append(pose)
+
+            dy = 4
+            dx = dx - 1
+            dis_to_aruco_x = dis_to_aruco_x + 1
+
+        return waypoints
 
 if __name__ == "__main__":
     ld = log_data()

@@ -161,7 +161,9 @@ class marker_detection:
             self.marker_pose.pose.position.y = t[1] + T_front_to_ground[1][3]
             self.marker_pose.pose.position.z = t[2] + T_front_to_ground[2][3]
             self.marker_pose.pose.orientation = q_new
-        
+
+        #To set time between estimations 
+        self.marker_pose.header.stamp = ground_truth.header.stamp
         
         #Only used for valification of marker pose estimate 
         #print(euler_from_quaternion([self.marker_pose.pose.orientation.x, self.marker_pose.pose.orientation.y, self.marker_pose.pose.orientation.z, self.marker_pose.pose.orientation.w]))
