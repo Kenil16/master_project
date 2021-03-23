@@ -30,7 +30,7 @@ class loiter_pilot():
         rospy.loginfo('Loiter: Loiter pilot Ready')
 
     def _pubMsg(self, msg, topic):
-        msg.header.frame_id = "att_pose"
+        msg.header.frame_id = "att_pose_loiter"
         msg.header.stamp = rospy.Time.now()
         topic.publish(msg)
         self.rate.sleep()

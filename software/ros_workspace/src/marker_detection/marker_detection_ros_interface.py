@@ -40,6 +40,7 @@ class marker_detection_ros_interface:
         self.aruco_marker_found_pub = rospy.Publisher('/onboard/aruco_board_found', Bool, queue_size=1)
         self.aruco_marker_pose_stable_pub = rospy.Publisher('/onboard/aruco_marker_pose_stable', Bool, queue_size=1)
         self.aruco_marker_board_center_pub = rospy.Publisher('/onboard/aruco_marker_board_center', PoseStamped, queue_size=1)
+        self.dis_to_GPS2Vision_marker_pub = rospy.Publisher('/onboard/dis_to_GPS2Vision_marker', Float32, queue_size=1)
 
         rospy.Timer(rospy.Duration(self.cycle_time), self.timer_callback)
         rospy.spin()
@@ -116,6 +117,7 @@ class marker_detection_ros_interface:
         if aruco_board == 1:
             self.aruco_marker_pose_stable_pub.publish(self.marker_detection.aruco_marker_pose_stable)
             self.aruco_marker_board_center_pub.publish(self.marker_detection.center_of_board)
+            self.dis_to_GPS2Vision_marker_pub.publish(self.marker_detection.dis_to_GPS2Vision_marker)
 
         #Publish only if wanted aruco board is found
         if self.marker_detection.aruco_board_found:

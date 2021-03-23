@@ -8,7 +8,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from tf.transformations import euler_matrix, quaternion_from_euler, euler_from_matrix, euler_from_quaternion, identity_matrix
 from geometry_msgs.msg import PoseStamped, Quaternion
-from std_msgs.msg import Bool, Int8
+from std_msgs.msg import Bool, Int8, Float32
 from pandas import Series
 from log_data import*
 
@@ -37,6 +37,7 @@ class marker_detection:
         self.write_rolling_average = True
         self.max_std_rolling_average = 0.01
         self.time = 0.0
+        self.dis_to_GPS2Vision_marker = 0.0
 
         #Variables for aruco pose estimate before transformations
         self.aruco_pos = [0., 0., 0.]
@@ -209,20 +210,20 @@ class marker_detection:
             x = Series(np.array([item[0] for item in self.aruco_pose_estimate]))
             x_std = x.rolling(5).std()
 
-            x = Series(np.array([item[1] for item in self.aruco_pose_estimate]))
-            y_std = x.rolling(5).std()
+            y = Series(np.array([item[1] for item in self.aruco_pose_estimate]))
+            y_std = y.rolling(5).std()
             
             z = Series(np.array([item[2] for item in self.aruco_pose_estimate]))
-            z_std = x.rolling(5).std()
+            z_std = z.rolling(5).std()
             
             roll = Series(np.array([item[3] for item in self.aruco_pose_estimate]))
-            roll_std = x.rolling(5).std()
+            roll_std = roll.rolling(5).std()
             
             pitch = Series(np.array([item[4] for item in self.aruco_pose_estimate]))
-            pitch_std = x.rolling(5).std()
+            pitch_std = pitch.rolling(5).std()
 
             yaw = Series(np.array([item[5] for item in self.aruco_pose_estimate]))
-            yaw_std = x.rolling(5).std()
+            yaw_std = yaw.rolling(5).std()
 
             if (x_std[4] and y_std[4] and z_std[4] and roll_std[4] and pitch_std[4] and yaw_std[4]) < self.max_std_rolling_average:
                 self.aruco_marker_pose_stable = True
@@ -230,6 +231,9 @@ class marker_detection:
                 self.aruco_marker_pose_stable = False
 
             self.aruco_pose_estimate = []
+            self.dis_to_GPS2Vision_marker = np.sqrt((x.rolling(5).mean()[4]-self.T_gps2visionMarker_to_ground[0][3])**2 + 
+                                                    (y.rolling(5).mean()[4]-self.T_gps2visionMarker_to_ground[1][3])**2 + 
+                                                    (z.rolling(5).mean()[4]-self.T_gps2visionMarker_to_ground[0][3])**2)
 
         else:
             self.aruco_pose_estimate.append([x, y, z, euler[0], euler[1], euler[2]])
