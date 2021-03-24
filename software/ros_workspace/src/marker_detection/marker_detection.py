@@ -46,30 +46,30 @@ class marker_detection:
         #Transformation matrix from gps to vision marker to the ground wrt the drone
         self.T_gps2visionMarker_to_ground = identity_matrix()
         self.T_gps2visionMarker_to_ground = euler_matrix(np.pi/2, 0, 0, 'rxyz')
-        self.T_gps2visionMarker_to_ground[0][3] = 3.2 #+ 0.275#
+        self.T_gps2visionMarker_to_ground[0][3] = 3.15 #+ 0.275#
         self.T_gps2visionMarker_to_ground[1][3] = 3.00 #
         self.T_gps2visionMarker_to_ground[2][3] = 2.58 #+ 0.125#
         
         #Transformation matrix from landing marker 1 to the ground wrt the drone
         self.T_landingMarker1_to_ground = identity_matrix()
         self.T_landingMarker1_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
-        self.T_landingMarker1_to_ground[0][3] = 0.04 
-        self.T_landingMarker1_to_ground[1][3] = 8.53
-        self.T_landingMarker1_to_ground[2][3] = 0.18
+        self.T_landingMarker1_to_ground[0][3] = 0.10 
+        self.T_landingMarker1_to_ground[1][3] = 8.60
+        self.T_landingMarker1_to_ground[2][3] = 0.08
         
         #Transformation matrix from landing marker 2 to the ground wrt the drone
         self.T_landingMarker2_to_ground = identity_matrix()
         self.T_landingMarker2_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
-        self.T_landingMarker2_to_ground[0][3] = 3.38
-        self.T_landingMarker2_to_ground[1][3] = 8.59
-        self.T_landingMarker2_to_ground[2][3] = 0.07
+        self.T_landingMarker2_to_ground[0][3] = 3.45
+        self.T_landingMarker2_to_ground[1][3] = 8.60
+        self.T_landingMarker2_to_ground[2][3] = 0.08
         
         #Transformation matrix from landing marker 3 to the ground wrt the drone
         self.T_landingMarker3_to_ground = identity_matrix()
         self.T_landingMarker3_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
-        self.T_landingMarker3_to_ground[0][3] = 6.73
-        self.T_landingMarker3_to_ground[1][3] = 8.64
-        self.T_landingMarker3_to_ground[2][3] = 0.07
+        self.T_landingMarker3_to_ground[0][3] = 6.80
+        self.T_landingMarker3_to_ground[1][3] = 8.60
+        self.T_landingMarker3_to_ground[2][3] = 0.08
         
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)

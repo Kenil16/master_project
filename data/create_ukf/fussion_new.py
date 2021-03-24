@@ -218,17 +218,17 @@ class ukf():
         
         # Process Noise
         q = np.eye(12)
-        q[0][0] = 0.5 #x
-        q[1][1] = 0.5 #y
+        q[0][0] = 0.005 #x
+        q[1][1] = 0.005 #y
         q[2][2] = 0.05 #z
         q[3][3] = 0.05 #vel x
         q[4][4] = 0.05 #vel y
         q[5][5] = 0.05 #roll
         q[6][6] = 0.05 #pitch
         q[7][7] = 0.05 #yaw
-        q[8][8] = 0.05 #rate roll
-        q[9][9] = 0.05 #rate pitch
-        q[10][10] = 0.05#rate yaw
+        q[8][8] = 0.5 #rate roll
+        q[9][9] = 0.5 #rate pitch
+        q[10][10] = 0.5#rate yaw
         q[11][11] = 0.05 #baro bias
         
         
@@ -237,18 +237,18 @@ class ukf():
         r_imu_gyro_v = np.zeros([3, 3])
         r_imu_acc[0][0] = 0.05 #acc x
         r_imu_acc[1][1] = 0.05 #acc y
-        r_imu_gyro_v[0][0] = 0.005 #gyro roll
-        r_imu_gyro_v[1][1] = 0.005 #gyro pitch
+        r_imu_gyro_v[0][0] = 0.05 #gyro roll
+        r_imu_gyro_v[1][1] = 0.05 #gyro pitch
         r_imu_gyro_v[2][2] = 0.5 #gyro yaw
         
         r_vision_pos = np.zeros([3, 3])
         r_vision_ori = np.zeros([3, 3])
-        r_vision_pos[0][0] = 0.5 #x
-        r_vision_pos[1][1] = 0.5 #y
+        r_vision_pos[0][0] = 0.005 #x
+        r_vision_pos[1][1] = 0.005 #y
         r_vision_pos[2][2] = 0.05 #z
-        r_vision_ori[0][0] = 0.5 #roll rate
-        r_vision_ori[1][1] = 0.5 #pitch rate
-        r_vision_ori[2][2] = 0.5 #yaw rate
+        r_vision_ori[0][0] = 0.05 #roll
+        r_vision_ori[1][1] = 0.05 #pitch
+        r_vision_ori[2][2] = 2.5 #yaw
         
         r_baro = np.zeros([1,1])
         r_baro[0][0] = 5.2
@@ -557,12 +557,6 @@ if __name__ == "__main__":
     labels = ['Velocity in x','Velocity in y']
     ys = [ukf.x3, ukf.x4]
     ukf.plot_state('Velocity [IMU]', 'Time [s]', r'Velocity [$(\frac{m}{s})$]', 'velocity.png', ukf.mtime, ys)
-    
-    """
-    labels = ['acc_x','acc_y','acc_z']
-    ys = [ukf.x6, ukf.x7, ukf.x8]
-    ukf.plot_state('Acceleration [IMU]', 'Time [s]', r'Acceleration [$(\frac{m}{s^2})$]', 'acceleration.png', ukf.mtime, ys)
-    """
     
     labels = ['Roll','Pitch', 'g_roll','g_pitch']
     ys = [ukf.x5, ukf.x6,  ukf.g_roll, ukf.g_pitch]

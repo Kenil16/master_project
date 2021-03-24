@@ -179,6 +179,8 @@ class drone_control():
             #If wanted map aruco marker estimate to UAV globle pose
             if self.aruco_offset_init and self.uav_offset_init:
                 self.tc.map_GPS_pose_to_vision(self.aruco_offset, self.uav_offset)
+                self.aruco_offset_init = False
+                self.uav_offset_init = False
 
             if self.uav_state == 'loiter':
                 output_msg = self.loiterpilot_pose_setpoint

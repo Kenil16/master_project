@@ -44,6 +44,8 @@ class transformations_calculations():
 
         #Find the rotation between the aruco board and that of the drone to map 
         #vision to the original coordinate system used by the drone 
+        
+        """
         self.uav2aruco_rotation = np.matmul(r_aruco.T, r_uav)
         t = np.array([aruco_pose.pose.position.x,
                       aruco_pose.pose.position.y,
@@ -55,7 +57,21 @@ class transformations_calculations():
                                   [uav_pose.pose.position.y, t[1]],
                                   [uav_pose.pose.position.z, t[2]],
                                   [angle_uav[2], angle_aruco[2]]]
+        """
+        
+        r = np.matmul(r_aruco.T, r_uav)
+        euler = euler_from_matrix(r, 'rxyz')
+        self.uav2aruco_rotation = euler_matrix(0, 0, euler[2] , 'rxyz')
+        euler = euler_from_matrix(self.uav2aruco_rotation, 'rxyz')
+        print("Estimated angle between UAV and aruco: " + str(np.rad2deg(euler[0])) + " " + str(np.rad2deg(euler[1])) + " " + str(np.rad2deg(euler[2])))
+        
+        #Initialize offset between original drone pose and aruco board 
+        self.GPS2Vision_offset = [[uav_pose.pose.position.x, aruco_pose.pose.position.x],
+                                  [uav_pose.pose.position.y, aruco_pose.pose.position.y],
+                                  [uav_pose.pose.position.z, aruco_pose.pose.position.z],
+                                  [angle_uav[2], angle_aruco[2]]]
 
+        print(self.GPS2Vision_offset)
         #Begin publish estimated aruco board pose with uav offsets
         self.publish_local_pose_with_offset = True
 
@@ -71,17 +87,29 @@ class transformations_calculations():
         yaw = (GPS2Vision_offset[3][0] - (GPS2Vision_offset[3][1] - angle[2]))
 
         #Calculate the aruco pos relative to the original GPS coordinate system
+        """
         t = np.array([aruco_pose.pose.position.x,
                       aruco_pose.pose.position.y,
                       aruco_pose.pose.position.z, 1])
         t = np.dot(self.uav2aruco_rotation,t)
-
+        
         #Get new transformed pose using GPS2Vision offset and current aruco pos estimate
         pose = PoseStamped()
         pose.pose.position.x = GPS2Vision_offset[0][0] - (GPS2Vision_offset[0][1] - t[0])
         pose.pose.position.y = GPS2Vision_offset[1][0] - (GPS2Vision_offset[1][1] - t[1])
         pose.pose.position.z = GPS2Vision_offset[2][0] - (GPS2Vision_offset[2][1] - t[2])
-
+        """
+        
+        t = np.array([-(GPS2Vision_offset[0][1] - aruco_pose.pose.position.x),
+                      -(GPS2Vision_offset[1][1] - aruco_pose.pose.position.y),
+                      -(GPS2Vision_offset[2][1] - aruco_pose.pose.position.z), 1])
+        t = np.dot(self.uav2aruco_rotation,t)
+        
+        pose = PoseStamped()
+        pose.pose.position.x = GPS2Vision_offset[0][0] + t[0]
+        pose.pose.position.y = GPS2Vision_offset[1][0] + t[1]
+        pose.pose.position.z = GPS2Vision_offset[2][0] + t[2]
+        
         if calculate_setpoint:
             pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, yaw,'rxyz'))
         else:

@@ -110,10 +110,14 @@ class log_data():
 
     def write_hold_pose_using_aruco_pose_estimation_data(self, marker_pose, 
                                                          setpoint_x, setpoint_y, setpoint_z,
-                                                         setpoint_roll, setpoint_pitch, setpoint_yaw):
+                                                         setpoint_roll, setpoint_pitch, setpoint_yaw, ground_truth):
         
+        #Get ground truth transformed from world to aruco pose 
+        g_x, g_y, g_z, g_roll, g_pitch, g_yaw = self.ground_truth_to_aruco_pose(ground_truth)
+
         #Get time
         time = marker_pose.header.stamp.secs + marker_pose.header.stamp.nsecs/1000000000.
+
         #Get setpoint data
         x = marker_pose.pose.position.x
         y = marker_pose.pose.position.y
@@ -127,7 +131,9 @@ class log_data():
         data.write(str(x) + " " + str(y) + " " + str(z) + " " + \
                    str(np.rad2deg(euler[0])) + " " + str(np.rad2deg(euler[1])) + " " + str(np.rad2deg(euler[2])) + " " + \
                    str(setpoint_x) + " " + str(setpoint_y) + " " + str(setpoint_z) + " " + \
-                   str(setpoint_roll) + " " + str(setpoint_pitch) + " " + str(setpoint_yaw) + " " + str(time))
+                   str(setpoint_roll) + " " + str(setpoint_pitch) + " " + str(setpoint_yaw) + " " + \
+                   str(g_x) + " " + str(g_y) + " " + str(g_z) + " " + \
+                   str(g_roll) + " " + str(g_pitch) + " " + str(g_yaw) + " " + str(time))
         data.write('\n')
         data.close()
 
@@ -318,6 +324,39 @@ class log_data():
             dis_to_aruco_x = dis_to_aruco_x + 1
 
         return waypoints
+
+    def ground_truth_to_aruco_pose(self, ground_truth):
+
+        #Rotation to align ground truth to aruco marker
+        r_m = euler_matrix(0, 0, np.pi/2, 'rxyz')
+
+        #Get current ground truth orientation
+        t_g = quaternion_matrix(np.array([ground_truth.pose.pose.orientation.x,
+                                          ground_truth.pose.pose.orientation.y,
+                                          ground_truth.pose.pose.orientation.z,
+                                          ground_truth.pose.pose.orientation.w]))
+
+        #Get current ground truth translation
+        t_g[0][3] = ground_truth.pose.pose.position.x
+        t_g[1][3] = ground_truth.pose.pose.position.y
+        t_g[2][3] = ground_truth.pose.pose.position.z
+
+        #Perform matrix multiplication for pose aligment
+        T =  np.matmul(r_m, t_g)
+
+        #Get angles and translation in degress
+        g_euler = euler_from_matrix(T,'rxyz')
+
+        #Because plugin is initiated in (0,0,0).
+        g_x = T[0][3] + 7.4/2
+        g_y = T[1][3] + 7.4/2
+        g_z = T[2][3]
+
+        g_roll = np.rad2deg(g_euler[0])
+        g_pitch = np.rad2deg(-g_euler[1])
+        g_yaw = np.rad2deg(g_euler[2])
+
+        return g_x, g_y, g_z, g_roll, g_pitch, g_yaw
 
 if __name__ == "__main__":
     ld = log_data()

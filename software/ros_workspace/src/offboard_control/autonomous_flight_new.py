@@ -293,9 +293,12 @@ class autonomous_flight():
         
         #Make the test continue for x seconds 
         start_time = rospy.get_rostime()
-        timeout = rospy.Duration(80.0)
+        timeout = rospy.Duration(20.0)
         
         setpoint = [3.65, 1.10, 2.50, 0, 0, 90] #x, y, z, roll, pitch, yaw
+        #setpoint = [7.1, 7.1, 2.50, 0, 0, 90] #x, y, z, roll, pitch, yaw
+        #setpoint = [3.65, -1, 2.50, 0, 0, 90] #x, y, z, roll, pitch, yaw
+        
         pose = PoseStamped()
         pose.pose.position.x = setpoint[0]
         pose.pose.position.y = setpoint[1]
@@ -307,7 +310,7 @@ class autonomous_flight():
         while (rospy.get_rostime() - start_time) < timeout:
             self.fly_route(waypoints_poseStamped=[pose])
             if not seq == self.aruco_pose.header.seq:
-                self.log_data.write_hold_pose_using_aruco_pose_estimation_data(self.aruco_pose,setpoint[0], setpoint[1], setpoint[2], setpoint[3], setpoint[4], setpoint[5])
+                self.log_data.write_hold_pose_using_aruco_pose_estimation_data(self.aruco_pose, setpoint[0], setpoint[1], setpoint[2], setpoint[3], setpoint[4], setpoint[5], self.ground_truth)
             seq = self.aruco_pose.header.seq
 
         self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
