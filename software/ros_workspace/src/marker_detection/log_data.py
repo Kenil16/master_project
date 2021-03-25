@@ -110,7 +110,7 @@ class log_data():
         data.close()
 
     #To be used in aruco marker detection 
-    def write_marker_detection_data(self, aruco_pose, ground_truth):
+    def write_marker_detection_data(self, aruco_board_config, aruco_pose, ground_truth):
 
         #Rotation to align ground truth to aruco marker
         r_m = euler_matrix(0, 0, np.pi/2, 'rxyz')
@@ -165,7 +165,7 @@ class log_data():
         data.write(str(x) + " " + str(y) + " " + str(z) + " " + \
                    str(roll) + " " + str(pitch) + " " + str(yaw) + " " + \
                    str(g_x) + " " + str(g_y) + " " + str(g_z) + " " + \
-                   str(g_roll) + " " + str(g_pitch) + " " + str(g_yaw) + " " + str(time))
+                   str(g_roll) + " " + str(g_pitch) + " " + str(g_yaw) + " " + str(time) + " " + str(aruco_board_config))
         data.write('\n')
         data.close()
         

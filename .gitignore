@@ -18,12 +18,15 @@ __pycache__
 *.pyc
 *.swp
 *.pdf
+*.pytxcode
+*
 #!.png
 
 #Include PDFs in litterature
 !literature/*
 
 #ROS enviroment
+/pythontex-files-results/*
 software/ros_workspace/build*
 software/ros_workspace/devel*
 software/ros_workspace/logs*

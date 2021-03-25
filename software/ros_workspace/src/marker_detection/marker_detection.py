@@ -173,7 +173,7 @@ class marker_detection:
 
         #Used for data log of estimated aruco pose vs ground truth
         if self.write_data_log:
-            self.log_data.write_marker_detection_data(self.marker_pose, ground_truth)
+            self.log_data.write_marker_detection_data(aruco_board_config, self.marker_pose, ground_truth)
     
     def calculate_rolling_average(self, pose):
 

@@ -10,7 +10,6 @@ class log_data():
 
     def __init__(self):
 
-        
         #Variables for aruco pose estimation error 
         self.aruco_x = []
         self.aruco_y = []
@@ -22,6 +21,11 @@ class log_data():
         self.delta_x = 0.0
         self.delta_y = 0.0
         self.delta_z = 0.0
+        
+        #Reset data files for new tests 
+        self.reset_data_files()
+
+    def reset_data_files(self):
 
         #Aruco pose estimation 
         data = Path('../../../../data/aruco_pose_estimation.txt')
@@ -67,7 +71,6 @@ class log_data():
             data = open(self.imu_noise_data_path,'w+')
             data.close()
 
-
         #GPS2Vision data for analysing error in aruco pose estimation 
         data = Path('../../../../data/GPS2Vision_aruco_pose_estimation.txt')
         self.GPS2Vision_aruco_pose_estimation_path = '../../../../data/GPS2Vision_aruco_pose_estimation.txt'
@@ -88,6 +91,17 @@ class log_data():
             data.close
         else:
             data = open(self.hold_pose_using_aruco_pose_estimation_path,'w+')
+            data.close()
+    
+        #Vision landing according to  pose from aruco marker estimation
+        data = Path('../../../../data/vision_landing_precision_and_accuracy.txt')
+        self.vision_landing_precision_and_accuracy_path = '../../../../data/vision_landing_precision_and_accuracy.txt'
+        if not data.is_file:
+            data = open(self.vision_landing_precision_and_accuracy_path,'r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open(self.vision_landing_precision_and_accuracy_path,'w+')
             data.close()
     
     #To be used in sensor fusion 
@@ -137,6 +151,22 @@ class log_data():
         data.write('\n')
         data.close()
 
+    def write_vision_landing_precision_and_accuracy_data(self, landing_station, marker_pose, setpoint_x, setpoint_y, ground_truth):
+        
+        #Get ground truth transformed from world to aruco pose 
+        g_x, g_y, g_z, g_roll, g_pitch, g_yaw = self.ground_truth_to_aruco_pose(ground_truth)
+
+        #Get marker pose estimate
+        x = marker_pose.pose.position.x
+        y = marker_pose.pose.position.y
+
+        data = open(self.vision_landing_precision_and_accuracy_path,'a')
+        data.write(str(landing_station) + " " + str(x) + " " + str(y) + " " + \
+                str(setpoint_x) + " " + str(setpoint_y) + " " + \
+                   str(g_x) + " " + str(g_y))
+        data.write('\n')
+        data.close()
+    
     def write_sensor_fusion_data(self, x, y, z, acc_x, acc_y, roll, pitch, yaw, 
                                  gyro_x, gyro_y, gyro_z, baro, baro_corrected, baro_bias, 
                                  vision_x, vision_y, vision_z, time, g_roll, g_pitch, g_yaw, g_x, g_y, g_z):

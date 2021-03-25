@@ -26,7 +26,7 @@ class marker_detection_ros_interface:
 
         #Configuration of marker board 1(GPS2Vision) 2(Vision navigation) 3(Vision landing 1)
         #4(Vision landing 2) and 5(Vision landing 3)
-        self.aruco_board = 1
+        self.aruco_board = 5
         
         #Subscribers
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)

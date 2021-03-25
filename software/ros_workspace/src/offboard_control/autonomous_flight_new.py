@@ -40,6 +40,9 @@ class autonomous_flight():
         self.aruco_offset = PoseStamped()
         self.uav_offset = PoseStamped()
         self.dis_to_GPS2Vision_marker = 100. #Init to big number 
+
+        #Write data logs for analysis
+        self.write_data_log_for_landing_test = True
         
         #used only in simulation
         self.ground_truth = Odometry()
@@ -357,7 +360,7 @@ class autonomous_flight():
         self.landing_station = 3
 
         #Test the landing precision for x times 
-        for _ in range(5):
+        for _ in range(10):
             
             #Make random move to a landing station
             move = randrange(0,2)
@@ -392,9 +395,12 @@ class autonomous_flight():
             
             #Wait for x seconds to start new takeoff and landing 
             start_time = rospy.get_rostime()
-            timeout = rospy.Duration(4.0)
+            timeout = rospy.Duration(6.0)
             while (rospy.get_rostime() - start_time) < timeout:
                 pass
+
+            if self.write_data_log_for_landing_test:
+                self.log_data.write_vision_landing_precision_and_accuracy_data(self.landing_station, self.aruco_pose, waypoints[-1][0], waypoints[-1][1], self.ground_truth)
 
         rospy.loginfo('Autonomous_flight: Landing test complete!')
         self.set_state('vision_landed')
@@ -523,7 +529,7 @@ class autonomous_flight():
         pose = PoseStamped()
         pose.pose.position.x = 3.65
         pose.pose.position.y = 1.10
-        pose.pose.position.z = 3.00
+        pose.pose.position.z = 2.50
         pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(90),'rxyz'))
         
         pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, pose, calculate_setpoint=True)
@@ -703,7 +709,7 @@ class autonomous_flight():
         self.pub_aruco_board.publish(landing_station)
     
         if landing_station == 3:
-            waypoints_xyzYaw = [[0.4, 7.1, 1.5, 90], [0.4, 7.1, 1.5, 90]]
+            waypoints_xyzYaw = [[0.4, 7.1, 1.5, 90], [0.4, 7.1, 0.2, 90]]
         elif landing_station == 4:
             waypoints_xyzYaw = [[3.75, 7.1, 1.5, 90], [3.75, 7.1, 0.2, 90]]
         elif landing_station == 5:
