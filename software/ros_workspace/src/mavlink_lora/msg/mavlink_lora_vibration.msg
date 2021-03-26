@@ -1,7 +1,0 @@
-uint64 time_usec
-float64 vibration_x
-float64 vibration_y
-float64 vibration_z
-uint32 clipping_0
-uint32 clipping_1
-uint32 clipping_2

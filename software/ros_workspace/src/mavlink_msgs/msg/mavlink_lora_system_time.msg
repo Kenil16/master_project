@@ -1,2 +1,0 @@
-uint64 time_unix_usec
-uint32 time_boot_ms

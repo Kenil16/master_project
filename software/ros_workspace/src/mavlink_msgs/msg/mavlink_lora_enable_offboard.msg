@@ -1,2 +1,0 @@
-bool enable
-mavlink_lora_set_position_target_local_ned target

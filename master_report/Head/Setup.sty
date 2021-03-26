@@ -62,6 +62,64 @@
 
 \usepackage{pythontex}
 
+\usepackage{unicode-math}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage{booktabs,colortbl, array}
+\usepackage{pgfplotstable}
+\usepackage{pythontex}
+\pgfplotsset{compat=1.8}
+\definecolor{rulecolor}{RGB}{0,71,171}
+\definecolor{tableheadcolor}{gray}{0.92}
+% Following is taken from Werner: http://tex.stackexchange.com/a/33761/3061
+% and modified for my needs
+%
+% Command \topline consists of a (slightly modified)
+% \toprule followed by a \heavyrule rule of colour tableheadcolor
+% (hence, 2 separate rules)
+\newcommand{\topline}{ %
+        \arrayrulecolor{rulecolor}\specialrule{0.1em}{\abovetopsep}{0pt}%
+        \arrayrulecolor{tableheadcolor}\specialrule{\belowrulesep}{0pt}{0pt}%
+        \arrayrulecolor{rulecolor}}
+% Command \midline consists of 3 rules (top colour tableheadcolor, middle colour black, bottom colour white)
+\newcommand{\midtopline}{ %
+        \arrayrulecolor{tableheadcolor}\specialrule{\aboverulesep}{0pt}{0pt}%
+        \arrayrulecolor{rulecolor}\specialrule{\lightrulewidth}{0pt}{0pt}%
+        \arrayrulecolor{white}\specialrule{\belowrulesep}{0pt}{0pt}%
+        \arrayrulecolor{rulecolor}}
+% Command \bottomline consists of 2 rules (top colour
+\newcommand{\bottomline}{ %
+        \arrayrulecolor{white}\specialrule{\aboverulesep}{0pt}{0pt}%
+        \arrayrulecolor{rulecolor} %
+        \specialrule{\heavyrulewidth}{0pt}{\belowbottomsep}}%
+
+
+\newcommand{\midheader}[2]{%
+        \midrule\topmidheader{#1}{#2}}
+\newcommand\topmidheader[2]{\multicolumn{#1}{c}{\textsc{#2}}\\%
+                \addlinespace[0.5ex]}
+
+\pgfplotstableset{normal/.style ={%
+        header=true,
+        string type,
+        font=\addfontfeature{Numbers={Monospaced}}\small,
+        column type=l,
+        every odd row/.style={
+            before row=
+        },
+        every head row/.style={
+            before row={\topline\rowcolor{tableheadcolor}},
+            after row={\midtopline}
+        },
+        every last row/.style={
+            after row=\bottomline
+        },
+        col sep=&,
+        row sep=\\
+    }
+}
+
+
 
 
 \usepackage{pgfgantt}

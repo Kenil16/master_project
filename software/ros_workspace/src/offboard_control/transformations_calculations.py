@@ -11,7 +11,7 @@ class transformations_calculations():
     def __init__(self):
         
         self.GPS2Vision_offset = [[0,0], [0,0], [0,0], [0,0]]
-        self.uav2aruco_rotation = euler_matrix(0, 0, np.deg2rad(-90), 'rxyz')
+        self.uav2aruco_rotation = euler_matrix(0, 0, 0, 'rxyz')
         self.publish_local_pose_with_offset = False
 
     def map_GPS_pose_to_vision(self, aruco_pose, uav_pose):
@@ -103,7 +103,7 @@ class transformations_calculations():
         t = np.array([-(GPS2Vision_offset[0][1] - aruco_pose.pose.position.x),
                       -(GPS2Vision_offset[1][1] - aruco_pose.pose.position.y),
                       -(GPS2Vision_offset[2][1] - aruco_pose.pose.position.z), 1])
-        t = np.dot(self.uav2aruco_rotation,t)
+        t = np.matmul(self.uav2aruco_rotation,t)
         
         pose = PoseStamped()
         pose.pose.position.x = GPS2Vision_offset[0][0] + t[0]

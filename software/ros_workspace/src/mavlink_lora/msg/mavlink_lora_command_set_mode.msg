@@ -1,3 +1,0 @@
-float64 mode
-float64 custom_mode
-float64 custom_sub_mode

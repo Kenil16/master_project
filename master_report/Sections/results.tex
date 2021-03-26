@@ -234,14 +234,62 @@
 
 \subsection{Vision based navigation}
 
-\begin{pylabcode}
-coeff = [4, 2, -4]
-r = roots(coeff)
-\end{pylabcode}
-
-The roots of $4x^2 + 2x - 4 = 0$ are$\pylab{r[0]}$ and $\pylab{r[1]}$.
 
 \subsection{Vision based landing}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/test1/landing_for_station_one.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/test1/landing_for_station_two.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/test1/landing_for_station_three.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+    \caption{}
+    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \addtolength{\leftskip} {-2cm}
+    \addtolength{\rightskip}{-2cm}
+        \caption{Statistics of the results from landing tests }
+        \pgfplotstabletypeset[normal,
+                columns/eg/.style={
+                column name={Runs},
+                dec sep align
+        }
+        ]{ %
+        Landing station & eg & Waypoint check error & Vertical velocity & Minimum & Maximum & Mean & STD\\
+        \topmidheader{9}{\textbf{Test 1}}
+        One         & 68      & $0.1 m$ & $0.3 \frac{m}{s}$ & $0.0043 m$ & $0.0872 m$ & $0.0441 m$ & $0.0226 m$ \\
+        two         & 68     & $0.1 m$ & $0.3 \frac{m}{s}$ & $0.0122m$ & $0.0928 m$& $0.0445 m$ & $0.0196 m$\\
+        Three       & 64     & $0.1 m$ & $0.3 \frac{m}{s}$ & $0.0095 m$ & $0.0923 m$ & $0.0464 m$ & $0.0215 m$\\
+        \midheader{9}{\textbf{Test 2}}
+        One         & 68      & 5.46 & i & i  & 5.46 & i & i \\
+        two         & 68     & 1.12 & i & i & 5.46 & i & i\\
+        Three       & 64     & 0.67 & i & i & 5.46 & i & i\\
+        \midheader{9}{\textbf{Test 3}}
+        One         & 68      & 5.46 & i & i  & 5.46 & i & i \\
+        two         & 68     & 1.12 & i & i & 5.46 & i & i\\
+        Three       & 64     & 0.67 & i & i & 5.46 & i & i\\
+        }
+\end{table}
 
 
 \end{document}
