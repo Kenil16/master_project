@@ -2,7 +2,13 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
-
+import numpy as np
+import math
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+import pandas as pd
+from matplotlib import style
+style.use('fivethirtyeight')
 
 class plot_fusion_data():
     
@@ -46,13 +52,17 @@ class plot_fusion_data():
          
     def read_data(self, file_name):
         init = True
-        seq = 0
+
+        seq = 10
         with open(file_name,"r") as text_file:
             for line in text_file:
                 items = line.split(' ')
                 items[-1] = items[-1].strip()
-                str_to_float = [float(item) for item in items]
-                self.data.append(str_to_float)
+                if seq > 0:
+                    seq -= 1
+                else:
+                    str_to_float = [float(item) for item in items]
+                    self.data.append(str_to_float)
 
     def plot_position(self):
 
@@ -179,7 +189,44 @@ class plot_fusion_data():
         plt.title(title)
         plt.legend(loc='best')
         plt.savefig(fig_name)
+        
+    def plot_data_error(self, index, label_x_fig1, label_x_fig2, label_y_fig1, label_y_fig2, title, labels, fig_name):
+            
+        plt.rcParams.update({
+        "text.usetex": True})
+        
+        fig = plt.figure(figsize=(25,25),facecolor='white') #21,15
+        fig.set_facecolor((1,1,1)) 
+        ax1 = plt.subplot2grid((2,1), (0,0))
+        ax2 = plt.subplot2grid((2,1), (1,0), sharex=ax1)
+        
+        ax1.legend(loc='best',fontsize=60)
+        
+        df = pd.read_csv('../aruco_pose_estimation.txt', delimiter=" ")
+        aruco = pd.Series(index[0], index=self.mtime)
+        ground_truth = pd.Series(index[1], index=self.mtime)
+        
+        aruco.plot(ax=ax1, label=labels[0][0],fontsize=40,color='b')
+        ground_truth.plot(ax=ax1,label=labels[1][0],fontsize=80,linestyle='dotted',color='r')
 
+        error_pose_aruco = aruco - ground_truth
+        
+        error_pose_aruco.plot(ax=ax2, label='Pose estimation error',fontsize=80)
+        
+        ax1.legend(loc='best',fontsize=60)
+        ax1.set_title(title,fontsize=70)
+        ax1.set_xlabel(label_x_fig1,fontsize=80)
+        ax1.set_ylabel(label_y_fig1,fontsize=80)
+        ax2.set_xlabel(label_x_fig2,fontsize=80)
+        ax2.set_ylabel(label_y_fig2,fontsize=80)
+        ax2.legend(loc='best',fontsize=60)
+        
+        ax1.set_facecolor((1,1,1))
+        ax2.set_facecolor((1,1,1))
+        
+        plt.tight_layout()
+        plt.subplots_adjust(bottom=0.1, top=0.93, hspace=0.2, wspace=0)
+        plt.savefig(fig_name, facecolor=fig.get_facecolor())
 if __name__ == "__main__":
 
     pfd = plot_fusion_data()
@@ -212,3 +259,23 @@ if __name__ == "__main__":
     labels = ['Altimeter bias']
     ys = [pfd.mbaro_bias]
     pfd.plot_data('Baro bias [Altimeter]', 'Time [s]', r'Altitude [Meters]', 'baro_bias.png', pfd.mtime, ys, labels) 
+
+
+    pfd.plot_data_error([pfd.mx, pfd.g_x], 'Time [s]', 'Time [s]', 'Position [m]',
+        'Error [m]', 'Error in x', [['Aruco pos x'],['Ground truth x']], 'pose_error_x.png')
+
+    pfd.plot_data_error([pfd.my, pfd.g_y], 'Time [s]', 'Time [s]', 'Position [m]',
+        'Error [m]', 'Error in y', [['Aruco pos y'],['Ground truth y']], 'pose_error_y.png')
+
+    pfd.plot_data_error([pfd.mz, pfd.g_z], 'Time [s]', 'Time [s]', 'Position [m]',
+        'Error [m]', 'Error in z', [['Aruco pos z'],['Ground truth z']], 'pose_error_z.png')
+    """
+    pfd.plot_data([tt.aruco_roll, tt.g_roll], 'Time [s]', 'Time [s]', 'Angle [degress]',
+        'Error [m]', 'Error in roll', [['Aruco angle roll'],['Ground truth roll']], 'pose_error_roll.png')
+
+    pfd.plot_data([tt.aruco_pitch, tt.g_pitch], 'Time [s]', 'Time [s]', 'Angle [degress]',
+            'Error [m]', 'Error in pitch', [['Aruco angle pitch'],['Ground truth pitch']], 'pose_error_pitch.png')
+
+    pfd.plot_data([tt.aruco_yaw, tt.g_yaw], 'Time [s]', 'Time [s]', 'Angle [degress]',
+            'Error [m]', 'Error in yaw', [['Aruco angle yaw'],['Ground truth yaw']], 'pose_error_yaw.png')
+    """

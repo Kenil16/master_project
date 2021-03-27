@@ -69,7 +69,7 @@
             <alwaysOn>true</alwaysOn>
             <imageTopicName>image_raw</imageTopicName>
             <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-            <updateRate>30.0</updateRate>
+            <updateRate>60.0</updateRate>
             <cameraName>mono_cam_bottom</cameraName>
             <frameName>/robot_camera_link</frameName>
             <CxPrime>360.5</CxPrime> <!--480.5-->

@@ -12,7 +12,7 @@ class marker_detection_ros_interface:
 
         #Init ROS node
         rospy.init_node('marker_detection')
-        self.cycle_time = (1./10.)
+        self.cycle_time = (1./5.)
         self.marker_detection = marker_detection()
         
         #Variables for images 
@@ -26,7 +26,7 @@ class marker_detection_ros_interface:
 
         #Configuration of marker board 1(GPS2Vision) 2(Vision navigation) 3(Vision landing 1)
         #4(Vision landing 2) and 5(Vision landing 3)
-        self.aruco_board = 2
+        self.aruco_board = 5
         
         #Subscribers
         rospy.Subscriber("/mono_cam_bottom/image_raw", Image, self.bottom_img_callback)
@@ -63,6 +63,7 @@ class marker_detection_ros_interface:
 
         #Using front camera (GPS2Vision)
         if aruco_board == 1:
+            ground_truth = self.ground_truth
             self.marker_detection.find_aruco_markers(self.front_img, 
                                                      self.marker_detection.aruco_board_gps2vision, 
                                                      self.marker_detection.camera_matrix_front, 
@@ -70,44 +71,48 @@ class marker_detection_ros_interface:
                                                      self.draw_markers,
                                                      True)
             if self.marker_detection.aruco_board_found:
-                self.marker_detection.estimate_marker_pose(aruco_board, self.marker_detection.T_gps2visionMarker_to_ground, self.ground_truth)
+                self.marker_detection.estimate_marker_pose(aruco_board, self.marker_detection.T_gps2visionMarker_to_ground, ground_truth)
                 self.marker_detection.calculate_rolling_average(self.marker_detection.marker_pose)
         #Using bottom camera (Vision navigation)
         elif aruco_board == 2:
+            ground_truth = self.ground_truth
             self.marker_detection.find_aruco_markers(self.bottom_img, 
                                                      self.marker_detection.aruco_board_vision, 
                                                      self.marker_detection.camera_matrix_bottom, 
                                                      self.marker_detection.distortion_coefficients_bottom,
                                                      self.draw_markers)
             if self.marker_detection.aruco_board_found:
-                self.marker_detection.estimate_marker_pose(aruco_board_config=aruco_board, ground_truth=self.ground_truth)
+                self.marker_detection.estimate_marker_pose(aruco_board_config=aruco_board, ground_truth=ground_truth)
         #Using bottom camera (Vision landing 1)
         elif aruco_board == 3:
+            ground_truth = self.ground_truth
             self.marker_detection.find_aruco_markers(self.front_img, 
-                                                     self.marker_detection.aruco_board_landing, 
+                                                     self.marker_detection.aruco_board_landing1, 
                                                      self.marker_detection.camera_matrix_front, 
                                                      self.marker_detection.distortion_coefficients_front,
                                                      self.draw_markers)
             if self.marker_detection.aruco_board_found:
-                self.marker_detection.estimate_marker_pose(aruco_board, self.marker_detection.T_landingMarker1_to_ground, self.ground_truth)
+                self.marker_detection.estimate_marker_pose(aruco_board, self.marker_detection.T_landingMarker1_to_ground, ground_truth)
         #Using bottom camera (Vision landing 2)
         elif aruco_board == 4:
+            ground_truth = self.ground_truth
             self.marker_detection.find_aruco_markers(self.front_img, 
-                                                     self.marker_detection.aruco_board_landing, 
+                                                     self.marker_detection.aruco_board_landing2, 
                                                      self.marker_detection.camera_matrix_front, 
                                                      self.marker_detection.distortion_coefficients_front, 
                                                      self.draw_markers)
             if self.marker_detection.aruco_board_found:
-                self.marker_detection.estimate_marker_pose(aruco_board, self.marker_detection.T_landingMarker2_to_ground, self.ground_truth)
+                self.marker_detection.estimate_marker_pose(aruco_board, self.marker_detection.T_landingMarker2_to_ground, ground_truth)
         #Using bottom camera (Visiom landing 3)
         elif aruco_board == 5:
+            ground_truth = self.ground_truth
             self.marker_detection.find_aruco_markers(self.front_img, 
-                                                     self.marker_detection.aruco_board_landing, 
+                                                     self.marker_detection.aruco_board_landing3, 
                                                      self.marker_detection.camera_matrix_front, 
                                                      self.marker_detection.distortion_coefficients_front, 
                                                      self.draw_markers)
             if self.marker_detection.aruco_board_found:
-                self.marker_detection.estimate_marker_pose(aruco_board, self.marker_detection.T_landingMarker3_to_ground, self.ground_truth)
+                self.marker_detection.estimate_marker_pose(aruco_board, self.marker_detection.T_landingMarker3_to_ground, ground_truth)
 
         #Publish image from camera is wanted
         if self.draw_markers:

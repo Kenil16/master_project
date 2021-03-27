@@ -28,7 +28,7 @@ class marker_detection:
 
         #Variable for image output 
         self.ros_img = Image()
-        
+
         #Variables for rolling average 
         self.write_aruco_pose_estimate = []
         self.aruco_pose_estimate = []
@@ -53,30 +53,32 @@ class marker_detection:
         #Transformation matrix from landing marker 1 to the ground wrt the drone
         self.T_landingMarker1_to_ground = identity_matrix()
         self.T_landingMarker1_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
-        self.T_landingMarker1_to_ground[0][3] = 0.10 
-        self.T_landingMarker1_to_ground[1][3] = 8.60
-        self.T_landingMarker1_to_ground[2][3] = 0.08
+        self.T_landingMarker1_to_ground[0][3] = 0.15 #3.4 - 3.3 + 0.05  = 0.15 (Ground marker Placement in gazebo and offset to landing board)
+        self.T_landingMarker1_to_ground[1][3] = 8.10 #7.4 + (4.4-3.7) = 8.10 (Size of ground marker and placement in gazebo)
+        self.T_landingMarker1_to_ground[2][3] = 0.15 #1 - 1.7/2 = 0.15 (Placement in gazebo and size of marker board)
         
         #Transformation matrix from landing marker 2 to the ground wrt the drone
         self.T_landingMarker2_to_ground = identity_matrix()
         self.T_landingMarker2_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
-        self.T_landingMarker2_to_ground[0][3] = 3.45
-        self.T_landingMarker2_to_ground[1][3] = 8.60
-        self.T_landingMarker2_to_ground[2][3] = 0.08
+        self.T_landingMarker2_to_ground[0][3] = 3.425
+        self.T_landingMarker2_to_ground[1][3] = 8.10
+        self.T_landingMarker2_to_ground[2][3] = 0.125
         
         #Transformation matrix from landing marker 3 to the ground wrt the drone
         self.T_landingMarker3_to_ground = identity_matrix()
         self.T_landingMarker3_to_ground = euler_matrix(np.pi/2, 0, 0,'rxyz')
-        self.T_landingMarker3_to_ground[0][3] = 6.80
-        self.T_landingMarker3_to_ground[1][3] = 8.60
-        self.T_landingMarker3_to_ground[2][3] = 0.08
+        self.T_landingMarker3_to_ground[0][3] = 6.475
+        self.T_landingMarker3_to_ground[1][3] = 8.10
+        self.T_landingMarker3_to_ground[2][3] = 0.125
         
         #Initiate aruco detection (Intinsic and extrinsic camera coefficients can be found in sdu_mono_cam model)
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
         
         self.aruco_board_gps2vision = cv2.aruco.GridBoard_create(markersX=4, markersY=2, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=100)
         self.aruco_board_vision = cv2.aruco.GridBoard_create(markersX=25, markersY=25, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=200)
-        self.aruco_board_landing = cv2.aruco.GridBoard_create(markersX=2, markersY=6, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=1)
+        self.aruco_board_landing1 = cv2.aruco.GridBoard_create(markersX=2, markersY=6, markerLength=0.2, markerSeparation=0.1, dictionary=self.dictionary,firstMarker=1)
+        self.aruco_board_landing2 = cv2.aruco.GridBoard_create(markersX=4, markersY=12, markerLength=0.1, markerSeparation=0.05, dictionary=self.dictionary,firstMarker=1)
+        self.aruco_board_landing3 = cv2.aruco.GridBoard_create(markersX=8, markersY=12, markerLength=0.1, markerSeparation=0.05, dictionary=self.dictionary,firstMarker=1)
         
         self.parameters = cv2.aruco.DetectorParameters_create()
         self.parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
@@ -90,6 +92,7 @@ class marker_detection:
         self.distortion_coefficients_front = np.array([[0, 0, 0, 0]], dtype=np.float)
         
         self.bridge = CvBridge()
+        self.image_id = 0
         
     def find_aruco_markers(self, img, aruco_board, camera_matrix, distortion_coefficients, draw_markers, calculate_center_of_board = False):
        
@@ -121,8 +124,7 @@ class marker_detection:
                 if draw_markers:
                     image_markers = cv2.aruco.drawDetectedMarkers(cv_img, marker_corners, marker_ids)
                     image_markers = cv2.aruco.drawAxis(image_markers, camera_matrix, distortion_coefficients, _rvec, _tvec, 0.1)
-                    self.ros_img = self.bridge.cv2_to_imgmsg(image_markers,"bgr8")
-                
+
                 #This is only used in GPS2Vision if pose estimate is very unstable
                 if calculate_center_of_board == True:
                     self.center_of_board = self.calculate_center_of_board(marker_ids, marker_corners)
@@ -130,6 +132,10 @@ class marker_detection:
         else:
             self.aruco_board_found = False
 
+        if draw_markers:
+            self.ros_img = self.bridge.cv2_to_imgmsg(image_markers,"bgr8")
+
+        self.image_id = img.header.seq
 
     def estimate_marker_pose(self, aruco_board_config, T_front_to_ground = None, ground_truth = None):
         
@@ -164,7 +170,7 @@ class marker_detection:
             self.marker_pose.pose.orientation = q_new
 
         #To set time between estimations 
-        self.marker_pose.header.stamp = ground_truth.header.stamp
+        self.marker_pose.header.stamp = rospy.Time.now()
         
         #Only used for valification of marker pose estimate 
         #print(euler_from_quaternion([self.marker_pose.pose.orientation.x, self.marker_pose.pose.orientation.y, self.marker_pose.pose.orientation.z, self.marker_pose.pose.orientation.w]))

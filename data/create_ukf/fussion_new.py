@@ -5,6 +5,12 @@ import math
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
+import math
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+import pandas as pd
+from matplotlib import style
+style.use('fivethirtyeight')
 
 class ukf():
     
@@ -134,12 +140,12 @@ class ukf():
         self.start_z = 0
 
         #Used in the GA (chromosome)
-        self.covariance = [0.05, 0.05, 0.05, #Process noise x, y and z (pos)
+        self.covariance = [0.5, 0.5, 0.5, #Process noise x, y and z (pos)
                            0.5, .5, 0.5, #Process noise x, y and z (vel)
                            0.2, 0.2, 0.5, #Process noise x, y and z (acc)
                            1.5, 1.5, 0.05, #Process noise roll, pitch and yaw (angle)
                            0.9, 0.9, 0.5, #Process noise x, y and z (angle rate)
-                           2.3, 2.3, 2.3, #Measurement noise x, y and z (pos)
+                           0.00005, 0.00005, 0.005, #Measurement noise x, y and z (pos)
                            0.03, 0.03, 2.08, #Measurement noise x, y and z (acc)
                            0.05, 0.05, 0.05, #Measurement noise x, y and z (angle)
                            1.5, 1.5, 0.5] #Measurement noise x, y and z (abgle rate)
@@ -218,11 +224,11 @@ class ukf():
         
         # Process Noise
         q = np.eye(12)
-        q[0][0] = 0.005 #x
-        q[1][1] = 0.005 #y
+        q[0][0] = 0.15 #x
+        q[1][1] = 0.15 #y
         q[2][2] = 0.05 #z
-        q[3][3] = 0.05 #vel x
-        q[4][4] = 0.05 #vel y
+        q[3][3] = 0.5 #vel x
+        q[4][4] = 0.5 #vel y
         q[5][5] = 0.05 #roll
         q[6][6] = 0.05 #pitch
         q[7][7] = 0.05 #yaw
@@ -235,20 +241,20 @@ class ukf():
         # Create measurement noise covariance matrices
         r_imu_acc = np.zeros([2, 2])
         r_imu_gyro_v = np.zeros([3, 3])
-        r_imu_acc[0][0] = 0.05 #acc x
-        r_imu_acc[1][1] = 0.05 #acc y
+        r_imu_acc[0][0] = 0.5 #acc x
+        r_imu_acc[1][1] = 0.5 #acc y
         r_imu_gyro_v[0][0] = 0.05 #gyro roll
         r_imu_gyro_v[1][1] = 0.05 #gyro pitch
-        r_imu_gyro_v[2][2] = 0.5 #gyro yaw
+        r_imu_gyro_v[2][2] = 0.05 #gyro yaw
         
         r_vision_pos = np.zeros([3, 3])
         r_vision_ori = np.zeros([3, 3])
-        r_vision_pos[0][0] = 0.005 #x
-        r_vision_pos[1][1] = 0.005 #y
-        r_vision_pos[2][2] = 0.05 #z
+        r_vision_pos[0][0] = 0.0005 #x
+        r_vision_pos[1][1] = 0.0005 #y
+        r_vision_pos[2][2] = 0.0005 #z
         r_vision_ori[0][0] = 0.05 #roll
         r_vision_ori[1][1] = 0.05 #pitch
-        r_vision_ori[2][2] = 2.5 #yaw
+        r_vision_ori[2][2] = 0.05 #yaw
         
         r_baro = np.zeros([1,1])
         r_baro[0][0] = 5.2
@@ -500,39 +506,45 @@ class ukf():
 
         plt.ylim(ymax = 5, ymin = 0)
         plt.savefig('Positionz.png')
+    
+    def plot_data_error(self, index, label_x_fig1, label_x_fig2, label_y_fig1, label_y_fig2, title, labels, fig_name):
 
-    def plot_ground_truth(self, x, y):
+        plt.rcParams.update({
+        "text.usetex": True})
 
-        fig, ax = plt.subplots()
-        ax.set_axisbelow(True)
-        ax.set_facecolor('#E6E6E6')
-        plt.grid(color='w', linestyle='solid')
+        fig = plt.figure(figsize=(25,25),facecolor='white') #21,15
+        fig.set_facecolor((1,1,1))
+        ax1 = plt.subplot2grid((2,1), (0,0))
+        ax2 = plt.subplot2grid((2,1), (1,0), sharex=ax1)
 
-        for spine in ax.spines.values():
-            spine.set_visible(False)
+        ax1.legend(loc='best',fontsize=60)
 
-        ax.xaxis.tick_bottom()
-        ax.yaxis.tick_left()
-        ax.tick_params(colors='gray', direction='out')
+        df = pd.read_csv('../aruco_pose_estimation.txt', delimiter=" ")
+        aruco = pd.Series(index[0], index=self.mtime)
+        ground_truth = pd.Series(index[1], index=self.mtime)
 
-        for tick in ax.get_xticklabels():
-            tick.set_color('gray')
-        for tick in ax.get_yticklabels():
-            tick.set_color('gray')
+        aruco.plot(ax=ax1, label=labels[0][0],fontsize=40,color='b')
+        ground_truth.plot(ax=ax1,label=labels[1][0],fontsize=80,linestyle='dotted',color='r')
 
-        plt.scatter(x, y, s=5, label='GPS Measurements', c='r')
+        error_pose_aruco = aruco - ground_truth
 
-        # Start/Goal
-        plt.scatter(x[0], y[0], s=60, label='Start', c='g')
-        plt.scatter(x[-1], y[-1], s=60, label='Goal', c='r')
+        error_pose_aruco.plot(ax=ax2, label='Pose estimation error',fontsize=80)
 
-        plt.xlabel('X [m]')
-        plt.ylabel('Y [m]')
-        plt.title('position_ground_truth')
-        plt.legend(loc='best')
-        plt.axis('equal')
+        ax1.legend(loc='best',fontsize=60)
+        ax1.set_title(title,fontsize=70)
+        ax1.set_xlabel(label_x_fig1,fontsize=80)
+        ax1.set_ylabel(label_y_fig1,fontsize=80)
+        ax2.set_xlabel(label_x_fig2,fontsize=80)
+        ax2.set_ylabel(label_y_fig2,fontsize=80)
+        ax2.legend(loc='best',fontsize=60)
+         
+        ax1.set_facecolor((1,1,1))
+        ax2.set_facecolor((1,1,1))
 
-        plt.savefig('position_ground_truth.png')
+        plt.tight_layout()
+        plt.subplots_adjust(bottom=0.1, top=0.93, hspace=0.2, wspace=0)
+        plt.savefig(fig_name, facecolor=fig.get_facecolor())
+
 
     def load_chromosome(self,file_name):
         chromosome = []
@@ -550,6 +562,7 @@ if __name__ == "__main__":
     #ukf.create_ground_truth()
     ukf.main()
 
+    
     labels = ['x','y','z', 'g_x', 'g_y', 'g_z']
     ys = [ukf.x0, ukf.x1, ukf.x2, ukf.g_x, ukf.g_y, ukf.g_z]
     ukf.plot_state('Position', 'Time [s]', r'Position [$m$]', 'position.png', ukf.mtime, ys)
@@ -576,3 +589,22 @@ if __name__ == "__main__":
     labels = ['Roll','Pitch', 'Yaw']
     ys = [ukf.x15, ukf.x16, ukf.x17]
     ukf.plot_state('Angle [IMU and vision fusion]', 'Time [s]', r'Angle [Degress]', 'orientation_gyro.png', ukf.mtime, ys) 
+
+    ukf.plot_data_error([ukf.mx, ukf.g_x], 'Time [s]', 'Time [s]', 'Position [m]',
+        'Error [m]', 'Error in x', [['Aruco pos x'],['Ground truth x']], 'pose_error_x.png')
+
+    ukf.plot_data_error([ukf.my, ukf.g_y], 'Time [s]', 'Time [s]', 'Position [m]',
+        'Error [m]', 'Error in y', [['Aruco pos y'],['Ground truth y']], 'pose_error_y.png')
+
+    ukf.plot_data_error([ukf.mz, ukf.g_z], 'Time [s]', 'Time [s]', 'Position [m]',
+        'Error [m]', 'Error in z', [['Aruco pos z'],['Ground truth z']], 'pose_error_z.png')
+    """
+    pfd.plot_data([tt.aruco_roll, tt.g_roll], 'Time [s]', 'Time [s]', 'Angle [degress]',
+        'Error [m]', 'Error in roll', [['Aruco angle roll'],['Ground truth roll']], 'pose_error_roll.png')
+
+    pfd.plot_data([tt.aruco_pitch, tt.g_pitch], 'Time [s]', 'Time [s]', 'Angle [degress]',
+            'Error [m]', 'Error in pitch', [['Aruco angle pitch'],['Ground truth pitch']], 'pose_error_pitch.png')
+
+    pfd.plot_data([tt.aruco_yaw, tt.g_yaw], 'Time [s]', 'Time [s]', 'Angle [degress]',
+            'Error [m]', 'Error in yaw', [['Aruco angle yaw'],['Ground truth yaw']], 'pose_error_yaw.png')
+    """

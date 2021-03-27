@@ -200,7 +200,7 @@ class drone_control():
             else:
                 output_msg = self.autonomous_flight_pose_setpoint
                 self.pub_msg(output_msg, self.pub_local_pose)
-                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
+                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.sensor_fusion)
                 self.pub_msg(new_pose, self.pub_vision_pose) #Now publish to vision for vision based navigation
             
             """
