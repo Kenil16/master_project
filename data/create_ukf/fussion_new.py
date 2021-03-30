@@ -224,18 +224,18 @@ class ukf():
         
         # Process Noise
         q = np.eye(12)
-        q[0][0] = 0.15 #x
-        q[1][1] = 0.15 #y
-        q[2][2] = 0.05 #z
+        q[0][0] = 0.5 #x
+        q[1][1] = 0.5 #y
+        q[2][2] = 10.5 #z
         q[3][3] = 0.5 #vel x
         q[4][4] = 0.5 #vel y
-        q[5][5] = 0.05 #roll
-        q[6][6] = 0.05 #pitch
-        q[7][7] = 0.05 #yaw
+        q[5][5] = 0.5 #roll
+        q[6][6] = 0.5 #pitch
+        q[7][7] = 0.5 #yaw
         q[8][8] = 0.5 #rate roll
         q[9][9] = 0.5 #rate pitch
         q[10][10] = 0.5#rate yaw
-        q[11][11] = 0.05 #baro bias
+        q[11][11] = 1.5 #baro bias
         
         
         # Create measurement noise covariance matrices
@@ -252,15 +252,15 @@ class ukf():
         r_vision_pos[0][0] = 0.0005 #x
         r_vision_pos[1][1] = 0.0005 #y
         r_vision_pos[2][2] = 0.0005 #z
-        r_vision_ori[0][0] = 0.05 #roll
-        r_vision_ori[1][1] = 0.05 #pitch
-        r_vision_ori[2][2] = 0.05 #yaw
+        r_vision_ori[0][0] = 0.0005 #roll
+        r_vision_ori[1][1] = 0.0005 #pitch
+        r_vision_ori[2][2] = 0.0005 #yaw
         
         r_baro = np.zeros([1,1])
-        r_baro[0][0] = 5.2
+        r_baro[0][0] = 15.0
 
         r_baro_offset = np.zeros([1,1])
-        r_baro_offset[0][0] = 0.02
+        r_baro_offset[0][0] = 0.005
         
         # pass all the parameters into the UKF!
         # number of state variables, process noise, initial state, initial coariance, three tuning paramters, and the iterate function
@@ -280,7 +280,7 @@ class ukf():
             row = [i[0,j], i[1,j], i[2,j], i[3,j], i[4,j], i[5,j], i[6,j], i[7,j], i[8,j], i[9,j], i[10,j], i[11,j], i[12,j], i[13,j], i[14,j], i[15,j], i[16,j], i[17,j], i[18,j]]
             #print(row)        
             if j:
-                dt = self.mtime[j]-self.mtime[j-1]
+                dt = self.mtime[j]-self.mtime[j-1] 
             
             
             # create an array for the data from each sensor
@@ -309,17 +309,17 @@ class ukf():
             acc_bias = np.matmul(R2, np.array([bias[0], bias[1], 0]))
 
             corrected_acc_x = -acc[0]
-            corrected_acc_y = -acc[1]  
+            corrected_acc_y = -acc[1]
             corrected_acc_z = row[5] - gravity #*np.cos(x[9])*np.cos(x[10])
             self.acc_gravity = row[5]
             
             #Mechanical Filtering Window
             
-            if corrected_acc_x < 0.10 and corrected_acc_x > -0.10:
-                corrected_acc_x = 0
+            if corrected_acc_x < 0.15 and corrected_acc_x > -0.15:
+                corrected_acc_x = 0#corrected_acc_x*0.0005
 
-            if corrected_acc_y < 0.10 and corrected_acc_y > -0.10:
-                corrected_acc_y = 0
+            if corrected_acc_y < 0.15 and corrected_acc_y > -0.15:
+                corrected_acc_y = 0#corrected_acc_y*0.0005
 
             if corrected_acc_z < 0.25 and corrected_acc_z > -0.25:
                 corrected_acc_z = 0
@@ -345,7 +345,7 @@ class ukf():
             #imu_accZ = corrected_acc_z
             imu_rollV = corrected_gyro[0]
             imu_pitchV =corrected_gyro[1]
-            imu_yawV = corrected_gyro[2]
+            imu_yawV = corrected_gyro[2] +0.0018871804653
 
             vision_data_pos = np.array([vision_x, vision_y, vision_z])
             vision_data_ori = np.array([vision_roll, vision_pitch, vision_yaw])
@@ -357,7 +357,6 @@ class ukf():
 
             # prediction is pretty simple
             state_estimator.predict(dt, row)
-
             if not self.vision_seq == row[12]:
                 state_estimator.update([0, 1, 2], vision_data_pos, r_vision_pos)
                 state_estimator.update([5, 6, 7], vision_data_ori, r_vision_ori)
@@ -590,21 +589,21 @@ if __name__ == "__main__":
     ys = [ukf.x15, ukf.x16, ukf.x17]
     ukf.plot_state('Angle [IMU and vision fusion]', 'Time [s]', r'Angle [Degress]', 'orientation_gyro.png', ukf.mtime, ys) 
 
-    ukf.plot_data_error([ukf.mx, ukf.g_x], 'Time [s]', 'Time [s]', 'Position [m]',
+    ukf.plot_data_error([ukf.x0, ukf.g_x], 'Time [s]', 'Time [s]', 'Position [m]',
         'Error [m]', 'Error in x', [['Aruco pos x'],['Ground truth x']], 'pose_error_x.png')
 
-    ukf.plot_data_error([ukf.my, ukf.g_y], 'Time [s]', 'Time [s]', 'Position [m]',
+    ukf.plot_data_error([ukf.x1, ukf.g_y], 'Time [s]', 'Time [s]', 'Position [m]',
         'Error [m]', 'Error in y', [['Aruco pos y'],['Ground truth y']], 'pose_error_y.png')
 
-    ukf.plot_data_error([ukf.mz, ukf.g_z], 'Time [s]', 'Time [s]', 'Position [m]',
+    ukf.plot_data_error([ukf.x2, ukf.g_z], 'Time [s]', 'Time [s]', 'Position [m]',
         'Error [m]', 'Error in z', [['Aruco pos z'],['Ground truth z']], 'pose_error_z.png')
-    """
-    pfd.plot_data([tt.aruco_roll, tt.g_roll], 'Time [s]', 'Time [s]', 'Angle [degress]',
+    
+    ukf.plot_data_error([ukf.x5, ukf.g_roll], 'Time [s]', 'Time [s]', 'Angle [degress]',
         'Error [m]', 'Error in roll', [['Aruco angle roll'],['Ground truth roll']], 'pose_error_roll.png')
 
-    pfd.plot_data([tt.aruco_pitch, tt.g_pitch], 'Time [s]', 'Time [s]', 'Angle [degress]',
+    ukf.plot_data_error([ukf.x6, ukf.g_pitch], 'Time [s]', 'Time [s]', 'Angle [degress]',
             'Error [m]', 'Error in pitch', [['Aruco angle pitch'],['Ground truth pitch']], 'pose_error_pitch.png')
 
-    pfd.plot_data([tt.aruco_yaw, tt.g_yaw], 'Time [s]', 'Time [s]', 'Angle [degress]',
+    ukf.plot_data_error([ukf.x7, ukf.g_yaw], 'Time [s]', 'Time [s]', 'Angle [degress]',
             'Error [m]', 'Error in yaw', [['Aruco angle yaw'],['Ground truth yaw']], 'pose_error_yaw.png')
-    """
+    

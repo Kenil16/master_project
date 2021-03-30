@@ -151,7 +151,7 @@ class log_data():
         data.write('\n')
         data.close()
 
-    def write_vision_landing_precision_and_accuracy_data(self, landing_station, marker_pose, setpoint_x, setpoint_y, ground_truth):
+    def write_vision_landing_precision_and_accuracy_data(self, landing_station, marker_pose, setpoint_x, setpoint_y, ground_truth, pre_landing_stabilization_time, landing_time):
         
         #Get ground truth transformed from world to aruco pose 
         g_x, g_y, g_z, g_roll, g_pitch, g_yaw = self.ground_truth_to_aruco_pose(ground_truth)
@@ -163,7 +163,7 @@ class log_data():
         data = open(self.vision_landing_precision_and_accuracy_path,'a')
         data.write(str(landing_station) + " " + str(x) + " " + str(y) + " " + \
                 str(setpoint_x) + " " + str(setpoint_y) + " " + \
-                   str(g_x) + " " + str(g_y))
+                   str(g_x) + " " + str(g_y) + " " + str(pre_landing_stabilization_time) + " " + str(landing_time))
         data.write('\n')
         data.close()
     
@@ -319,42 +319,7 @@ class log_data():
         self.aruco_roll.append(error_roll)
         self.aruco_pitch.append(error_pitch)
         self.aruco_yaw.append(error_yaw)
-
-    def generate_waypoints(self, x, y, alt):
-
-        #Initialize waypoints
-        waypoints = []
-        dis_to_aruco_x = 2
-        dx = 0
-        dy = 4
-
-        #Initiate waypoints as a grid where the drone faces the aruco marker at all time
-        for row in range(7): #Steps in y in meters
-            for col in range(9): #Steps in x in meters
-
-                pose = PoseStamped()
-                pose.pose.position.x = x+dx
-                pose.pose.position.y = y+dy
-                pose.pose.position.z = alt
-
-                #To be used so that the drone always facing the marker
-                if (y+dy) < 0:
-                    yaw = np.deg2rad(90) - np.arctan((dis_to_aruco_x/abs(y+dy)))
-                elif (y+dy) > 0:
-                    yaw = -1*(np.deg2rad(90) - np.arctan((dis_to_aruco_x/abs(y+dy))))
-                else:
-                    yaw = 0
-
-                pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, yaw))
-                dy = dy - 1
-                waypoints.append(pose)
-
-            dy = 4
-            dx = dx - 1
-            dis_to_aruco_x = dis_to_aruco_x + 1
-
-        return waypoints
-
+    
     def ground_truth_to_aruco_pose(self, ground_truth):
 
         #Rotation to align ground truth to aruco marker

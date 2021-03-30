@@ -46,9 +46,9 @@ class marker_detection:
         #Transformation matrix from gps to vision marker to the ground wrt the drone
         self.T_gps2visionMarker_to_ground = identity_matrix()
         self.T_gps2visionMarker_to_ground = euler_matrix(np.pi/2, 0, 0, 'rxyz')
-        self.T_gps2visionMarker_to_ground[0][3] = 3.15 #+ 0.275#
-        self.T_gps2visionMarker_to_ground[1][3] = 3.00 #
-        self.T_gps2visionMarker_to_ground[2][3] = 2.58 #+ 0.125#
+        self.T_gps2visionMarker_to_ground[0][3] = 3.15 
+        self.T_gps2visionMarker_to_ground[1][3] = 2.99
+        self.T_gps2visionMarker_to_ground[2][3] = 2.57
         
         #Transformation matrix from landing marker 1 to the ground wrt the drone
         self.T_landingMarker1_to_ground = identity_matrix()
@@ -85,6 +85,7 @@ class marker_detection:
         
         #Bottom camera
         self.camera_matrix_bottom = np.array([[623.680552, 0, (720/2)], [0, 623.680552, (480/2)], [0, 0, 1]], dtype=np.float)
+        #self.camera_matrix_bottom = np.array([[415.787035, 0, (480/2)], [0, 415.787035, (240/2)], [0, 0, 1]], dtype=np.float)
         self.distortion_coefficients_bottom = np.array([[0, 0, 0, 0]], dtype=np.float)
         
         #Front camera
