@@ -291,23 +291,25 @@ class autonomous_flight():
     def hold_aruco_pose_test(self):
 
         self.drone_takeoff(alt = 2.5)
+        
+        self.pub_aruco_board.publish(1)
 
         self.set_state('hold_aruco_pose_test')
         rospy.loginfo('Autonomous_flight: Hold position by using the aruco marker test startet')
         
         self.GPS_navigation(waypoints_xyzYaw=[[0, 0, 2.5, 0]])
         gps2vision_complete = self.GPS2Vision()
-        
+
         if gps2vision_complete:
-            self.pub_aruco_board.publish(1)
             
             #Make the test continue for x seconds 
             start_time = rospy.get_rostime()
-            timeout = rospy.Duration(10.0)
+            timeout = rospy.Duration(30.0)
             
-            #setpoint = [3.65, 1.10, 2.50, 0, 0, 90] #x, y, z, roll, pitch, yaw
-            #setpoint = [7.1, 7.1, 2.50, 0, 0, 90] #x, y, z, roll, pitch, yaw
-            setpoint = [3.65, 0, 2.50, 0, 0, 90] #x, y, z, roll, pitch, yaw
+            setpoint = [3.65, -1, 2.50, 0, 0, 90] #x, y, z, roll, pitch, yaw
+            #setpoint = [0.40, 7.10, 1.5, 0, 0, 90] #x, y, z, roll, pitch, yaw
+            #setpoint = [3.65, 7.10, 1.5, 0, 0, 90] #x, y, z, roll, pitch, yaw
+            #setpoint = [7.00, 7.10, 1.5, 0 ,0, 90] #x, y, z, roll, pitch, yaw
             
             pose = PoseStamped()
             pose.pose.position.x = setpoint[0]
@@ -383,7 +385,7 @@ class autonomous_flight():
         self.landing_station = 3
         
         #Test the landing precision for x times 
-        for _ in range(100):
+        for _ in range(3):
             
             #Make random move to a landing station
             move = randrange(0,2)
@@ -414,7 +416,7 @@ class autonomous_flight():
             #Then takeoff, move and land
             self.vision_takeoff_navigation(self.landing_station)
             self.vision_navigation(waypoints_xyzYaw=waypoints)
-            self.vision_landing_navigation(new_landing_station, 0.10)
+            self.vision_landing_navigation(new_landing_station, 0.05)
             
             if self.write_data_log_for_landing_test:
                 self.log_data.write_vision_landing_precision_and_accuracy_data(self.landing_station, self.aruco_pose, waypoints[-1][0], waypoints[-1][1], self.ground_truth, 
@@ -590,7 +592,7 @@ class autonomous_flight():
                     self.flight_mode.set_mode('AUTO.LAND',10)
                     start_time = rospy.get_rostime()
                     timeout = rospy.Duration(10.0) #Wait short amount of time to stabilize drone pose
-                    while (rospy.get_rostime() - start_time) < timeout_detect_board:
+                    while (rospy.get_rostime() - start_time) < timeout:
                         pass
                     substate = 'locate_marker_board'
 
@@ -745,7 +747,7 @@ class autonomous_flight():
             #Return false if the marker board have not been seen a number of iterations 
             self.update_marker_board_detections(self.aruco_board_found)
             if not self.validate_marker_board_detections():
-                return false
+                return False
 
         return True
 
@@ -852,7 +854,7 @@ class autonomous_flight():
             
             #Set maximum horizontal and vertical volocities
             self.flight_mode.set_param('MPC_XY_VEL_MAX', 1.0, 5)
-            self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.9, 5)
+            self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.5, 5)
             self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 1.0, 5)
             #Set maximum angular velocities
             self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)

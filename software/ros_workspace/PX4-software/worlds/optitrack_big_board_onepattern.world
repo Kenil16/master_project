@@ -345,12 +345,12 @@
       <frameId>base_link</frameId>
       <!--<robotNamespace/>-->
       <namespace>/foo/bar</namespace>
-      <xyzOffset>1 0 0</xyzOffset>
-      <windDirectionMean>0 1 0</windDirectionMean>
-      <windDirectionVariance>0.0</windDirectionVariance>
-      <windVelocityMean>0.0</windVelocityMean>
-      <windVelocityVariance>0.0</windVelocityVariance>
-      <windGustDirection>1 0 0</windGustDirection>
+      <xyzOffset>0 0 0</xyzOffset>
+      <windDirectionMean>0 0 0</windDirectionMean> <!--1 1 1-->
+      <windDirectionVariance>0.00</windDirectionVariance> <!--0.05-->
+      <windVelocityMean>0.0</windVelocityMean> <!--1.0 and 1.5-->
+      <windVelocityVariance>0.00</windVelocityVariance> <!--0.05-->
+      <windGustDirection>0 0 0</windGustDirection> <!--1 1 1-->
       <windPubTopic>world_wind</windPubTopic>
     </plugin>
 
