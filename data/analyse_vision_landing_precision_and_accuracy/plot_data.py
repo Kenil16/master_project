@@ -14,7 +14,7 @@ class plot_data():
         self.data = []
 
         #self.read_data('test2.txt')
-        self.read_data('../vision_landing_precision_and_accuracy.txt')
+        self.read_data('test6_speed_0.9_error_0.05/vision_landing_precision_and_accuracy.txt')
         
         #Landing station 
         self.landing_station = np.array([item[0] for item in self.data])
@@ -52,6 +52,15 @@ class plot_data():
         self.target_error_three = []
         self.pose_estimation_error_three = []
 
+        self.stabilization_time_one = []
+        self.landing_time_one = []
+
+        self.stabilization_time_two = []
+        self.landing_time_two = []
+
+        self.stabilization_time_three = []
+        self.landing_time_three = []
+
         data = Path('output_data.txt')
         self.data_path = 'output_data.txt'
         if not data.is_file:
@@ -75,6 +84,9 @@ class plot_data():
                 self.target_error_one.append(np.sqrt((item[1]-item[3])**2+(item[2]-item[4])**2))
                 self.pose_estimation_error_one.append(np.sqrt((item[1]-item[5])**2+(item[2]-item[6])**2))
     
+                self.stabilization_time_one.append(item[7])
+                self.landing_time_one.append(item[8])
+            
             if item[0] == 4:
                 self.aruco_x_two.append(item[1])
                 self.aruco_y_two.append(item[2])
@@ -86,6 +98,9 @@ class plot_data():
                 self.target_error_two.append(np.sqrt((item[1]-item[3])**2+(item[2]-item[4])**2))
                 self.pose_estimation_error_two.append(np.sqrt((item[1]-item[5])**2+(item[2]-item[6])**2))
             
+                self.stabilization_time_two.append(item[7])
+                self.landing_time_two.append(item[8])
+            
             if item[0] == 5:
                 self.aruco_x_three.append(item[1])
                 self.aruco_y_three.append(item[2])
@@ -96,7 +111,10 @@ class plot_data():
     
                 self.target_error_three.append(np.sqrt((item[1]-item[3])**2+(item[2]-item[4])**2))
                 self.pose_estimation_error_three.append(np.sqrt((item[1]-item[5])**2+(item[2]-item[6])**2))
-    
+
+                self.stabilization_time_three.append(item[7])
+                self.landing_time_three.append(item[8])
+
     def read_data(self, file_name):
         init = True
         seq = 0
@@ -117,7 +135,7 @@ class plot_data():
         ax1 = plt.subplot2grid((1,1), (0,0))
         ax1.legend(loc='best',fontsize=60)
         
-        df = pd.read_csv('../vision_landing_precision_and_accuracy.txt', delimiter=" ")
+        df = pd.read_csv('test6_speed_0.9_error_0.05/vision_landing_precision_and_accuracy.txt', delimiter=" ")
         
         aruco = pd.Series(index[1], index=index[0])
         setpoint = pd.Series(index[3], index=index[2])
@@ -128,7 +146,6 @@ class plot_data():
         aruco.plot(ax=ax1, marker='o', linestyle='', ms=20, label=labels[1][0], fontsize=80,color='b')
         ax1.scatter(x = [index[2][0]], y= [index[3][0]], color='g', s=s, alpha=0.1)
         ax1.scatter(x = [index[2][0]], y= [index[3][0]], color='g', s=s, facecolors='none', linestyle='-.')
-
         ax1.legend(loc='best',fontsize=60)
         ax1.set_title(title,fontsize=70)
         ax1.set_xlabel(label_x_fig1,fontsize=80)
@@ -152,6 +169,8 @@ class plot_data():
         print("STD error: " + "{:.4f}".format(std_error))
         print("Min error: " + "{:.4f}".format(min_error))
         print("Max error: " + "{:.4f}".format(max_error))
+        print("Mean stabilization time: " + "{:.4f}".format(sum(index[6])/len(index[6])))
+        print("Mean landing time: " + "{:.4f}".format(sum(index[7])/len(index[7])))
         
         data = open(self.data_path,'a')
         data.write(str(runs) + " " + "{:.4f}".format(mean_error) + " " + "{:.4f}".format(std_error) + " " + "{:.4f}".format(min_error) + " " + "{:.4f}".format(max_error))
@@ -162,11 +181,14 @@ if __name__ == "__main__":
 
     tt = plot_data()
     
-    tt.plot_data([tt.aruco_x_one, tt.aruco_y_one, tt.setpoint_x_one, tt.setpoint_y_one, tt.pose_estimation_error_one, tt.target_error_one], 'Position x [m]', 'Position y [m]', 
+    tt.plot_data([tt.aruco_x_one, tt.aruco_y_one, tt.setpoint_x_one, tt.setpoint_y_one, tt.pose_estimation_error_one, tt.target_error_one,tt.stabilization_time_one,
+        tt.landing_time_one], 'Position x [m]', 'Position y [m]', 
             'Precision and accuracy of landing for station one', [['Target landing'],['Final landing position'],['Acceptance buffer']], 'landing_for_station_one.png', radius = 0.25, s=375000)
 
-    tt.plot_data([tt.aruco_x_two, tt.aruco_y_two, tt.setpoint_x_two, tt.setpoint_y_two, tt.pose_estimation_error_two, tt.target_error_two], 'Position x [m]', 'Position y [m]', 
-            'Precision and accuracy of landing for station two', [['Target landing'],['Final landing position'],['Acceptance buffer']], 'landing_for_station_two.png', radius = 0.30, s=350000)
+    tt.plot_data([tt.aruco_x_two, tt.aruco_y_two, tt.setpoint_x_two, tt.setpoint_y_two, tt.pose_estimation_error_two, tt.target_error_two, tt.stabilization_time_two,
+        tt.landing_time_two], 'Position x [m]', 'Position y [m]', 
+            'Precision and accuracy of landing for station two', [['Target landing'],['Final landing position'],['Acceptance buffer']], 'landing_for_station_two.png', radius = 0.30, s=260000)
 
-    tt.plot_data([tt.aruco_x_three, tt.aruco_y_three, tt.setpoint_x_three, tt.setpoint_y_three, tt.pose_estimation_error_three, tt.target_error_three], 'Position x [m]', 'Position y [m]', 
+    tt.plot_data([tt.aruco_x_three, tt.aruco_y_three, tt.setpoint_x_three, tt.setpoint_y_three, tt.pose_estimation_error_three, tt.target_error_three, tt.stabilization_time_three,
+        tt.landing_time_three], 'Position x [m]', 'Position y [m]', 
             'Precision and accuracy of landing for station three', [['Target landing'],['Final landing position'],['Acceptance buffer']], 'landing_for_station_three.png', radius = 0.25, s=375000) 

@@ -213,4 +213,4 @@ class plot_data():
 if __name__ == "__main__":
 
     tt = plot_data()
-    tt.plot_data('test1_noWind/')
+    tt.plot_data('test3_5-7ms_wind/')

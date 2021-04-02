@@ -13,7 +13,9 @@ class plot_data():
     def __init__(self):
 
         self.data = []
-        dir_ = 'test4_landingBoard2_noWind/'
+        dir_ = 'test5_landingBoard3_noWind/'
+        
+        self.cur_dir = dir_
 
         #Paths for plotting errors vs setpoints and pose 
         self.error_x_plot_path = dir_ + 'error_x/'
@@ -71,7 +73,7 @@ class plot_data():
             #Read data from each file 
             self.data = []
             self.read_data(fle)
-            
+            self.cur_dir = fle
             #Aruco pose estimations
             aruco_x = np.array([item[0] for item in self.data])
             aruco_y = np.array([item[1] for item in self.data])
@@ -106,7 +108,7 @@ class plot_data():
             setpoint_error_std = []
             
             self.plot_data([aruco_x, setpoint_x, g_x], 'Time [s]', 'Time [s]', 'Position [m]', 
-                'Error [m]', 'Error in position and setpoint deviation in x for test ' + str(test), [['Aruco pos x'],['Setpoint x'],['Ground truth x']], 
+                'Error [m]', 'Error in position and setpoint deviation in x', [['Aruco pos x'],['Setpoint x'],['Ground truth x']], 
                 self.error_x_plot_path + 'pose_error_x_test' + str(test) + '.png')
 
             aruco_error_mean.append(self.aruco_mean)
@@ -115,7 +117,7 @@ class plot_data():
             setpoint_error_std.append(self.setpoint_std)
 
             self.plot_data([aruco_y, setpoint_y, g_y], 'Time [s]', 'Time [s]', 'Position [m]', 
-                'Error [m]', 'Error in position and setpoint deviation in y test ' + str(test), [['Aruco pos y'],['Setpoint y'],['Ground truth y']], 
+                'Error [m]', 'Error in position and setpoint deviation in y', [['Aruco pos y'],['Setpoint y'],['Ground truth y']], 
                 self.error_y_plot_path + 'pose_error_y_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
@@ -124,7 +126,7 @@ class plot_data():
             setpoint_error_std.append(self.setpoint_std)
             
             self.plot_data([aruco_z, setpoint_z, g_z], 'Time [s]', 'Time [s]', 'Position [m]', 
-                'Error [m]', 'Error in position and setpoint deviation in z test ' + str(test), [['Aruco pos z'],['Setpoint z'],['Ground truth z']], 
+                'Error [m]', 'Error in position and setpoint deviation in z', [['Aruco pos z'],['Setpoint z'],['Ground truth z']], 
                 self.error_z_plot_path + 'pose_error_z_test'+str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
@@ -146,7 +148,7 @@ class plot_data():
             setpoint_error_std = []
             
             self.plot_data([aruco_roll, setpoint_roll, g_roll], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-                'Error [m]', 'Error in angle and setpoint deviation in roll test ' + str(test), [['Aruco angle roll'],['Setpoint roll'],['Ground truth roll']], 
+                'Error [m]', 'Error in angle and setpoint deviation in roll', [['Aruco angle roll'],['Setpoint roll'],['Ground truth roll']], 
                 self.error_roll_plot_path + 'pose_error_roll_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
@@ -155,7 +157,7 @@ class plot_data():
             setpoint_error_std.append(self.setpoint_std)
             
             self.plot_data([aruco_pitch, setpoint_pitch, g_pitch], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-                    'Error [m]', 'Error in angle and setpoint deviation in pitch test ' + str(test), [['Aruco angle pitch'],['Setpoint pitch'],['Ground truth pitch']], 
+                    'Error [m]', 'Error in angle and setpoint deviation in pitch', [['Aruco angle pitch'],['Setpoint pitch'],['Ground truth pitch']], 
                     self.error_pitch_plot_path + 'pose_error_pitch_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
@@ -164,7 +166,7 @@ class plot_data():
             setpoint_error_std.append(self.setpoint_std)
             
             self.plot_data([aruco_yaw, setpoint_yaw, g_yaw], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-                    'Error [m]', 'Error in angle and setpoint deviation in yaw test ' + str(test), [['Aruco angle yaw'],['Setpoint yaw'],['Ground truth yaw']], 
+                    'Error [m]', 'Error in angle and setpoint deviation in yaw', [['Aruco angle yaw'],['Setpoint yaw'],['Ground truth yaw']], 
                     self.error_yaw_plot_path + 'pose_error_yaw_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
@@ -180,23 +182,23 @@ class plot_data():
 
         print("Mean error aruco pos: " +str(sum(self.mean_error_aruco_pos)/len(self.mean_error_aruco_pos)))
         print("STD error aruco pos: " +str(sum(self.std_error_aruco_pos)/len(self.std_error_aruco_pos)))
-        print("Min error aruco pos: " +str(min(self.mean_error_aruco_pos)))
-        print("Max error aruco pos: " +str(max(self.mean_error_aruco_pos)) + '\n')
+        #print("Min error aruco pos: " +str(min(self.mean_error_aruco_pos)))
+        #print("Max error aruco pos: " +str(max(self.mean_error_aruco_pos)) + '\n')
         
         print("Mean error aruco angle: " +str(sum(self.mean_error_aruco_angle)/len(self.mean_error_aruco_angle)))
         print("STD error aruco angle: " +str(sum(self.std_error_aruco_angle)/len(self.std_error_aruco_angle)))
-        print("Min error aruco angle: " +str(min(self.mean_error_aruco_angle)))
-        print("Max error aruco angle: " +str(max(self.mean_error_aruco_angle)) + '\n')
+        #print("Min error aruco angle: " +str(min(self.mean_error_aruco_angle)))
+        #print("Max error aruco angle: " +str(max(self.mean_error_aruco_angle)) + '\n')
         
         print("Mean error setpoint pos: " +str(sum(self.mean_error_setpoint_pos)/len(self.mean_error_setpoint_pos)))
         print("STD error setpoint pos: " +str(sum(self.std_error_setpoint_pos)/len(self.std_error_setpoint_pos)))
-        print("Min error setpoint pos: " +str(min(self.mean_error_setpoint_pos)))
-        print("Max error setpoint pos: " +str(max(self.mean_error_setpoint_pos)) + '\n')
+        #print("Min error setpoint pos: " +str(min(self.mean_error_setpoint_pos)))
+        #print("Max error setpoint pos: " +str(max(self.mean_error_setpoint_pos)) + '\n')
         
         print("Mean error setpoint angle: "+ str(sum(self.mean_error_setpoint_angle)/len(self.mean_error_setpoint_angle)))
         print("STD error setpoint angle: " +str(sum(self.std_error_setpoint_angle)/len(self.std_error_setpoint_angle)))
-        print("Min error setpoint angle: " +str(min(self.mean_error_setpoint_angle)))
-        print("Max error setpoint angle: " +str(max(self.mean_error_setpoint_angle)))
+        #print("Min error setpoint angle: " +str(min(self.mean_error_setpoint_angle)))
+        #print("Max error setpoint angle: " +str(max(self.mean_error_setpoint_angle)))
 
     def read_data(self, file_name):
         init = True
@@ -222,7 +224,7 @@ class plot_data():
         
         ax1.legend(loc='best',fontsize=60)
         
-        df = pd.read_csv('../hold_pose_using_aruco_pose_estimation.txt', delimiter=" ")
+        df = pd.read_csv(self.cur_dir, delimiter=" ")
         aruco = pd.Series(index[0], index=self.time)
         setpoint = pd.Series(index[1], index=self.time)
         ground_truth = pd.Series(index[2], index=self.time)

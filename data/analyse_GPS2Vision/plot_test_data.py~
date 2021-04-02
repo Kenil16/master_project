@@ -44,7 +44,7 @@ class plot_data():
 
         fig, ax = plt.subplots(figsize=(15,25),facecolor='white')
         colors = ['b','r','y','g']
-        legends = ['GPS', 'Locating board (GPS)', 'Navigate to board (GPS)', 'GPS2Vision transition (vision)']
+        legends = ['GPS navigation', 'Locating board (GPS) navigation', 'Navigate to board (GPS) navigation', 'GPS2Vision transition (vision) navigation']
         index_files = 0
         num_of_files = len(files)
         index_files = num_of_files

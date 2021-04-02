@@ -21,6 +21,8 @@ class log_data():
         self.delta_x = 0.0
         self.delta_y = 0.0
         self.delta_z = 0.0
+
+        self.ground_truth_time = 0.0
         
         #Reset data files for new tests 
         self.reset_data_files()
@@ -103,7 +105,111 @@ class log_data():
         else:
             data = open(self.vision_landing_precision_and_accuracy_path,'w+')
             data.close()
+        
+        """These data files are just used to track the transitions beetween GPS, locate board, navigate to board 
+           and gps2vision for visualizations of the transitions between the substates of the GPS2Vision procedure"""
+        #Data for GPS navigation 
+        data = Path('../../../../data/gps2vision.txt')
+        self.gps2vision_path = '../../../../data/gps2vision.txt'
+        if not data.is_file:
+            data = open(self.gps2vision_path,'r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open(self.gps2vision_path,'w+')
+            data.close()
+        """
+        #Data for locating the board after last waypoint from GPS navigation
+        data = Path('../../../../data/locate_board_navigation.txt')
+        self.locate_board_navigation_path = '../../../../data/locate_board_navigation.txt'
+        if not data.is_file:
+            data = open(self.locate_board_navigation_path,'r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open(self.locate_board_navigation_path,'w+')
+            data.close()
     
+        #Data for navigating to board after successfully locating the board
+        data = Path('../../../../data/navigate_to_board_navigation.txt')
+        self.navigate_to_board_navigation_path = '../../../../data/navigate_to_board_navigation.txt'
+        if not data.is_file:
+            data = open(self.navigate_to_board_navigation_path,'r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open(self.navigate_to_board_navigation_path,'w+')
+            data.close()
+    
+        #Data for transition between gps2vision navigation
+        data = Path('../../../../data/transition_gps2vision_navigation.txt')
+        self.transition_gps2vision_navigation_path = '../../../../data/transition_gps2vision_navigation.txt'
+        if not data.is_file:
+            data = open(self.transition_gps2vision_navigation_path,'r+')
+            data.truncate(0)
+            data.close
+        else:
+            data = open(self.transition_gps2vision_navigation_path,'w+')
+            data.close()
+        """ 
+    def write_gps2vision_data(self, ground_truth, state, intervals = 0.5):
+
+        #State represents the state (substate) 0->GPS, 1->locate_board, 2->navigate_to_board, 3-> gps2vision_transition
+        
+        #Get time
+        time = ground_truth.header.stamp.secs + ground_truth.header.stamp.nsecs/1000000000.
+        
+        #Only plot with a certain interval between observations 
+        if (time-self.ground_truth_time) > intervals:
+            g_x, g_y, g_z, g_roll, g_pitch, g_yaw = self.ground_truth_to_aruco_pose(ground_truth)
+            data = open(self.gps2vision_path,'a')
+            data.write(str(g_x) + " " + str(g_y) + " " + str(time) + " " + str(state))
+            data.write('\n')
+            data.close()
+            self.ground_truth_time = time
+    """
+    def write_locate_board_navigation_data(self, ground_truth, intervals = 0.5):
+        
+        #Get time
+        time = ground_truth.header.stamp.secs + ground_truth.header.stamp.nsecs/1000000000.
+        
+        #Only plot with a certain interval between observations 
+        if (time-self.ground_truth_time) > intervals:
+            g_x, g_y, g_z, g_roll, g_pitch, g_yaw = self.ground_truth_to_aruco_pose(ground_truth)
+            data = open(self.locate_board_navigation_path,'a')
+            data.write(str(g_x) + " " + str(g_y))
+            data.write('\n')
+            data.close()
+            self.ground_truth_time = time
+
+    def write_navigato_to_board_navigation_data(self, ground_truth, intervals = 0.5):
+        
+        #Get time
+        time = ground_truth.header.stamp.secs + ground_truth.header.stamp.nsecs/1000000000.
+        
+        #Only plot with a certain interval between observations 
+        if (time-self.ground_truth_time) > intervals:
+            g_x, g_y, g_z, g_roll, g_pitch, g_yaw = self.ground_truth_to_aruco_pose(ground_truth)
+            data = open(self.navigate_to_board_navigation_path,'a')
+            data.write(str(g_x) + " " + str(g_y))
+            data.write('\n')
+            data.close()
+            self.ground_truth_time = time
+
+    def write_transition_gps2vision_navigation_data(self, ground_truth, intervals = 0.5):
+        
+        #Get time
+        time = ground_truth.header.stamp.secs + ground_truth.header.stamp.nsecs/1000000000.
+        
+        #Only plot with a certain interval between observations 
+        if (time-self.ground_truth_time) > intervals:
+            g_x, g_y, g_z, g_roll, g_pitch, g_yaw = self.ground_truth_to_aruco_pose(ground_truth)
+            data = open(self.transition_gps2vision_navigation_path,'a')
+            data.write(str(g_x) + " " + str(g_y))
+            data.write('\n')
+            data.close()
+            self.ground_truth_time = time
+    """
     #To be used in sensor fusion 
     def write_vision_imu_data(self, x, y, z, acc_x, acc_y, acc_z, roll, pitch, 
                               yaw, gyro_x, gyro_y, gyro_z, baro, time, vision_seq, 

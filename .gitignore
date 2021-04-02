@@ -31,5 +31,4 @@ software/ros_workspace/build*
 software/ros_workspace/devel*
 software/ros_workspace/logs*
 software/ros_workspace/.catkin_tools*
-data/create_ekf/sympy/*
 

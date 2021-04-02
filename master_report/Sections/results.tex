@@ -3,7 +3,9 @@
 \section{Results}
 \label{sec:results}
 
-\subsection{GPS to vision based navigation}
+\subsection{Simulation}
+
+\subsubsection{GPS to vision ArUco pose estimation}
 
 \begin{figure}[H]
     \centering
@@ -232,36 +234,45 @@
     \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
 \end{figure}
 
-\subsection{Vision based navigation}
 
-
-\subsection{Vision based landing}
-
+\subsubsection{Hold pose using ArUco pose estimation}
 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{.30\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/landing_test/test1/landing_for_station_one.png}
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/aruco_board_three.png}
         \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+        \label{fig:hold_pose_aruco_board_three}
     \end{subfigure}
      \hspace{0.2em}
     \begin{subfigure}[t]{.30\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/landing_test/test1/landing_for_station_two.png}
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/aruco_board_four.png}
         \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+        \label{fig:hold_pose_aruco_board_four}
     \end{subfigure}
      \hspace{0.2em}
     \begin{subfigure}[t]{.30\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/landing_test/test1/landing_for_station_three.png}
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/aruco_board_five.png}
         \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+        \label{fig:hold_pose_aruco_board_five}
+    \end{subfigure}
+        \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/aruco_board_one_noWind.png}
+        \caption{}
+        \label{fig:hold_pose_aruco_board_one_noWind}
+    \end{subfigure}
+        \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/aruco_board_one_5-7ms_wind.png}
+        \caption{}
+        \label{fig:hold_pose_aruco_board_one_5-7ms_wind}
     \end{subfigure}
     \caption{}
-    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
+    \label{fig:hold_pose_aruco_boards}
 \end{figure}
 
 \begin{table}[H]
@@ -275,21 +286,300 @@
                 dec sep align
         }
         ]{ %
-        Landing station & eg & Waypoint check error & Vertical velocity & Minimum & Maximum & Mean & STD\\
-        \topmidheader{9}{\textbf{Test 1}}
-        One         & 68      & $0.1 m$ & $0.3 \frac{m}{s}$ & $0.0043 m$ & $0.0872 m$ & $0.0441 m$ & $0.0226 m$ \\
-        two         & 68     & $0.1 m$ & $0.3 \frac{m}{s}$ & $0.0122m$ & $0.0928 m$& $0.0445 m$ & $0.0196 m$\\
-        Three       & 64     & $0.1 m$ & $0.3 \frac{m}{s}$ & $0.0095 m$ & $0.0923 m$ & $0.0464 m$ & $0.0215 m$\\
-        \midheader{9}{\textbf{Test 2}}
-        One         & 68      & 5.46 & i & i  & 5.46 & i & i \\
-        two         & 68     & 1.12 & i & i & 5.46 & i & i\\
-        Three       & 64     & 0.67 & i & i & 5.46 & i & i\\
-        \midheader{9}{\textbf{Test 3}}
-        One         & 68      & 5.46 & i & i  & 5.46 & i & i \\
-        two         & 68     & 1.12 & i & i & 5.46 & i & i\\
-        Three       & 64     & 0.67 & i & i & 5.46 & i & i\\
-        }
+        Estimation error & eg & Wind & Mean position & STD position & Mean angle & STD angle\\
+        \topmidheader{8}{\textbf{Test 1}}
+ArUco pose         & 10      & No & $1.43cm$ & $1.10cm$ & $0.18^{\circ}$ & $0.13^{\circ}$\\
+Setpoint         & 10      & No & $3.12cm $ & $2.58cm$ & $0.28^{\circ}$ & $0.22^{\circ}$\\
+		\midheader{8}{\textbf{Test 2}}
+ArUco pose         & 10      & Yes & $1.47cm $ & $0.95cm$ & $0.49^{\circ}$ & $0.31^{\circ}$\\
+Setpoint         & 10      & Yes & $4.04cm $ & $3.35cm$ & $4.45^{\circ}$ & $1.49^{\circ}$\\
+ }
 \end{table}
 
+\begin{table}[H]
+    \centering
+    \addtolength{\leftskip} {-2cm}
+    \addtolength{\rightskip}{-2cm}
+        \caption{Statistics of the results from landing tests }
+        \pgfplotstabletypeset[normal,
+                columns/eg/.style={
+                column name={Runs},
+                dec sep align
+        }
+        ]{ %
+        Estimation error & eg & Wind & Mean position & STD position & Mean angle & STD angle\\
+        \topmidheader{8}{\textbf{Test 3}}
+ArUco pose         & 10      & No & $0.12cm $ & $0.23cm$ & $0.03^{\circ}$ & $0.05^{\circ}$\\
+Setpoint         & 10      & No & $2.93cm$ & $2.90cm$ & $0.12^{\circ}$ & $0.12^{\circ}$\\
+		\midheader{8}{\textbf{Test 4}}
+ArUco pose         & 10      & No & $0.11cm $ & $0.21cm$ & $0.02^{\circ}$ & $0.01^{\circ}$\\
+Setpoint         & 10      & No & $2.92cm$ & $2.89cm$ & $0.11^{\circ}$ & $0.09^{\circ}$\\
+		\midheader{8}{\textbf{Test 5}}
+ArUco pose         & 10      & No & $0.09cm $ & $0.20cm$ &
+$0.02^{\circ}$ & $0.01^{\circ}$\\
+Setpoint         & 10      & No & $2.89cm$ & $2.85cm$ & $0.11^{\circ}$ & $0.09^{\circ}$\\
+ }
+\end{table}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/test2_gps2visionBoard_1.0Wind_-1.0y/error_x/pose_error_x_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures//hold_pose_using_aruco_pose_estimation/test2_gps2visionBoard_1.0Wind_-1.0y/error_y/pose_error_y_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/test2_gps2visionBoard_1.0Wind_-1.0y/error_z/pose_error_z_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+    \caption{}
+    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/test2_gps2visionBoard_1.0Wind_-1.0y/error_roll/pose_error_roll_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures//hold_pose_using_aruco_pose_estimation/test2_gps2visionBoard_1.0Wind_-1.0y/error_pitch/pose_error_pitch_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/test2_gps2visionBoard_1.0Wind_-1.0y/error_yaw/pose_error_yaw_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+    \caption{}
+    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/test5_landingBoard3_noWind/error_x/pose_error_x_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures//hold_pose_using_aruco_pose_estimation/test5_landingBoard3_noWind/error_y/pose_error_y_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/test5_landingBoard3_noWind/error_z/pose_error_z_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+    \caption{}
+    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/test5_landingBoard3_noWind/error_roll/pose_error_roll_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures//hold_pose_using_aruco_pose_estimation/test5_landingBoard3_noWind/error_pitch/pose_error_pitch_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/test5_landingBoard3_noWind/error_yaw/pose_error_yaw_test1.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+    \caption{}
+    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
+\end{figure}
+
+\subsubsection{GPS to vision navigation}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/test.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/test.png}
+        \caption{}
+        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+    \end{subfigure}
+    \caption{}
+    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
+\end{figure}
+
+
+\subsubsection{Vision based landing}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/landing_station_one.png}
+        \caption{}
+        \label{fig:vision_based_landing_landing_station_one}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/landing_station_two.png}
+        \caption{}
+        \label{fig:vision_based_landing_landing_station_two}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/landing_station_three.png}
+        \caption{}
+        \label{fig:vision_based_landing_landing_station_three}
+    \end{subfigure}
+    \caption{}
+    \label{fig:vision_based_landing_landing_stations}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \addtolength{\leftskip} {-2cm}
+    \addtolength{\rightskip}{-2cm}
+        \caption{Statistics of the results from landing tests }
+        \pgfplotstabletypeset[normal,
+                columns/eg/.style={
+                column name={Runs},
+                dec sep align
+        }
+        ]{ %
+        Station & eg & Waypoint error & Velocity & Min & Max & Mean & STD & Stabilize time & Landing time\\
+        \topmidheader{11}{\textbf{Test 1}}
+        One         & 35      & $0.1 m$ & $0.1 \frac{m}{s}$ & $1.60cm$ & $12.46cm$ & $5.81cm$ & $3.02cm$ & $3.60s$ &$11.51s$\\
+        two         & 30     & $0.1 m$ & $0.1 \frac{m}{s}$ & $0.70cm$ & $11.83 cm$& $5.79cm$ & $2.54cm$& $0.70s$ &$11.76s$\\     
+        Three       & 35     & $0.1 m$ & $0.1 \frac{m}{s}$ & $0.62cm$ & $10.75cm$ & $5.86cm$ & $2.50cm$& $3.22s$ &$11.82s$\\    
+        \midheader{11}{\textbf{Test 2}}
+        One         & 33      & $0.1 m$ & $0.5 \frac{m}{s}$ & $2.20cm$ & $15.04cm$ & $8.00cm$ & $2.67cm$ & $2.63s$ &$3.00s$\\
+        two         & 29     & $0.1 m$ & $0.5 \frac{m}{s}$ & $3.18cm$ & $11.60 cm$& $7.62cm$ & $2.19cm$& $0.20s$ &$3.00s$\\     
+        Three       & 38     & $0.1 m$ & $0.5 \frac{m}{s}$ & $1.11cm$ & $14.63cm$ & $7.87cm$ & $3.25cm$& $2.18s$ &$3.02s$\\    
+        \midheader{11}{\textbf{Test 3}}
+        One         & 32      & $0.1 m$ & $0.9 \frac{m}{s}$ & $4.63cm$ & $14.01cm$ & $9.25cm$ & $2.27cm$ & $1.68s$ &$2.15s$\\
+        two         & 36    & $0.1 m$ & $0.9 \frac{m}{s}$ & $4.79cm$ & $14.00 cm$& $9.54cm$ & $1.92cm$& $0.19s$ &$2.13s$\\     
+        Three       & 32     & $0.1 m$ & $0.9 \frac{m}{s}$ & $3.35cm$ & $18.45cm$ & $9.45cm$ & $2.88cm$& $2.09s$ &$2.18s$\\}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \addtolength{\leftskip} {-2cm}
+    \addtolength{\rightskip}{-2cm}
+        \caption{Statistics of the results from landing tests }
+        \pgfplotstabletypeset[normal,
+                columns/eg/.style={
+                column name={Runs},
+                dec sep align
+        }
+        ]{ %
+        Station & eg & Waypoint error & Velocity & Min & Max & Mean & STD & Stabilize time & Landing time\\
+        \topmidheader{11}{\textbf{Test 4}}
+One         & 33      & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.08cm$ & $9.46cm$ & $4.81cm$ & $2.15cm$ & $9.93s$ &$11.45s$\\
+        two         & 33    & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.97cm$ & $11.18 cm$& $4.74cm$ & $2.56cm$& $6.96s$ &$11.69s$\\     
+        Three       & 34     & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.19cm$ & $11.84cm$ & $4.54cm$ & $2.41cm$& $9.11s$ &$11.58s$\\        		\midheader{11}{\textbf{Test 5}}
+        One         & 32     & $0.05 m$ & $0.5 \frac{m}{s}$ & $1.63cm$ & $9.84cm$ & $5.25cm$ & $2.36cm$ & $8.43s$ &$3.00s$\\
+        two         & 32    & $0.05 m$ & $0.5 \frac{m}{s}$ & $1.31cm$ & $13.07 cm$& $5.98cm$ & $2.90cm$& $6.34s$ &$3.00s$\\     
+        Three       & 36     & $0.05 m$ & $0.5 \frac{m}{s}$ & $0.45cm$ & $12.22cm$ & $4.98cm$ & $2.88cm$& $9.33s$ &$3.00s$\\				\midheader{11}{\textbf{Test 6}}
+        One         & 32     & $0.05 m$ & $0.9 \frac{m}{s}$ & $0.20cm$ & $11.89cm$ & $4.96cm$ & $2.77cm$ & $9.18s$ &$2.28s$\\
+        two         & 35    & $0.05 m$ & $0.9 \frac{m}{s}$ & $0.65cm$ & $14.13 cm$& $5.90cm$ & $3.32cm$& $5.91s$ &$2.34s$\\     
+        Three       & 33     & $0.05 m$ & $0.9 \frac{m}{s}$ & $1.06cm$ & $13.54cm$ & $5.35cm$ & $2.70cm$& $8.54s$ &$2.36s$\\}
+\end{table}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/test3_speed_0.9_error_0.1/landing_for_station_one.png}
+        \caption{}
+        \label{fig:vision_based_landing_landing_station_one_test3}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/test3_speed_0.9_error_0.1/landing_for_station_two.png}
+        \caption{}
+        \label{fig:vision_based_landing_landing_station_two_test3}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/test3_speed_0.9_error_0.1/landing_for_station_three.png}
+        \caption{}
+        \label{fig:vision_based_landing_landing_station_three_test3}
+    \end{subfigure}
+    \caption{}
+    \label{fig:vision_based_landing_test3}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/test4_speed_0.1_error_0.05/landing_for_station_one.png}
+        \caption{}
+        \label{fig:vision_based_landing_landing_station_one_test4}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/test4_speed_0.1_error_0.05/landing_for_station_two.png}
+        \caption{}
+        \label{fig:vision_based_landing_landing_station_two_test4}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/landing_test/test4_speed_0.1_error_0.05/landing_for_station_three.png}
+        \caption{}
+        \label{fig:vision_based_landing_landing_station_three_test4}
+    \end{subfigure}
+    \caption{}
+    \label{fig:vision_based_landing_test4}
+\end{figure}
+
+
+\subsubsection{Vision based navigation}
 
 \end{document}
