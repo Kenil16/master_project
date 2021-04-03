@@ -95,8 +95,9 @@ class plot_data():
                         self.time_gps2vision_transition.append(str_to_float[2])
 
             #See if last locations is GOAL
-            if (self.x_gps2vision_transition[-1] < 4 and self.x_gps2vision_transition > 2.5) and (self.y_gps2vision_transition[-1] < 2 and self.y_gps2vision_transition > 0):
-                self.success += 1
+            if len(self.x_gps2vision_transition):
+                if (self.x_gps2vision_transition[-1] < 4 and self.x_gps2vision_transition > 2.5) and (self.y_gps2vision_transition[-1] < 2 and self.y_gps2vision_transition > 0):
+                    self.success += 1
 
             #Find travel time
             time = 0.0
@@ -176,11 +177,11 @@ class plot_data():
             ax.plot(x,y,linewidth=0.8, linestyle='--', color='k')
             
         #Show text for start and GPS2Vision board locations 
-        ax.annotate('Start from GPS', xy=(3,0.5), xytext=(2.55,-18), size=25,bbox=dict(boxstyle="round, pad=0.3",fc="white", ec="k", lw=1))
+        ax.annotate('Start from GPS', xy=(3,0.5), xytext=(2.55,-17.9), size=25,bbox=dict(boxstyle="round, pad=0.3",fc="white", ec="k", lw=1))
         ax.annotate('GPS2Vision board', xy=(3,0.5), xytext=(2.35, 2.5), size=25,bbox=dict(boxstyle="round, pad=0.3",fc="white", ec="k", lw=1))
         
         #Show start location
-        ax.plot(self.x_gps[0],self.y_gps[0], marker='o', linestyle='--', color='m', markersize=13)
+        #ax.plot(self.x_gps[0],self.y_gps[0], marker='o', linestyle='--', color='m', markersize=13)
         
         #Show safe area to change from GPS to vision
         wedge = Wedge((3.65, 2.99), 5, 180, 360, alpha=0.05, label="Safe GP2Vision transition area")
@@ -200,12 +201,12 @@ class plot_data():
         ax.set_xlabel('x [m]',fontsize=40)
         ax.set_ylabel('y [m]',fontsize=40)
         plt.tight_layout()
-        plt.savefig('test.png')
+        plt.savefig('gps2vision.png')
 
         print(self.navigate_to_board_time)
 
         print("Runs: " + str(self.success))
-        print("GPD travel time: " + "{:.4f}".format(sum(self.gps_time)/len(self.gps_time)))
+        print("GPS travel time: " + "{:.4f}".format(sum(self.gps_time)/len(self.gps_time)))
         print("Locate board travel time: " + "{:.4f}".format(sum(self.locate_board_time)/len(self.locate_board_time)))
         print("Navigate to board travel time: " + "{:.4f}".format(sum(self.navigate_to_board_time)/len(self.navigate_to_board_time)))
         print("GPS2Vision travel time: " + "{:.4f}".format(sum(self.gps2vision_time)/len(self.gps2vision_time)))
@@ -213,4 +214,6 @@ class plot_data():
 if __name__ == "__main__":
 
     tt = plot_data()
-    tt.plot_data('test1_noWind/')
+    #tt.plot_data('test4_5-7ms_wind_20_runs/')
+    #tt.plot_data('test2_noWind_20_runs/')
+    tt.plot_data('test5_7-10ms_wind_runs/')

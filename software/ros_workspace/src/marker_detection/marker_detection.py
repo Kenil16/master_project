@@ -35,7 +35,7 @@ class marker_detection:
         self.write_iterations_rolling_average = 100
         self.iterations_rolling_average = 5
         self.write_rolling_average = True
-        self.max_std_rolling_average = 0.01
+        self.max_std_rolling_average = 0.005
         self.time = 0.0
         self.dis_to_GPS2Vision_marker = 0.0
 

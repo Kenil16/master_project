@@ -57,17 +57,17 @@ class autonomous_flight():
         
         #Waypoints for routes to landing station one, two and three
         self.landing_station_one_waypoints = [[[3.65, 1.10, 1.5, 90], [3.65, 4.25, 1.5, 90], [3.65, 4.25, 1.5, 90],
-                                               [0.40, 4.25, 1.5, 90], [0.40, 7.10, 1.5, 90]],
-                                              [[0.40, 7.10, 1.5, 90], [0.40, 4.25, 1.5, 90], [3.65, 4.25, 1.5, 90],
-                                               [3.65, 4.25, 1.5, 90], [3.65, 1.10, 1.5, 90]]]
+                                               [0.40, 4.25, 1.5, 180], [0.40, 7.10, 1.5, 90]],
+                                              [[0.40, 7.10, 1.5, -90], [0.40, 4.25, 1.5, -90], [3.65, 4.25, 1.5, 0],
+                                               [3.65, 4.25, 1.5, -90], [3.65, 1.10, 1.5, -90]]]
 
         self.landing_station_two_waypoints = [[[3.65, 1.10, 1.5, 90], [3.65, 7.10, 1.5, 90]],
-                                              [[3.65, 7.10, 1.5, 90], [3.65, 1.10, 1.5, 90]]]
+                                              [[3.65, 7.10, 1.5, -90], [3.65, 1.10, 1.5, -90]]]
 
-        self.landing_station_three_waypoints = [[[3.65, 1.10, 1.5, 90], [3.65, 4.25, 1.5, 90], [3.65, 4.25, 1.5, 90],
-                                                 [7.10, 4.25, 1.5, 90], [7.10, 7.10, 1.5, 90]],
-                                                [[7.10, 7.10, 1.5, 90], [7.10, 4.25, 1.5, 90], [3.65, 4.25, 1.5, 90],
-                                                 [3.65, 4.25, 1.5, 90], [3.65, 1.10, 1.5, 90]]]
+        self.landing_station_three_waypoints = [[[3.65, 1.10, 1.5, 90], [3.65, 4.25, 1.5, 90], [3.65, 4.25, 1.5, 0],
+                                                 [7.10, 4.25, 1.5, 0], [7.10, 7.10, 1.5, 90]],
+                                                [[7.10, 7.10, 1.5, -90], [7.10, 4.25, 1.5, -90], [3.65, 4.25, 1.5, 180],
+                                                 [3.65, 4.25, 1.5, -90], [3.65, 1.10, 1.5, -90]]]
 
         #Variable to keep track of the used landing station 
         self.landing_station = 3
@@ -347,30 +347,32 @@ class autonomous_flight():
         self.set_state('vision_navigation_test')
         rospy.loginfo('Autonomous_flight: Vision navigation test startet')
 
-        for _ in range(7):
+        #Make random move to a landing station
+        move = randrange(0,3)
+        
+        if move == 0: 
+            waypoints1 = self.landing_station_one_waypoints[0]
+            waypoints2 = self.landing_station_one_waypoints[1]
+        elif move == 1: 
+            waypoints1 = self.landing_station_two_waypoints[0]
+            waypoints2 = self.landing_station_two_waypoints[1]
+        elif move == 2: 
+            waypoints1 = self.landing_station_three_waypoints[0]
+            waypoints2 = self.landing_station_three_waypoints[1]
 
-            #Make random move to a landing station
-            move = randrange(0,3)
-
-            if move == 0: 
-                waypoints = self.landing_station_one_waypoints[0]
-
-            if move == 1: 
-                waypoints = self.landing_station_two_waypoints[0]
-
-            if move == 2: 
-                waypoints = self.landing_station_three_waypoints[0]
-            
-            self.GPS_navigation(waypoints_xyzYaw=[[0, 0, 2.5, 0]])
-            gps2vision_complete = self.GPS2Vision()
-            if gps2vision_complete:
-                self.vision_navigation(waypoints_xyzYaw=waypoints)
+        self.GPS_navigation(waypoints_xyzYaw=[[0, 0, 2.5, 0]])
+        gps2vision_complete = self.GPS2Vision()
+        
+        if gps2vision_complete:
+            self.vision_navigation(waypoints_xyzYaw=waypoints1)
+            self.vision_navigation(waypoints_xyzYaw=waypoints2)
 
         self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
         self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
 
         rospy.loginfo('Autonomous_flight: Vision navigation test complete!')
-        self.set_state('loiter')
+        rospy.signal_shutdown("Test completed!")
+        #self.set_state('loiter')
 
     def landing_test(self):
 
@@ -661,7 +663,7 @@ class autonomous_flight():
         pose = PoseStamped()
         min_dis = 5
         
-        while not self.aruco_marker_pose_stable:
+        while (self.dis_to_GPS2Vision_marker > min_dis) and not self.aruco_marker_pose_stable:
             
             while self.dis_to_GPS2Vision_marker > min_dis:
 

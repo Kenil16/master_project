@@ -197,13 +197,7 @@ class drone_control():
             elif self.uav_state == 'GPS2Vision_aruco_pose_estimation_test':
                 output_msg = self.autonomous_flight_pose_setpoint
                 self.pub_msg(output_msg, self.pub_local_pose)
-            else:
-                output_msg = self.autonomous_flight_pose_setpoint
-                self.pub_msg(output_msg, self.pub_local_pose)
-                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
-                self.pub_msg(new_pose, self.pub_vision_pose) #Now publish to vision for vision based navigation
             
-            """
             elif self.uav_state == 'return_to_landing_station_one':
                 output_msg = self.autonomous_flight_pose_setpoint
                 new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
@@ -241,7 +235,7 @@ class drone_control():
             elif self.uav_state == 'vision_navigation_test':
                 output_msg = self.autonomous_flight_pose_setpoint
                 self.pub_msg(output_msg, self.pub_local_pose)
-                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
+                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.sensor_fusion)
                 self.pub_msg(new_pose, self.pub_vision_pose)
             
             elif self.uav_state == 'landing_test':
@@ -255,7 +249,7 @@ class drone_control():
                 self.pub_msg(output_msg, self.pub_local_pose)
                 new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
                 self.pub_msg(new_pose, self.pub_vision_pose)
-            """
+
             if output_msg == None:
                 rospy.logfatal_once("Drone control received no message: Has a pilot crashed?")
                 self.set_mode(0, "AUTO.LOITER")

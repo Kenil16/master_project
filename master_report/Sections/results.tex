@@ -430,22 +430,86 @@ Setpoint         & 10      & No & $2.89cm$ & $2.85cm$ & $0.11^{\circ}$ & $0.09^{
 
 \begin{figure}[H]
     \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/drone_start_pose_gps.png}
+        \caption{}
+        \label{fig:gps2vision_gps}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/drone_locate_board.png}
+        \caption{}
+        \label{fig:gps2vision_locate_board}
+    \end{subfigure}
+         \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/drone_navigate_to_board.png}
+        \caption{}
+        \label{fig:gps2vision_navigate_to_board}
+    \end{subfigure}
+         \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/drone_gps2vision_transition.png}
+        \caption{}
+        \label{fig:gps2vision_gps2vision_transition}
+    \end{subfigure}
+         \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/drone_vision_navigation.png}
+        \caption{}
+        \label{fig:gps2vision_vision_navigation}
+    \end{subfigure}
+    \caption{}
+    \label{fig:gps2vision_states}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \addtolength{\leftskip} {-2cm}
+    \addtolength{\rightskip}{-2cm}
+        \caption{Statistics of the results from landing tests }
+        \pgfplotstabletypeset[normal,
+                columns/eg/.style={
+                column name={Runs},
+                dec sep align
+        }
+        ]{ %
+       Wind & eg & Completed & Vel (GPS) & GPS & Locate board & Navigate to board & Vel (vision) & GPS2Vision\\
+        \topmidheader{10}{\textbf{Test 1}}
+          0 $\frac{m}{s}$ & 20 & 20 & $2\frac{m}{s}$ & $7.45s$ & $0.50s$ & $14.64s$ & $1\frac{m}{s}$ & $5.28s$\\
+          \midheader{10}{\textbf{Test 2}}
+               5-7 $\frac{m}{s}$ & 20 & 20 & $2 \frac{m}{s}$ & $6.66s$ & $1.76s$ & $16.05s$ & 1$\frac{m}{s}$ & $5.32s$\\
+                  \midheader{10}{\textbf{Test 3}}
+               7-10 $\frac{m}{s}$ & 20 & 17 & $2\frac{m}{s}$ & $7.04s$ & $3.71s$ & $16.24s$ & $1\frac{m}{s}$& $20.39s$\\
+}
+\end{table}
+
+
+\begin{figure}[H]
+    \centering
     \begin{subfigure}[t]{.45\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/test.png}
+        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/test1_noWind_20_runs/gps2vision.png}
         \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+        \label{fig:GPS2Vision_test1}
     \end{subfigure}
      \hspace{0.2em}
     \begin{subfigure}[t]{.45\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/test.png}
+        \c"entering
+        \includegraphics[width=\textwidth]{../Figures/GPS2Vision/test3_7-10ms_wind_20_runs/gps2vision.png}
         \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+        \label{fig:GPS2Vision_test3}
     \end{subfigure}
     \caption{}
-    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
+    \label{fig:GPS2Vision_test1_test3}
 \end{figure}
+
+\subsubsection{Vision based navigation}
 
 
 \subsubsection{Vision based landing}
@@ -578,8 +642,5 @@ One         & 33      & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.08cm$ & $9.46cm$ & $4.
     \caption{}
     \label{fig:vision_based_landing_test4}
 \end{figure}
-
-
-\subsubsection{Vision based navigation}
 
 \end{document}

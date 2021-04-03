@@ -346,11 +346,11 @@
       <!--<robotNamespace/>-->
       <namespace>/foo/bar</namespace>
       <xyzOffset>0 0 0</xyzOffset>
-      <windDirectionMean>1 1 1</windDirectionMean> <!--1 1 1-->
-      <windDirectionVariance>0.05</windDirectionVariance> <!--0.05-->
-      <windVelocityMean>1.0</windVelocityMean> <!--1.0 and 1.5-->
-      <windVelocityVariance>0.05</windVelocityVariance> <!--0.05-->
-      <windGustDirection>1 1 1</windGustDirection> <!--1 1 1-->
+      <windDirectionMean>0 0 0</windDirectionMean> <!--1 1 1-->
+      <windDirectionVariance>0.00</windDirectionVariance> <!--0.05-->
+      <windVelocityMean>0.0</windVelocityMean> <!--1.0 and 1.5-->
+      <windVelocityVariance>0.00</windVelocityVariance> <!--0.05-->
+      <windGustDirection>0 0 0</windGustDirection> <!--1 1 1-->
       <windPubTopic>world_wind</windPubTopic>
     </plugin>
 
