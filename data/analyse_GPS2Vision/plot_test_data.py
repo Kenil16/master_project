@@ -200,8 +200,9 @@ class plot_data():
         ax.set_title('GPS to vision based navigation',fontsize=40)
         ax.set_xlabel('x [m]',fontsize=40)
         ax.set_ylabel('y [m]',fontsize=40)
+        ax.set_facecolor((1,1,1))
         plt.tight_layout()
-        plt.savefig('gps2vision.png')
+        plt.savefig('gps2vision.png', facecolor=fig.get_facecolor())
 
         print(self.navigate_to_board_time)
 
@@ -215,5 +216,5 @@ if __name__ == "__main__":
 
     tt = plot_data()
     #tt.plot_data('test4_5-7ms_wind_20_runs/')
-    #tt.plot_data('test2_noWind_20_runs/')
-    tt.plot_data('test5_7-10ms_wind_20_runs/')
+    tt.plot_data('test2_noWind_20_runs/')
+    #tt.plot_data('test5_7-10ms_wind_20_runs/')
