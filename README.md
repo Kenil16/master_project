@@ -13,7 +13,7 @@
 
 ## Table of content
 
-- [GPS2Vision pose estimation](test_videos/TestOne/Readme.md)
+[GPS2Vision pose estimation](./test_videos/TestOne)
 
 Ensure that you have ROS installed. The guide is based on Ubuntu 18.04, so ROS Melodic must be installed. 
 Follow the guide from the official ROS webpage: http://wiki.ros.org/melodic/Installation/Ubuntu. 
