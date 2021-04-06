@@ -1,7 +1,7 @@
 # Vision based navigation and precision landing of a drone
 ## _An autonomous implementation based on ROS, PX4 and ArUco markers_
 
-<!-->
+<!--
 <p align="center">
   <img alt="Light" src="master_report/Figures/px4_autopilot_logo.png" width="20%">
 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
@@ -10,6 +10,7 @@
   <img alt="Dark" src="master_report/Figures/ros_gazebo_logo.png" width="30%">
 </p>
 -->
+
 ## Table of content
 
 - [GPS2Vision pose estimation](test_videos/TestOne/TestOne.md#TestOne)
