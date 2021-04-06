@@ -1,15 +1,11 @@
-# Results from simulations
-## _GPS2Vision ArUco pose estimation_
+# Results from Gazebo from simulations
+## _GPS2Vision transition with 5-7 m/s wind_
 
-This test was conducted to estimate the ArUco pose based on the GPS2Vision board located on the wall. This was done to find the error in the estimated pose based on the ground truth of the drone in the simulated environment. Hence, an indication of the maximum allowed distance away from the board before the pose estimation becomes to bad, could be estimated. An idea of the maximum distance is critical when a transition between using GPS to vision based navigation is to be performed.
+This test was conducted to see how the drone performs when going from GPS to vision based navigation. In this state, the drone has to locate the ArUco marker board located on the wall after flying to a user defined waypoint using the GPS. Because the GPS comes with a certain error, the final waypoint has been set ramdomly with a variation of +-5 meters in the x and y positions to illustrate this uncertainty. This is to stress test the drone's abillity to find the board with this error in mind. When the drone finds the board, it is set to navigate to it still using GPS as navigation. It will continue doing so, until it is close enough to the board on the wall (GPS2Vision board) to make a reliable GPS2Vision transition. 
 
-## Description of test
-The drone was set to estimate the pose of the ArUco board for a giving set of locations defined in a grid struture of waypoints. For each waypiont, the drone is set to face the board and find the mean error of the estimated pose for a user defined number of seconds. This will be used to apply linear interpolation between the error on the giving waypoints to visualize how the error propagates as the drone moves futher away from the board. 
+The drone will be placed twenty meters away in front of the GPS2Vision board where this simulation includes wind beetween 5-7 m/s.
 
 <p align="center">
   <img src="analyse_gps2vision_5-7ms_wind.gif" 
   width="80%">
 </p>
-
-![GIF demo](analyse_gps2vision_5-7ms_wind.gif)
-
