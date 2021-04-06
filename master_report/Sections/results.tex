@@ -5,7 +5,22 @@
 
 \subsection{Simulation}
 
+This sections includes simulations of the system in Gazebo for a number of different configurations. This will give an indication of the performance of the implementation which is critical before moving on to implement the solution on the actual drone. 
+
+Section \ref{sec:GPS2Vision_pose_estimation} will investigate the performance of the ArUco pose estimation algorithm based on the GPS2Vision marker on the wall to be compared to the ground truth pose of the drone. This will yield an error which is expected to increase as the drone moves further away from the ArUco board. Thus, the maximum allowed distance away from the board can be estimated to insure a reliable GPS to vision transition. To further analyse the reliability of the ArUco pose estimation based on the GPS2Vision board, the rolling average of a sequence of pose estimates is analyzed for fluctuations in the data in Section \ref{sec:rolling_average_aruco_pose_estimation}. 
+
+Section \ref{sec:hold_pose_using_aruco_pose_estimation} will deal with performance evaluation of the control algorithms for pose control by having the drone to hold its current pose in front of the GPS2Vision and landing boards. This will give an indication if further optimizations of the pose have to be performed. Moreover, the ArUco pose estimations will be compared to that of the ground truth to see if the error in the pose estimation is reduced when the number of visible ArUco markers are increased by using different setups of ArUco boards. 
+
+In Section \ref{sec:gps2vision_transition}, the actual GPS2Vision implementation will be analyzed to see how the drone performs in locating the ArUco board, navigate to the board and make the GPS to vision transition in windy conditions for stress analysis. 
+
+Vision based navigation will be analyzed in Section \ref{sec:vision_based_navigation} using a number of different ArUco marker boards located on the ground for pose estimation. To stress test the system, boards with missing markers will be used, which means that the drone has to rely on sensor fusion from IMU and barometer data when no ArUco markers are visible in the image. Further performance evaluations will be based on increased horizontal speed of the drone. 
+
+Finally, the vision based landings will be analyzed in Section \ref{sec:vision_based_landing}. Here all landing stations will be used to compare the precision and accuracy of the landings to evaluate if the number of ArUco markers in the image has an impact on precision and accuracy for both the landing procedure and the actual pose estimation.
+
 \subsubsection{GPS to vision ArUco pose estimation}
+\label{sec:GPS2Vision_pose_estimation}
+
+The GPS2Vision pose estimation test is based on a predefined number of waypoints which the drone has to visit while keeping its orientation towards the GPS2Vision marker. The altitude will be 2.5 meters above the ground which is approximately the same as the origin of the GPS2Vision board. At each waypoint, the drone estimates the pose of the board for five seconds which will be compared to the ground truth of the drone and the mean error computed. Cubic interpolation will then be used to smooth out the errors along a 2D top view of the area in front of the GPS2Vision board as seen in Figure \ref{fig:GPS2Vision_pose_estimation_test1_error_pos} and \ref{fig:GPS2Vision_pose_estimation_test1_error_ori}. 
 
 \begin{figure}[H]
     \centering
@@ -29,9 +44,12 @@
         \caption{}
         \label{fig:GPS2Vision_pose_estimation_three}
     \end{subfigure}
-    \caption{}
+    \caption{Illustrations of the GPS2Vision pose estimation test in three different positions with the drone facing the GPS2Vision board. A video of the first couple of iterations can be seen on GitHub using \href{https://github.com/Kenil16/master_project/tree/master/test_videos/analyse_GPS2Vision_aruco_pose_estimation}{GPS2Vision pose estimation}
+ }
     \label{fig:GPS2Vision_pose_estimation}
 \end{figure}
+
+The errors can be seen to be high when the drone is approximately 5-8 meters away from the GPS2Vision board which goes for both position and angle. From these observations, a \textit{safe area} for the transition between using GPS to vision as navigation would be within a radius of approximately five meters away from the GPS2Vision board which can be seen in Figure \ref{fig:GPS2Vision_pose_estimation_test1_error_pos} and \ref{fig:GPS2Vision_pose_estimation_test1_error_ori}. A possible reason why especially the z position deviates a lot when moving away from the board is that the z component in the coordinate system moves with an angle in roll which triggers the altitude of the drones to go from positive to negative and hence increases the error in z more than x and y which are less sensitive according to the analysis. 
 
 \begin{figure}[H]
     \centering
@@ -55,7 +73,7 @@
         \caption{}
         \label{fig:GPS2Vision_pose_estimation_test1_error_z}
     \end{subfigure}
-    \caption{}
+    \caption{Black dots indicates where the drone has estimated the pose of the ArUco board and the circle colored sky blue indicates a safe GPS2Vision transition area. It may the noticed that the error in the position estimate becomes quite high when the drone has a distance of 7-8 meters away from the GPS2Vision board}
     \label{fig:GPS2Vision_pose_estimation_test1_error_pos}
 \end{figure}
 
@@ -81,63 +99,16 @@
         \caption{}
         \label{fig:GPS2Vision_pose_estimation_test1_error_yaw}
     \end{subfigure}
-    \caption{}
+    \caption{Black dots indicates where the drone has estimated the pose of the ArUco board and the circle colored sky blue indicates a safe GPS2Vision transition area. It may the noticed that the error in the angle estimate becomes quite high when the drone has a distance of 7-8 meters away from the GPS2Vision board}
     \label{fig:GPS2Vision_pose_estimation_test1_error_ori}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[t]{.337\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/GPS2Vision_pose_estimation_test/test2_aruco_board_width_0.3_space_0.15/aruco_pose_estimation_error_x.png}
-        \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_error_x}
-    \end{subfigure}
-    \hspace{-0.9em}
-    \begin{subfigure}[t]{.337\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/GPS2Vision_pose_estimation_test/test2_aruco_board_width_0.3_space_0.15/aruco_pose_estimation_error_y.png}
-        \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_error_y}
-    \end{subfigure}
-    \hspace{-0.9em}
-    \begin{subfigure}[t]{.337\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/GPS2Vision_pose_estimation_test/test2_aruco_board_width_0.3_space_0.15/aruco_pose_estimation_error_z.png}
-        \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test1_error_z}
-    \end{subfigure}
-    \caption{}
-    \label{fig:GPS2Vision_pose_estimation_test2_error_pos}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[t]{.337\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/GPS2Vision_pose_estimation_test/test2_aruco_board_width_0.3_space_0.15/aruco_pose_estimation_error_roll.png}
-        \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_roll}
-    \end{subfigure}
-    \hspace{-0.9em}
-    \begin{subfigure}[t]{.337\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/GPS2Vision_pose_estimation_test/test2_aruco_board_width_0.3_space_0.15/aruco_pose_estimation_error_pitch.png}
-        \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_pitch}
-    \end{subfigure}
-    \hspace{-0.9em}
-    \begin{subfigure}[t]{.337\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/GPS2Vision_pose_estimation_test/test2_aruco_board_width_0.3_space_0.15/aruco_pose_estimation_error_yaw.png}
-        \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_error_yaw}
-    \end{subfigure}
-    \caption{}
-    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
-\end{figure}
+Based on the results, the maximum distance away from the GPS2Vision board when executing the GPS to vision transition will be 5 meters which will be used in the implementation of the code.
 
 \subsubsection{Rolling average from ArUco pose estimation}
+\label{sec:rolling_average_aruco_pose_estimation}
+
+To analyze the possibility of fluctuations in the ArUco pose estimates, the rolling average is used for calculating the mean and standard deviation (STD) in two different positions for one-hundred iterations. This can be seen in Figure \ref{fig:rolling_average_pos}. 
 
 \begin{figure}[H]
     \centering
@@ -145,18 +116,20 @@
         \centering
         \includegraphics[width=\textwidth]{../Figures/analyse_rolling_average/optimal_pose.png}
         \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_roll}
+        \label{fig:rolling_average_good_pos}
     \end{subfigure}
     \hspace{0.5em}
     \begin{subfigure}[t]{.30\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../Figures/analyse_rolling_average/bad_pose.png}
         \caption{}
-        \label{fig:GPS2Vision_pose_estimation_test2_pitch}
+        \label{fig:rolling_average_bad_pos}
     \end{subfigure}
-    \caption{}
-    \label{fig:GPS2Vision_pose_estimation_test2_error_ori}
+    \caption{Illustrations of the two positions used to evaluate the rolling average for one-hundred iterations. The positions of the drone in Figures \ref{fig:rolling_average_good_pos} and \ref{fig:rolling_average_bad_pos} are (0,-5) and (3,-7) respectively from the coordinate system in Figures \ref{fig:GPS2Vision_pose_estimation_test1_error_pos} and \ref{fig:GPS2Vision_pose_estimation_test1_error_ori}} 
+    \label{fig:rolling_average_pos}
 \end{figure}
+
+This is done as an extension to the maximum allowed distance from the GPS2Vision marker from Section \ref{sec:GPS2Vision_pose_estimation} to insure that the GPS to vision transition is only performed when the pose estimates are stable and reliable. 
 
 \begin{figure}[H]
     \centering
@@ -180,7 +153,7 @@
         \caption{}
         \label{fig:rolling_average_in_z_test1}
     \end{subfigure}
-    \caption{}
+    \caption{Illustrations of the rolling average from the configuration in Figure \ref{fig:rolling_average_good_pos}. As it can be seen, the fluctuations of the position estimates are quite steady with only minor fluctuations of a few centimeters}
     \label{fig:rolling_average_pos_test1}
 \end{figure}
 
@@ -206,7 +179,7 @@
         \caption{}
         \label{fig:rolling_average_in_yaw_test1}
     \end{subfigure}
-    \caption{}
+    \caption{Illustrations of the rolling average from the configuration in Figure \ref{fig:rolling_average_good_pos}. As it can be seen, the fluctuations in the angle estimates are steady with only negligible deviations}
     \label{fig:rolling_average_angle_test1}
 \end{figure}
 
@@ -232,7 +205,7 @@
         \caption{}
         \label{fig:rolling_average_in_z_test2}
     \end{subfigure}
-    \caption{}
+    \caption{Illustrations of the rolling average from the configuration in Figure \ref{fig:rolling_average_bad_pos}. As it can be seen, the fluctuations of the position estimates fluctuates a lot especially in the altitude}
     \label{fig:rolling_average_pos_test2}
 \end{figure}
 
@@ -258,12 +231,16 @@
         \caption{}
         \label{fig:rolling_average_in_yaw_test2}
     \end{subfigure}
-    \caption{}
+    \caption{Illustrations of the rolling average from the configuration in Figure \ref{fig:rolling_average_bad_pos}. As it can be seen, the fluctuations in the angle are steady even in this configuration}
     \label{fig:rolling_average_angle_test2}
 \end{figure}
 
+As it can be seen in Figures \ref{fig:rolling_average_pos_test1} and \ref{fig:rolling_average_angle_test1}, the fluctuations in the estimates are only of minor concern when the drone is of a maximum distance of 5 meters from the GPS2Vision board. However, when the drone changes to a position outside of the \textit{safe area}, the estimations in position fluctuates a lot as seen in Figure \ref{fig:rolling_average_pos_test2}. This could be fatal to make a transition in this scenario and lead to an unstable system. The angle estimates are affected less as seen in Figure \ref{fig:rolling_average_angle_test2}.
+
+The outcome of the rolling average will be used alongside the maximum distance to the GPS2Vision board for stability analysis before going from GPS to vision navigation in Section \ref{sec:gps2vision_transition}.  
 
 \subsubsection{Hold pose using ArUco pose estimation}
+\label{sec:hold_pose_using_aruco_pose_estimation}
 
 \begin{figure}[H]
     \centering
@@ -455,6 +432,7 @@ Setpoint         & 10      & No & $2.89cm$ & $2.85cm$ & $0.11^{\circ}$ & $0.09^{
 \end{figure}
 
 \subsubsection{GPS to vision navigation}
+\label{sec:gps2vision_transition}
 
 \begin{figure}[H]
     \centering
@@ -538,6 +516,7 @@ Setpoint         & 10      & No & $2.89cm$ & $2.85cm$ & $0.11^{\circ}$ & $0.09^{
 \end{figure}
 
 \subsubsection{Vision based navigation}
+\label{sec:vision_based_navigation}
 
 \begin{figure}[H]
     \centering
@@ -701,6 +680,7 @@ Setpoint         & 10      & No & $2.89cm$ & $2.85cm$ & $0.11^{\circ}$ & $0.09^{
 \end{figure}
 
 \subsubsection{Vision based landing}
+\label{sec:vision_based_landing}
 
 \begin{figure}[H]
     \centering

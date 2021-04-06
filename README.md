@@ -1,5 +1,5 @@
 # Vision based navigation and precision landing of a drone
-## _An autonomous implementation based on ROS, PX4 and ArUco markers_
+## _An autonomous implementation based on ROS, PX4 and OpenCV_
 
 <!--
 <p align="center">
@@ -11,7 +11,10 @@
 </p>
 -->
 
-## Table of content
+#
+TODO (Project overview)
+
+# Table of content
 - [Simulation tests](https://github.com/Kenil16/master_project/tree/master/test_videos)
 
   - [GPS2Vision pose estimation](https://github.com/Kenil16/master_project/tree/master/test_videos/analyse_GPS2Vision_aruco_pose_estimation)
@@ -28,15 +31,22 @@
 
   - [GPS2Vision transition with no wind](https://github.com/Kenil16/master_project/tree/master/test_videos/analyse_gps2vision_noWind)
 
-  - [GPS2Vision transition with no 5-7 m/s wind](https://github.com/Kenil16/master_project/tree/master/test_videos/analyse_gps2vision_5-7ms_wind)
+  - [GPS2Vision transition with 5-7 m/s wind](https://github.com/Kenil16/master_project/tree/master/test_videos/analyse_gps2vision_5-7ms_wind)
 
-  - [GPS2Vision transition with no 7-10 m/s wind](https://github.com/Kenil16/master_project/tree/master/test_videos/analyse_gps2vision_7-10ms_wind)
+  - [GPS2Vision transition with 7-10 m/s wind](https://github.com/Kenil16/master_project/tree/master/test_videos/analyse_gps2vision_7-10ms_wind)
 
   - [Vision navigation using full ArUco board with 1.0 m/s horizontal velocity](https://github.com/Kenil16/master_project/tree/master/test_videos/vision_navigation_full_marker_board_vel_1.0)
 
   - [Vision navigation using ArUco board with missing markers with 5.0 m/s horizontal velocity](https://github.com/Kenil16/master_project/tree/master/test_videos/vision_navigation_one_pattern_board_missing_markers_wear_vel_5.0)
 
   - [Vision landing with 0.5 m/s vertical velocity](https://github.com/Kenil16/master_project/tree/master/test_videos/vision_landing_precision_and_accuracy_vertical_vel_0.5_max_error_0.05)
+
+- [Installation](#Installation)
+- [License](#License)
+
+
+# Installation
+TODO (Project installation)
 
 Ensure that you have ROS installed. The guide is based on Ubuntu 18.04, so ROS Melodic must be installed. 
 Follow the guide from the official ROS webpage: http://wiki.ros.org/melodic/Installation/Ubuntu. 
@@ -64,3 +74,6 @@ Now init your workspace -> catkin build
 Then source to PX4 firmware -> . ./setup_gazebo.bash
 
 The last line can now be run everytime a new terminal is opened to source PX4
+
+# License
+TODO (Lincense)
