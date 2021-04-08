@@ -3,7 +3,23 @@
 #Save the path to ROS workspace 
 ros_workspace="$PWD"
 
-#Initialize PX4 SITL environment from home folder
+#Install dependencies for PX4
+sudo apt install astyle build-essential ccache clang clang-tidy cmake cppcheck doxygen file g++ gcc gdb git lcov make ninja-build python3 python3-dev python3-pip python3-setuptools python3-wheel rsync shellcheck unzip xsltproc zip libeigen3-dev libopencv-dev libroscpp-dev protobuf-compiler python-pip python3-pip ninja-build gstreamer1.0-plugins-bad gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly libgstreamer-plugins-base1.0-dev libgstrtspserver-1.0-dev xvfb -y
+sudo apt install python-catkin-tools -y
+
+pip install --user argparse cerberus empy jinja2 numpy packaging pandas psutil pygments pyros-genmsg pyserial pyulog pyyaml setuptools six toml wheel rosdep
+pip3 install --user --upgrade empy jinja2 numpy packaging pyros-genmsg toml pyyaml pymavlink
+
+#Install ROS and mavros 
+sudo apt install ros-melodic-desktop-full -y
+sudo apt install ros-melodic-mavros ros-melodic-mavros-extras -y
+
+#Install GeographicLib datasets from your home folder
+wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
+sudo chmod 755 install_geographiclib_datasets.sh
+sudo ./install_geographiclib_datasets.sh
+
+#Initialize PX4 SITL environment from your home folder
 cd ~
 mkdir PX4_SITL
 cd PX4_SITL
