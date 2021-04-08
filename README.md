@@ -18,8 +18,6 @@ TODO (Project overview)
 - [Installation](#Installation)
 - [How to use](#How-to-use)
 - [Simulations](#Simulations)
-- [License](#License)
-
 
 # Installation
 This project has been implemented on an Ubuntu 18.04 machine using robot operating system (ROS), Gazebo and OpenCV. It relies on the following sofware which must be installed to make it work proberly.  
@@ -60,17 +58,28 @@ pip install --user argparse cerberus empy jinja2 numpy packaging pandas psutil p
 pip3 install --user --upgrade empy jinja2 numpy packaging pyros-genmsg toml pyyaml pymavlink
 ```
 
-Install dependencies to run sofware scripts:
-```
-sudo apt update
+Install [texmaker](https://www.xm1math.net/texmaker/) and [miktex](https://miktex.org/howto/install-miktex-unx) for plots in latex format 
+```bash
+#Install texmaker
+sudo apt install texmaker
 
-apt install python-cv-bridge ros-melodic-hector-gazebo-plugins
+#Register GPG key
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys D6BC243565B2087BC3F897C9277A7293F59E4889
 
-pip install pathlib numpy pandas opencv-contrib-python scipy pymavlink
+#Register installation source
+echo "deb http://miktex.org/download/ubuntu bionic universe" | sudo tee /etc/apt/sources.list.d/miktex.list
+
+#Install MiKTeX
+sudo apt-get update
+sudo apt-get install miktex
 ```
 
 [ROS](http://wiki.ros.org/Installation/Ubuntu) melodic is used in this project and can be installed together with Gazebo:
 ```bash
+#Init workspace
+sudo rosdep init
+sudo rosdep update
+
 #Setup your sources.list
 $ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 
@@ -86,6 +95,31 @@ $ sudo apt install ros-melodic-desktop-full
 ```bash
 #Install mavros along with extra packages
 sudo apt install ros-melodic-mavros ros-melodic-mavros-extras -y
+```
+
+Install dependencies to run sofware scripts:
+```bash
+sudo apt update
+
+apt install python-cv-bridge ros-melodic-hector-gazebo-plugins dvipng
+
+pip install pathlib numpy pandas opencv-contrib-python scipy pymavlink matplotlib
+```
+
+[Update Gazebo](http://gazebosim.org/tutorials?cat=install&tut=install_ubuntu&ver=9.0) version (tested on 9.16.0)
+```bash
+#Setup your computer to accept software from packages.osrfoundation.org.
+sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+
+#Setup keys
+wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+
+#Update version
+sudo apt-get update
+sudo apt-get install gazebo9
+
+#Otherwise gazebo will not run
+sudo apt upgrade libignition-math2
 ```
 
 Install GeographicLib datasets:
@@ -155,7 +189,3 @@ The first time your are using the sofware, the ROS workspace has to be initialze
   - [Vision navigation using ArUco board with missing markers with 5.0 m/s horizontal velocity](https://github.com/Kenil16/master_project/tree/master/test_videos/vision_navigation_one_pattern_board_missing_markers_wear_vel_5.0)
 
   - [Vision landing with 0.5 m/s vertical velocity](https://github.com/Kenil16/master_project/tree/master/test_videos/vision_landing_precision_and_accuracy_vertical_vel_0.5_max_error_0.05)
-
-
-# License
-TODO (Lincense)

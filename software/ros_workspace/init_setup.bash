@@ -10,11 +10,47 @@ sudo apt install python-catkin-tools python-rosdep2 -y
 pip install --user argparse cerberus empy jinja2 numpy packaging pandas psutil pygments pyros-genmsg pyserial pyulog pyyaml setuptools six toml wheel rosdep
 pip3 install --user --upgrade empy jinja2 numpy packaging pyros-genmsg toml pyyaml pymavlink
 
+#Install texmaker
+sudo apt install texmaker
+
+#Register GPG key
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys D6BC243565B2087BC3F897C9277A7293F59E4889
+
+#Register installation source
+echo "deb http://miktex.org/download/ubuntu bionic universe" | sudo tee /etc/apt/sources.list.d/miktex.list
+
+#Install MiKTeX
+sudo apt-get update
+sudo apt-get install miktex
+
 #Install ROS and mavros 
 sudo rosdep init
 sudo rosdep update
+
+#Setup your sources.list
+$ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+
+#Set up your keys
+$ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
+#Installation
+$ sudo apt update
 sudo apt install ros-melodic-desktop-full -y
 sudo apt install ros-melodic-mavros ros-melodic-mavros-extras -y
+
+#Update Gazebo version
+#Setup your computer to accept software from packages.osrfoundation.org.
+sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+
+#Setup keys
+wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+
+#Get newest version (testet with 9.16.0)
+sudo apt-get update
+sudo apt-get install gazebo9
+
+#Otherwise gazebo will not run
+sudo apt upgrade libignition-math2
 
 #Install GeographicLib datasets from your home folder
 wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
@@ -37,15 +73,11 @@ ln -s $PWD/PX4-software/models/* /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo
 ln -s $PWD/PX4-software/worlds/* /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/worlds/
 ln -s $PWD/PX4-software/launch/* /home/$USER/PX4_SITL/Firmware/launch/
 
-#Place 3d models in the PX4 firmware (-R recursively and -T not source directory)
-#cd $ros_workspace
-#cp -RT PX4-software/models/ /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/models
-#cp -RT PX4-software/worlds/ /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/worlds
-#cp -RT PX4-software/init.d-posix /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/init.d-posix/
-#cp -RT PX4-software/mixers /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/mixers
-
 #Build the PX4 SITL firmware
 cd /home/$USER/PX4_SITL/Firmware
 DONT_RUN=1 make px4_sitl_default gazebo
 
+#Now inizialize ros workspace
 cd $ros_workspace
+source /opt/ros/melodic/setup.bash
+catkin_make

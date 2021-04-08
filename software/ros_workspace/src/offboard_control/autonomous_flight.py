@@ -439,7 +439,8 @@ class autonomous_flight():
     def move2GPS_locations_from_vision(self):
         
         rospy.loginfo('Autonomous_flight: Drone navigation from vision to GPS locations started!')
-
+        #self.set_state('return_to_landing_station_one')
+        
         self.vision2GPS_navigation()
         #self.fly_route(waypoints_xyzYaw=[[-8, 0, 2.5, 0],[-8, -5, 2.5, 0]])
         
