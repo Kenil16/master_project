@@ -1,18 +1,10 @@
 # Vision based navigation and precision landing of a drone
 ## _An autonomous implementation based on ROS, PX4 and OpenCV_
 
-<!--
 <p align="center">
-  <img alt="Light" src="master_report/Figures/px4_autopilot_logo.png" width="20%">
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-  <img alt="Dark" src="master_report/Figures/opencv_logo.png" width="10%">
-  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-  <img alt="Dark" src="master_report/Figures/ros_gazebo_logo.png" width="30%">
+  <img alt="Light" src="https://github.com/Kenil16/master_project/blob/master/test_videos/raw_videos/final_test.gif" 
+  width="80%">
 </p>
--->
-
-#
-TODO (Project overview)
 
 # Table of content
 - [Installation](#Installation)
