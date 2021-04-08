@@ -1,10 +1,14 @@
 # Vision based navigation and precision landing of a drone
 ## _An autonomous implementation based on ROS, PX4 and OpenCV_
 
+This project is about gps to vision based navigation (GPS2Vision). The primary goal is to make a smooth a reliable transition between using gps and the pose estimations from the front and bottom camera of the drone using ArUco marker boards. An illustration of this can be seen in the video below. 
+
 <p align="center">
   <img alt="Light" src="https://github.com/Kenil16/master_project/blob/master/test_videos/raw_videos/final_test.gif" 
   width="80%">
 </p>
+
+Here the drone starts from an initial position and navigates to a predefined location using gps. Then the drone locates the ArUco board on the wall and navigates to it while keeping its orientation towards the board. In this state, the drone still uses gps. When the drone is close enough to the ArUco board to make a safe GPS2Vision transition, the system starts using vision based navigation. Now the drone can enter the gps denied environment (indoor) and move around safely using sensor fusion. When wanted, the drone can be set to move back outdoor and use gps as navigation once again.
 
 # Table of content
 - [Installation](#Installation)
@@ -148,12 +152,19 @@ DONT_RUN=1 make px4_sitl_default gazebo
 ```
 
 # How to use
-The first time your are using the sofware, the ROS workspace has to be initialzed:
+To setup the system you have to run the following configuration file from your terminal to link PX4 to the ROS environment:
 ```bash
-
-
-
+#Be in your ros workspace and run the setup script
+cd software/ros_workspace/
+. ./setup_gazebo.bash
 ```
+
+To run the program you have to execute the following command from your terminal:
+```bash
+#Run roslaunch which starts all the nodes in the system 
+roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern_missing_markers.world drone_control_args:="idle" x:=-21.0 y:=0
+```
+Here the can define the world from the a number of possible [setups](https://github.com/Kenil16/master_project/tree/master/software/ros_workspace/PX4-software/worlds). The drone will be in idle state by default, but that can be changed to some mission if prefered. This will be discussed in the report. 
 
 # Simulations 
 
