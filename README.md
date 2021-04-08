@@ -20,7 +20,7 @@ TODO (Project overview)
 - [Simulations](#Simulations)
 
 # Installation
-This project has been implemented on an Ubuntu 18.04 machine using robot operating system (ROS), Gazebo and OpenCV. It relies on the following sofware which must be installed to make it work proberly.  
+This project has been implemented on an Ubuntu 18.04 machine using robot operating system (ROS), Gazebo and OpenCV. It relies on the following software which must be installed to make it work proberly.  
 
 You can either download the software or clone it directly from your terminal. To use the latter you must install [Git](https://git-scm.com) using the command line:
 ```bash
@@ -39,7 +39,7 @@ sudo apt install vim
 
 Now the project can be installed with all dependencies by running the scipt [init_setup.bash](https://github.com/Kenil16/master_project/blob/master/software/ros_workspace/init_setup.bash). Now change directory and run the initialization script: 
 ```bash
-#Change diretory and execute initialization script
+#Change directory and execute the initialization script
 cd software/ros_workspace/
 . ./init_setup.bash
 ```
@@ -97,11 +97,11 @@ $ sudo apt install ros-melodic-desktop-full
 sudo apt install ros-melodic-mavros ros-melodic-mavros-extras -y
 ```
 
-Install dependencies to run sofware scripts:
+Install dependencies to run software scripts:
 ```bash
 sudo apt update
 
-apt install python-cv-bridge ros-melodic-hector-gazebo-plugins dvipng
+sudo apt install python-cv-bridge ros-melodic-hector-gazebo-plugins dvipng
 
 pip install pathlib numpy pandas opencv-contrib-python scipy pymavlink matplotlib
 ```
@@ -142,8 +142,8 @@ git clone https://github.com/PX4/Firmware.git --branch v1.11.0
 cd Firmware
 git submodule update --init --recursive
 
-#Make symlink to user software for link models to PX4 SITL
-cd $ros_workspace
+#Make symlink to user software models to PX4 SITL
+cd software/ros_workspace/
 ln -s $PWD/PX4-software/init.d-posix/* /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/init.d-posix/
 ln -s $PWD/PX4-software/mixers/* /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/mixers/
 ln -s $PWD/PX4-software/models/* /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/models/

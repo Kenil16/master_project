@@ -24,19 +24,25 @@ sudo apt-get update
 sudo apt-get install miktex
 
 #Install ROS and mavros 
-sudo rosdep init
-sudo rosdep update
+rosdep init
+sudo rosdep fix-permissions
+rosdep update
 
 #Setup your sources.list
-$ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 
 #Set up your keys
-$ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 
 #Installation
-$ sudo apt update
+sudo apt update
 sudo apt install ros-melodic-desktop-full -y
 sudo apt install ros-melodic-mavros ros-melodic-mavros-extras -y
+
+#Install dependencies to run software scripts
+sudo apt update
+sudo apt install ros-melodic-hector-gazebo-plugins dvipng
+pip install pathlib numpy pandas opencv-contrib-python scipy pymavlink matplotlib
 
 #Update Gazebo version
 #Setup your computer to accept software from packages.osrfoundation.org.
@@ -53,9 +59,12 @@ sudo apt-get install gazebo9
 sudo apt upgrade libignition-math2
 
 #Install GeographicLib datasets from your home folder
+cd ~
+mkdir geographicLib_datasets
+cd geographicLib_datasets
 wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
 sudo chmod 755 install_geographiclib_datasets.sh
-sudo ./install_geographiclib_datasets.sh
+./install_geographiclib_datasets.sh
 
 #Initialize PX4 SITL environment from your home folder
 cd ~

@@ -453,7 +453,7 @@ class autonomous_flight():
         self.set_state('return_to_landing_station_one')
         rospy.loginfo('Autonomous_flight: Returning to landing station one!')
 
-        self.GPS_navigation(waypoints_xyzYaw=[[8, 0, 2.5, 0]])
+        self.GPS_navigation(waypoints_xyzYaw=[[8, 4, 2.5, 0]])
         gps2vision_complete = self.GPS2Vision()
         if gps2vision_complete:
             self.vision_navigation(waypoints_xyzYaw=self.landing_station_one_waypoints[0])
@@ -733,7 +733,7 @@ class autonomous_flight():
 
         #Set maximum horizontal and vertical volocities
         self.flight_mode.set_param('MPC_XY_VEL_MAX', 1.0, 5)
-        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.5, 5)
+        self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.7, 5)
         self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.5, 5)
         #Set maximum angular velocities
         self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)
@@ -883,7 +883,7 @@ class autonomous_flight():
             #Set maximum horizontal and vertical volocities
             self.flight_mode.set_param('MPC_XY_VEL_MAX', 1.0, 5)
             self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.5, 5)
-            self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 1.0, 5)
+            self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.5, 5)
             #Set maximum angular velocities
             self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)
             self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)

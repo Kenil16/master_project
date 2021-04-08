@@ -200,13 +200,13 @@ class drone_control():
             
             elif self.uav_state == 'move2GPS_locations_from_vision':
                 output_msg = self.autonomous_flight_pose_setpoint
-                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
+                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.sensor_fusion)
                 self.pub_msg(output_msg, self.pub_local_pose)
                 self.pub_msg(new_pose, self.pub_vision_pose)
             
             elif self.uav_state == 'return_to_landing_station_one':
                 output_msg = self.autonomous_flight_pose_setpoint
-                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
+                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.sensor_fusion)
                 self.pub_msg(output_msg, self.pub_local_pose)
                 self.pub_msg(new_pose, self.pub_vision_pose)
             
