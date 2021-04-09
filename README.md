@@ -27,12 +27,6 @@ sudo apt install git
 git clone https://github.com/Kenil16/master_project.git
 ```
 
-[VIM](https://www.vim.org/) is highly recommended as text editor:
-```bash
-#Install vim
-sudo apt install vim
-```
-
 Now the project can be installed with all dependencies by running the scipt [init_setup.bash](https://github.com/Kenil16/master_project/blob/master/software/ros_workspace/init_setup.bash). Now change directory and run the initialization script: 
 ```bash
 #Change directory and execute the initialization script
@@ -97,7 +91,7 @@ Install dependencies to run software scripts:
 ```bash
 sudo apt update
 
-sudo apt install python-cv-bridge ros-melodic-hector-gazebo-plugins dvipng
+sudo apt install ros-melodic-hector-gazebo-plugins dvipng
 
 pip install pathlib numpy pandas opencv-contrib-python scipy pymavlink matplotlib
 ```
@@ -152,7 +146,7 @@ DONT_RUN=1 make px4_sitl_default gazebo
 ```
 
 # How to use
-To setup the system you have to run the following configuration file from your terminal to link PX4 to the ROS environment:
+To setup the system you have to run the following configuration file from your terminalto link PX4 to the ROS environment:
 ```bash
 #Be in your ros workspace and run the setup script
 cd software/ros_workspace/
@@ -164,7 +158,7 @@ To run the program you have to execute the following command from your terminal:
 #Run roslaunch which starts all the nodes in the system 
 roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern_missing_markers.world drone_control_args:="idle" x:=-21.0 y:=0
 ```
-Here the can define the world from the a number of possible [setups](https://github.com/Kenil16/master_project/tree/master/software/ros_workspace/PX4-software/worlds). The drone will be in idle state by default, but that can be changed to some mission if prefered. This will be discussed in the report. 
+Here you can define the world from a number of possible [setups](https://github.com/Kenil16/master_project/tree/master/software/ros_workspace/PX4-software/worlds). The drone will be in idle state by default, but that can be changed to some mission if prefered. This will be discussed in the report. 
 
 # Simulations 
 

@@ -64,7 +64,7 @@ mkdir geographicLib_datasets
 cd geographicLib_datasets
 wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
 sudo chmod 755 install_geographiclib_datasets.sh
-./install_geographiclib_datasets.sh
+sudo ./install_geographiclib_datasets.sh
 
 #Initialize PX4 SITL environment from your home folder
 cd ~
