@@ -24,7 +24,7 @@ class sensor_fusion_ros_interface():
 
         #Init ROS node
         rospy.init_node('sensor_fusion')
-        self.dt = 1./30.
+        self.dt = 1./5.
 
         #Variables
         self.aruco_marker_pose = PoseStamped()

@@ -154,7 +154,7 @@ class autonomous_flight():
         rospy.loginfo('Autonomous_flight: UAV takeoff')
         
         #Wait until takeoff has occurred
-        waypoint = [self.uav_local_pose.pose.position.x, self.uav_local_pose.pose.position.y, alt, 0]
+        waypoint = [self.uav_local_pose.pose.position.x, self.uav_local_pose.pose.position.y, alt, 90]
         print(pre_pose)
         while(not self.wc.waypoint_check(uav_local_pose=self.uav_local_pose, setpoint_xyzYaw = waypoint, threshold=0.20)): #Set t0 0.05 in loiter to avoid ascilations
             if self.uav_state == 'loiter' or self.uav_state == 'home':
