@@ -411,6 +411,8 @@ These equations for the transformations of the pose will be used for the differe
 \label{sec:companion_computer}
 
 
+\subsubsection{Setup}
+
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -440,39 +442,96 @@ These equations for the transformations of the pose will be used for the differe
 
 
 
-\begin{lstlisting}[language=Python]
-import numpy as np
-Â 
-def incmatrix(genl1,genl2):
-    m = len(genl1)
-    n = len(genl2)
-    M = None #to become the incidence matrix
-    VT = np.zeros((n*m,1), int)  #dummy variable
-Â 
-    #compute the bitwise xor matrix
-    M1 = bitxormatrix(genl1)
-    M2 = np.triu(bitxormatrix(genl2),1) 
-Â 
-    for i in range(m-1):
-        for j in range(i+1, m):
-            [r,c] = np.where(M2 == M1[i,j])
-            for k in range(len(r)):
-                VT[(i)*n + r[k]] = 1;
-                VT[(i)*n + c[k]] = 1;
-                VT[(j)*n + r[k]] = 1;
-                VT[(j)*n + c[k]] = 1;
-Â 
-                if M is None:
-                    M = np.copy(VT)
-                else:
-                    M = np.concatenate((M, VT), 1)
-Â 
-                VT = np.zeros((n*m,1), int)
-Â 
-    return M
+\begin{lstlisting}[language=Bash,frame=none]
+#Enable SSH on the raspberry pi
+$ cd /media/$user/system-boot/
+$ touch ssh
 \end{lstlisting}
 
 
+\begin{lstlisting}[language=Bash,frame=none]
+#Get ip addresses of connected devices 
+$ ifconfig	
+#Find hosts specifig adress range 
+$ nmap -sn <ip-address-eth0>/24
+#SSH into raspberry pi 
+$ ssh ubuntu$<ip-address-raspberry-pi>
+\end{lstlisting}
+
+\begin{lstlisting}[language=Bash,frame=none]
+# File /etc/netplan/50-cloud-init.yaml
+network:
+    ethernets:
+        eth0:
+            dhcp4: true
+            optional: true
+    version: 2
+    wifis:
+        wlan0:
+            optional: true
+            access-points:
+                "YourSSID":
+                    password: "YourPassword"
+            dhcp4: true
+
+\end{lstlisting}
+
+\begin{lstlisting}[language=Bash,frame=none]
+#Configure access point changing the wlan0 settings
+$ sudo vim /ect/netplan/50-cloud-init.yaml
+#Apply settings  
+$ sudo netplan apply
+\end{lstlisting}
+
+\begin{lstlisting}[language=Bash,frame=none]
+#Find ip address of the raspberry pi from access point (wireless)
+$ ip a
+\end{lstlisting}
+
+\begin{lstlisting}[language=Bash,frame=none]
+sudo apt update
+timedatectl 
+sudo apt upgrade -y
+
+$ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu \$(lsb\_release sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+
+$ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
+sudo apt update
+sudo apt install ros-noetic-ros-base
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential python-rosdep
+sudo rosdep init
+rosdep update
+sudo apt install ros-noetic-mavros
+wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
+chmod 755 install_geographiclib_datasets.sh
+sudo ./install_geographiclib_datasets.sh
+sudo apt install ros-noetic-mavros ros-noetic-mavros-extras -y
+sudo apt install python-catkin-tools 
+mkdir -p catkin_ws/src
+cd catkin_ws/src/
+catkin b
+catkin_init_workspace 
+cd ../
+catkin b
+cd ../
+nano .bashrc 
+source .bashrc
+\end{lstlisting}
+
+\begin{lstlisting}[language=Bash,frame=none]
+$ sudo apt-get install ros-melodic-usb-cam ros-melodic-rqt ros-melodic-rqt-common-plugins
+\end{lstlisting}
+
+\begin{lstlisting}[language=Bash,frame=none]
+$ sudo apt-get install ros-melodic-image-transport ros-melodic-image-transport-plugins ros-melodic-image-transport-plugins ros-melodic-camera-info-manager
+\end{lstlisting}
+
+\begin{lstlisting}[language=Bash,frame=none]
+$ pip install pathlib pymavlink pandas scipy
+\end{lstlisting}
 
 
 \end{document}

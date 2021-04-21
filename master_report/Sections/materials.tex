@@ -1,6 +1,230 @@
-\documentclass[../Head/Report.tex]{subfiles}
+\documentclass[../Head/report.tex]{subfiles}
 \begin{document}
 \section{Materials}
+This section deals with the materials used to build the drone, for communication and onboard computing. A description of the different products and a wiring diagram for the UAV platform will be analyzed in Section \ref{sec:hardware}. In Section \ref{sec:bill_of_materials}, the bill of materials is discussed with the overall cost of the implementation in regard to hardware.   
+
+\subsection{Hardware}
+\label{sec:hardware}
+
+The drone used is a Holybro Pixhawk 4 mini QAV250 Quadcopter. The reason for choosing this kit is because of the Pixhawk 4 mini which is part of the product. PX4 is open source and has a lot of features together with a discussion forum for debugging and knowledge sharing of the general system. The software part of PX4 will be discussed in Section \ref{sec:px4_flight_stack}. The drone can be seen in Figure \ref{fig:holybro_pixhawk_mini_drone}. 
+
+For communication between the pilot and drone, a FlySky FS i6 transmitter is used. Though this is a basic transmitter it offers great features together with a receiver for a low price. The transmitter and receiver can be seen in Figure \ref{fig:flysky_transmitter}. 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{.4\textwidth}
+        \centering
+        \includegraphics[height=4.0cm]{../Figures/drone/holybro_pixhawk_mini.png}
+           %\vspace{0.5em}
+        \caption{}
+        \label{fig:holybro_pixhawk_mini_drone}
+    \end{subfigure}
+    %\hspace{-2.8em}
+    \begin{subfigure}[b]{.33\textwidth}
+        \centering
+        \includegraphics[height=4.0cm]{../Figures/drone/flysky_transmitter.png}
+        \caption{}
+        \label{fig:flysky_transmitter}
+    \end{subfigure}
+    \caption{Illustration of the \href{https://www.banggood.com/da/Holybro-Pixhawk-4-Mini-QAV250-Basic-Kit-RC-Quadcopter-RC-Drone-W-or-Pixhawk-4-GPS-DR2205-KV2300-Motor-p-1438132.html?utm\_source=googleshopping&utm\_medium=cpc\_organic&gmcCountry=DK&utm\_content=minha&utm\_campaign=minha-dk-da-pc&currency=DKK&cur\_warehouse=CN&createTmp=1&ID=567322&utm\_source=googleshopping&utm\_medium=cpc\_union&utm\_content=sandra&utm\_campaign=sandra-ssc-dk-da-all-0302&ad\_id=337427030565&gclid=CjwKCAjwmv-DBhAMEiwA7xYrd4Bgzi1gPmtia01iAeXnLyVW9CXudMOZ7eQxM53PrTrgx2OHdLvS1hoCdPIQAvD\_BwE}{Holybro Pixhawk 4 Mini QAV250} drone in Figure \ref{fig:holybro_pixhawk_mini_drone} and \href{https://www.banggood.com/FlySky-FS-i6-2\_4G-6CH-AFHDS-Remote-Control-Transmitter-With-FS-R6B-Receiver-For-RC-FPV-Drone-Mode-2-p-1420323.html?utm\_source=googleshopping&utm\_medium=cpc\_organic&gmcCountry=DK&utm\_content=minha&utm\_campaign=minha-dk-en-pc&currency=DKK&cur\_warehouse=CN&createTmp=1&utm\_source=googleshopping&utm\_medium=cpc\_bgs&utm\_content=sandra&utm\_campaign=sandra-ssc-dk-en-all-1105-20bf-11sale&ad\_id=477449337289&gclid=CjwKCAjwmv-DBhAMEiwA7xYrdwTH-q0\_ud-CLZ7CMggdiHnZUga0M4Bhc-nwwN5mUIZsSw1DH_ltyxoCsdoQAvD\_BwE}{flysky transmitter} in Figure \ref{fig:flysky_transmitter}}
+    \label{fig:holybro_pixhawk_mini}
+\end{figure}
+
+Because the drone and onboard computer has to be powered separately, two gens ace LiPo batteries with 11.1V and 2200 mAh have been considered. These batteries matches the XT60 connection which is used by the power board of the kit. The reason for choosing these as 3-cell batteries compared to 4-cell, is to reduce the height of center of mass of the drone which could make the system unstable because the batteries are placed above the propellers as seen in Figure \ref{fig:holybro_pixhawk_mini_drone}. The drone and Raspberry Pi has to be powered separately because the Raspberry Pi has to be given constant 5 volts and 3 amps for best performance. If the Raspberry Pi is giving under- or over-voltage, the Pi could potentially shut down which could be fatal if the drone where relying on pose estimates from the onboard computer. The used LiPo battery can be seen in Figure \ref{fig:gens_ace_lipo_battery}.  
+
+\begin{figure}[H]
+    \centering
+    \hspace{-1.0em}
+    \begin{subfigure}[b]{.25\textwidth}
+        \centering
+        \includegraphics[height=2.0cm]{../Figures/batteries/lipo_one.png}
+        \caption{}
+        \label{fig:gens_ace_lipo_battery}
+    \end{subfigure}
+    %\hspace{-2.8em}
+    \begin{subfigure}[b]{.20\textwidth}
+        \centering
+        \includegraphics[height=2.0cm]{../Figures/batteries/ubec_3A_power_converter.png}
+        \caption{}
+        \label{fig:ubec_3A_power_converter}
+    \end{subfigure}
+        \begin{subfigure}[b]{.20\textwidth}
+        \centering
+        \includegraphics[height=2.0cm]{../Figures/batteries/balance_charger_sky_rc.jpg}
+        \caption{}
+        \label{fig:balance_charger_sky_rc}
+    \end{subfigure}
+            \begin{subfigure}[b]{.25\textwidth}
+        \centering
+        \includegraphics[height=2cm]{../Figures/batteries/lipo_battery_case.jpg}
+        \caption{}
+        \label{fig:lipo_battery_case}
+    \end{subfigure}
+    \caption{The used materials for battery and power configurations. The used \href{https://www.conradelektronik.dk/p/gens-ace-modelbyggeri-batteripakke-lipo-111-v-2200-mah-celletal-3-45-c-xt60-2145181?gclid=CjwKCAjwmv-DBhAMEiwA7xYrdyX00RZAovYbKhjWqit3MYObx_NtIH_NOxPih2MBqFoyuJrHtL_R7xoCg28QAvD_BwE&gclsrc=aw.ds&utm_campaign=shopping-feed&utm_content=free-google-shopping-clicks&utm_medium=surfaces&utm_source=google&utm_term=2145181&vat=true}{Gens ace LiPo battery} in Figure \ref{fig:gens_ace_lipo_battery}, \\ \href{https://hobbyking.com/en_us/kingkong-5v-3a-ubec.html?___store=en_us}{Ubec 3A power converter} in Figure \ref{fig:ubec_3A_power_converter}, \href{https://www.banggood.com/da/SKYRC-E430-Balance-Charger-AC-100-240V-Cells-Lipo-LiFe-30W-1A-2A-3A-p-1124821.html?utm_source=googleshopping&utm_medium=cpc_organic&gmcCountry=DK&utm_content=minha&utm_campaign=minha-dk-da-pc&currency=DKK&cur_warehouse=CN&createTmp=1&utm_source=googleshopping&utm_medium=cpc_union&utm_content=sandra&utm_campaign=sandra-ssc-dk-da-all-0302&ad_id=337427030565&gclid=CjwKCAjwmv-DBhAMEiwA7xYrdwCnJMgzOnZp9FJBPNSDSS_RO2Q67TIQ2FderUjGhzySiWRObpBN6xoCtE4QAvD_BwE}{SKYRC balance charger} in Figure \ref{fig:balance_charger_sky_rc} and \href{https://cdon.dk/hjem-have/extron-modellbau-lipo-safety-bag-1-set-p47436624?fo_c=1923&fo_k=47efd6de4697e54ef539b8256db201cb&fo_s=gpladk&utm_medium=cpo&utm_source=tradedoubler&utm_campaign=affiliate&utm_content=tradedoubler_3153538_General_VelkashoppingcomDK}{LiPo safety-bag} in Figure \ref{fig:lipo_battery_case}}
+    \label{fig:battery_and_power_connections}
+\end{figure}
+
+To convert the input voltage from the LiPo battery to the Raspberry Pi, a KINGKONG 5V 3A Switching Power UBEC converter for switching between 7.4-22.2V (2-6S LiPoly) to constant 5V/3A is used. The setup of this requires a little soldering where the ends of the wires have to be soldered to a XT60 connector to be used to connect to the LiPo battery, where the output of this is connected to the 5V and ground pins of the raspberry Pi. This swhich can be seen in Figure \ref{fig:ubec_3A_power_converter}. 
+
+\begin{figure}[H]
+    \centering
+    \hspace{-4.0em}
+    \begin{subfigure}[b]{.3\textwidth}
+        \centering
+        \includegraphics[height=3cm]{../Figures/raspberry_pi/usb-TTL_232R_Raspberry_Pi_debug.png}
+        \caption{}
+        \label{fig:usb-TTL_232R_Raspberry_Pi_debug}
+    \end{subfigure}
+    %\hspace{-2.8em}
+    \begin{subfigure}[b]{.25\textwidth}
+        \centering
+        \includegraphics[height=3cm]{../Figures/raspberry_pi/holybro-pixhawk-4-mini-uart-cable.jpg}
+        \caption{}
+        \label{fig:six_pin_serial_connection_cable}
+    \end{subfigure}
+    \caption{Cables for serial communication between the PX4 flight conrtoller and raspberry Pi. To enable the use of serial communication from the USB of the raspberry Pi, a \href{https://raspberrypi.dk/en/product/usb-to-ttl-rs232-debug-cable-for-raspberry-pi/}{USB to TTL-RS232} cable is used which can be seen in Figure \ref{fig:usb-TTL_232R_Raspberry_Pi_debug} and a six pin serial connection cable in Figure \ref{fig:six_pin_serial_connection_cable}}
+    \label{fig:pixhawk_mini_four}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{.13\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/raspberry_pi/fan-shim.jpg}
+        \vspace{0.1em}
+        \caption{}
+        \label{fig:raspberry_pi_shim_fan}
+    \end{subfigure}
+     \hspace{0.5em}
+    \begin{subfigure}[b]{.25\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/raspberry_pi/raspberry_pi.jpg}
+          \vspace{-2.0em}
+        \caption{}
+        \label{fig:raspberry_pi}
+    \end{subfigure}
+     \hspace{-0.5em}
+        \begin{subfigure}[b]{.30\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/raspberry_pi/raspberry_pi_case.png}
+         \vspace{-2.3em}
+        \caption{}
+        \label{fig:raspberry_pi_case}
+    \end{subfigure}
+     \hspace{-2.0em}
+          \hspace{8.0em}
+        \begin{subfigure}[b]{.17\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/raspberry_pi/c270_dh_webcam.png}
+         \vspace{-1.8em}
+        \caption{}
+        \label{fig:raspberry_pi_front_cam}
+    \end{subfigure}
+         \hspace{2.5em}
+        \begin{subfigure}[b]{.16\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/raspberry_pi/raspberry_pi_cam.png}
+         \vspace{-1.5em}
+        \caption{}
+        \label{fig:raspberry_pi_bottom_cam}
+    \end{subfigure}
+    \caption{The \href{https://raspberrypi.dk/produkt/raspberry-pi-4-model-b-8-gb/?gclid=CjwKCAjwmv-DBhAMEiwA7xYrd2LC9iHY0AN25mCwZ8Fs49enGRBWJXCx4h8_iUrUABRWneCpaoBL1xoCoqEQAvD_BwE}{Raspberry Pi 4} can be seen in Figure \ref{fig:raspberry_pi} with the \href{https://raspberrypi.dk/produkt/blaeser-shim-til-raspberry-pi/?gclid=CjwKCAjwmv-DBhAMEiwA7xYrd5JllLUeSBohDiBjfJkpH86XFp8hRJX4kEt2lRBBwthX2DqVFSvOvRoCUykQAvD_BwE}{SHIM fan} connected. The \href{https://www.dustinhome.dk/product/5011141918/okdo-raspberry-pi-4-standard-case-clear?ssel=false&gclid=CjwKCAjwmv-DBhAMEiwA7xYrd0phkQRZwAqPH6RzFVFdcMyjZXHYr7NCCICoSREcjA1byAvG8ZpApRoCPEoQAvD_BwE}{case} for the Raspberry Pi can be seen in Figure \ref{fig:raspberry_pi_case}. Lastly, the \href{https://www.elgiganten.dk/product/pc-tablets/webcam/162136/logitech-c270-hd-webkamera?gclid=CjwKCAjwmv-DBhAMEiwA7xYrdzGYXgj59-xIbjHVtHUrPCTyhi44RPsqtSSi8ABd0mK8TRYZaIw8CxoC8nIQAvD_BwE&gclsrc=aw.ds}{Logitech C270 HD} and \href{https://www.proshop.dk/Mini-PC-Android-Raspberry-Pi/Raspberry-Pi-Camera-V2/2621958?utm_source=google&utm_medium=cpc&utm_campaign=searchengine&gclid=CjwKCAjwmv-DBhAMEiwA7xYrd8j1kjOx7KOcc9q1OgHUSgPDvirQwUCqQY-arqanNgdlmTPhYd3GkRoC0L8QAvD_BwE}{Raspberry Pi V2} cameras can be seen in Figures \ref{fig:raspberry_pi_front_cam} and \ref{fig:raspberry_pi_bottom_cam} respectively}
+    \label{fig:raspberry_pi_hardware}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \hspace{-6.0em}
+    \begin{subfigure}[b]{.4\textwidth}
+        \centering
+        \includegraphics[height=4.0cm]{../Figures/px4_mini/px4_mini.png}
+        \caption{}
+        \label{fig:pixhawk_mini_four_board}
+    \end{subfigure}
+    %\hspace{-2.8em}
+    \begin{subfigure}[b]{.33\textwidth}
+        \centering
+        \includegraphics[height=4.0cm]{../Figures/px4_mini/px4_mini_interfaces.png}
+        \caption{}
+        \label{fig:pixhawk_mini_four_interfaces}
+    \end{subfigure}
+    \caption{Illustration of the \href{https://docs.px4.io/master/en/flight_controller/pixhawk4_mini.html}{Pixhawk 4 mini} in Figure \ref{fig:pixhawk_mini_four_board} and interface connections in Figure \ref{fig:pixhawk_mini_four_interfaces}}
+    \label{fig:pixhawk_mini_four}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+     \includegraphics[height=13cm]{../Figures/power_system.png}
+    \caption{}
+    \label{fig:drone}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \hspace{1.0em}
+    \begin{subfigure}[b]{.4\textwidth}
+        \centering
+        \includegraphics[height=4.7cm]{../Figures/drone/drone_front.jpg}
+        \caption{}
+        \label{fig:drone_front}
+    \end{subfigure}
+    \hspace{-2.8em}
+    \begin{subfigure}[b]{.33\textwidth}
+        \centering
+        \includegraphics[height=4.7cm]{../Figures/drone/drone_bottom.jpg}
+        \caption{}
+        \label{fig:drone_bottom}
+    \end{subfigure}
+    \hspace{-5.0em}
+    \begin{subfigure}[b]{.33\textwidth}
+        \centering
+        \includegraphics[height=4.7cm]{../Figures/drone/drone_bottom_zoom.jpg}
+        \caption{}
+        \label{fig:drone_bottom_zoom}
+    \end{subfigure}
+    \caption{Illustration of the procedures of ArUco marker detection \cite{arucoMarkerDetection}}
+    \label{fig:drone}
+\end{figure}
+
+
+\subsection{Bill of materials}
+\label{sec:bill_of_materials}
+
+\newcommand{\done}{\cellcolor{teal}done}  %{0.9}
+\newcommand{\hcyan}[1]{{\color{teal} #1}}
+
+\begin{table}[H]
+\centering
+\caption{List of products with price for the materials used}
+\label{tab:bill_of_materials}
+\begin{tabular}{lccc}
+\toprule
+Products & Supplier & Amount & Price\\
+\midrule
+
+Drone (\textit{Drone and communication}) \\
+\phantom{ZZ} HolyBro QAV250 + Pixhawk4-Mini & banggood.com & 1 & 2.037,73 DKK\\
+\phantom{ZZ} FlySky-FS-i6-2.4G-6CH & banggood.com & 1 & 352,76 DKK \\
+
+Batteries (\textit{Batteries and related materials}) & \\
+\phantom{ZZ} Gens ace LiPo 11.1 V 2200 mAh Cell: 3 45 C XT60 & conradelektronik.dk & 2 & 249,00 DKK \\
+\phantom{ZZ} KINGKONG 5V 3A Switching Power UBEC & hobbyking.com & 1 & 23,65 DKK \\
+\phantom{ZZ} SKYRC e430 charger 3 A LiPo, LiFePO & banggood.com & 1 & 209,00 DKK \\
+\phantom{ZZ} EXTRON Modellbau LiPo safety-bag 1 Set & cdon.dk & 1 & 259,00 DKK \\
+
+Raspberry pi (\textit{Raspberry Pi and related materials}) & \\
+\phantom{ZZ} Raspberry Pi 4 model B - 8GB & raspberrypi.dk & 1 & 669,00 DKK \\
+\phantom{ZZ} Fan SHIM for Raspberry Pi & raspberrypi.dk & 1 & 99,00 DKK \\
+\phantom{ZZ} Okdo Raspberry Pi 4 Standard Case Clear & dustinhome.dk & 1 & 55,00 DKK \\
+\phantom{ZZ} Logitech C270 HD camera & elgiganten.dk & 1 & 249,00 DKK \\
+\phantom{ZZ} Raspberry Pi Camera V2 & proshop.dk & 1 & 299,00 DKK \\
+
+\textsc{Overall product price} & & & \fbox{4.502,14 DKK} \\
+
+\bottomrule                
+\end{tabular}
+\end{table}
 
 
 \end{document}
