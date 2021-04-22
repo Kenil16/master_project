@@ -1,5 +1,32 @@
 \documentclass[../Head/report.tex]{subfiles}
 \begin{document}
+
+\definecolor{codegreen}{rgb}{0,1.0,1.0}
+\definecolor{codegray}{rgb}{0.0,0.0,0.0}
+\definecolor{codepurple}{rgb}{1.0,0.0,0.6}
+\definecolor{backcolour}{rgb}{0.92,0.92,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{codegray},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codegray},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
 \section{Methods}
 \label{sec:methods}
 
@@ -410,56 +437,35 @@ These equations for the transformations of the pose will be used for the differe
 \subsection{Companion computer}
 \label{sec:companion_computer}
 
+\subsubsection{Operating system}
 
-\subsubsection{Setup}
+For onboard computing a Raspberry Pi 4 is used with an Ubuntu 18.04.5 LTS (Bionic Beaver) 64-bit server operating system. The 64-bit version is used because the Raspberry Pi 4 is build on a 64-bit architecture and the server edition is chosen to minimize overhead because the graphical user interface (GUI) is not needed as the interface used for communicating to the Raspberry Pi will be through ssh from the terminal. The mentioned operating system can be fetched from the official Ubuntu website \cite{ubuntuImage}. The Raspberry Pi 4 gives a number of possibles options in regard to system boot, but in this case an SD card will be used. Now  \href{https://www.balena.io/etcher/}{etcher} is used to flash the Ubuntu 18.04.5 image to the SD card which offers a secure way for image flashing. 
 
+\subsubsection{Wireless communication}
+To enable ssh for a wired communication between laptop and Raspberry Pi, the following lines of code from the terminal are executed as seen in Listing \ref{lst:enable_ssh}.      
 
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-\lstdefinestyle{mystyle}{
-    backgroundcolor=\color{backcolour},   
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
-    numberstyle=\tiny\color{codegray},
-    stringstyle=\color{codepurple},
-    basicstyle=\footnotesize,
-    breakatwhitespace=false,         
-    breaklines=true,                 
-    captionpos=b,                    
-    keepspaces=true,                 
-    numbers=left,                    
-    numbersep=5pt,                  
-    showspaces=false,                
-    showstringspaces=false,
-    showtabs=false,                  
-    tabsize=2
-}
-
-\lstset{style=mystyle}
-
-
-
-\begin{lstlisting}[language=Bash,frame=none]
-#Enable SSH on the raspberry pi
-$ cd /media/$user/system-boot/
+\begin{lstlisting}[frame=none,caption={How to enable ssh communication by making a file called \textit{ssh} to system-boot of the sd card}, label=lst:enable_ssh]
+#Change directory to system-boot
+$ cd /media/<user>/system-boot/
+#Make a file called ssh
 $ touch ssh
 \end{lstlisting}
 
+To access the Raspberry Pi from the terminal, the correct IP-address of the Raspberry Pi must be known. This can be done using the protocol \textit{nmap} which searches for all possible IP-addresses in a defined sub-network in the local network. This is done using Listing \ref{lst:ip_address_ssh}. When the correct IP-address is found, an ssh connection can be established. 
 
-\begin{lstlisting}[language=Bash,frame=none]
-#Get ip addresses of connected devices 
+\begin{lstlisting}[frame=none, caption={Find the IP-address of the Raspberry Pi for \textit{ssh} communication},label=lst:ip_address_ssh]
+#Find the IP-address of eth0 (Raspberry Pi) 
 $ ifconfig	
-#Find hosts specifig adress range 
+#Find hosts in specific address range 
 $ nmap -sn <ip-address-eth0>/24
-#SSH into raspberry pi 
+#SSH into Raspberry Pi 
 $ ssh ubuntu$<ip-address-raspberry-pi>
 \end{lstlisting}
 
-\begin{lstlisting}[language=Bash,frame=none]
-# File /etc/netplan/50-cloud-init.yaml
+Because the goal is to have a wireless connection to the Raspberry Pi from an access point using WiFi, the net-plan has to be configured from \textit{/etc}  in the system configuration files of the Raspberry Pi. The file to be updated can be seen in Listing \ref{lst:wireless_connection_setup_file}. Here the SSID (name of WiFi network) must be configured along with the password of the WiFi network. 
+
+\begin{lstlisting}[frame=none, caption={File to configure to enable wireless connection},label=lst:wireless_connection_setup_file]
+#File /etc/netplan/50-cloud-init.yaml
 network:
     ethernets:
         eth0:
@@ -470,68 +476,92 @@ network:
         wlan0:
             optional: true
             access-points:
-                "YourSSID":
-                    password: "YourPassword"
+                "<YourSSID>":
+                    password: "<YourPassword>"
             dhcp4: true
 
 \end{lstlisting}
 
-\begin{lstlisting}[language=Bash,frame=none]
+Using \href{https://www.vim.org/}{vim} or another text editor, the mentioned file can be updated using Listing \ref{lst:wireless_connection_setup} from the established wired ssh connection.  
+
+\begin{lstlisting}[frame=none, caption={Create an access point from a wireless connection by configuring netplan},label=lst:wireless_connection_setup]
 #Configure access point changing the wlan0 settings
 $ sudo vim /ect/netplan/50-cloud-init.yaml
 #Apply settings  
 $ sudo netplan apply
 \end{lstlisting}
 
-\begin{lstlisting}[language=Bash,frame=none]
-#Find ip address of the raspberry pi from access point (wireless)
-$ ip a
-\end{lstlisting}
+Now the outgoing IP-address through WiFi from the Raspberry Pi can be found. This IP-address can now be used to \textit{ssh} into Raspberry Pi if both the Laptop and Raspberry Pi are connected to the same WiFi network.
 
-\begin{lstlisting}[language=Bash,frame=none]
-sudo apt update
-timedatectl 
-sudo apt upgrade -y
+\subsubsection{Installation of software}
 
-$ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu \$(lsb\_release sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+Because Ubuntu 18.04.5 LTS is installed as operating system, ROS melodic will be used on the Raspberry Pi. Before installing ROS, the system has to be update and upgraded using Listing \ref{lst:update_system}
 
+\begin{lstlisting}[frame=none, caption={Updating the system before software installation},label=lst:update_system]
+#Update the system
+$ sudo apt update
+#Update time because default is set to 1970
+$ timedatectl 
+#Upgrade system 
+$ sudo apt upgrade -y
+\end{lstlisting} 
+
+The system must be configured to accept packages from \href{http://wiki.ros.org/melodic/Installation/Ubuntu}{ROS} along with setting up the cryptographic keys for package authentication. When this is done, ROS can be installed where it is sourced to \textit{.bashrc} to avoid sourcing every time a new terminal is opened. This can be done using Listing \ref{lst:ros_installation}. 
+
+\begin{lstlisting}[frame=none, caption={ROS installation and source to \textit{.bashrc}},label=lst:ros_installation]
+#Setup your sources.list
+$ sudo sh -c 'echo deb http://packages.ros.org/ros/ubuntu $(lsb_release sc) main > /etc/apt/sources.list.d/ros-latest.list'
+#Set up your keys
 $ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-
+#Update system
 sudo apt update
-sudo apt install ros-noetic-ros-base
-echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+#Install ROS
+sudo apt install ros-melodic-ros-base
+#Source ROS workspace to .bashrc to be enabled a every terminal opening
+echo 'source /opt/ros/melodic/setup.bash' >> ~/.bashrc
 source ~/.bashrc
+#Install ROS dependencies 
 sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential python-rosdep
-sudo rosdep init
-rosdep update
-sudo apt install ros-noetic-mavros
-wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
-chmod 755 install_geographiclib_datasets.sh
-sudo ./install_geographiclib_datasets.sh
-sudo apt install ros-noetic-mavros ros-noetic-mavros-extras -y
-sudo apt install python-catkin-tools 
-mkdir -p catkin_ws/src
-cd catkin_ws/src/
-catkin b
-catkin_init_workspace 
-cd ../
-catkin b
-cd ../
-nano .bashrc 
-source .bashrc
 \end{lstlisting}
 
-\begin{lstlisting}[language=Bash,frame=none]
-$ sudo apt-get install ros-melodic-usb-cam ros-melodic-rqt ros-melodic-rqt-common-plugins
+When ROS has been installed, a workspace can be created where all user packages for pose estimation of ArUco markers, sensor fusion and offboard control of the drone can be installed. The ROS workspace can be created using Listing \ref{lst:init_ros_workspace}. 
+
+\begin{lstlisting}[frame=none, caption={Initiating ROS workspace},label=lst:init_ros_workspace]
+#Initialize workspace
+$ sudo rosdep init
+$ rosdep update
+$ mkdir -p catkin_ws/src
+$ catkin_init_workspace 
+$ catkin build
+#Source before use
+$ source .bashrc
 \end{lstlisting}
 
-\begin{lstlisting}[language=Bash,frame=none]
-$ sudo apt-get install ros-melodic-image-transport ros-melodic-image-transport-plugins ros-melodic-image-transport-plugins ros-melodic-camera-info-manager
+For communication between devices, MAVROS must be installed which can be done using Listing \ref{lst:install_mavros}
+
+\begin{lstlisting}[frame=none, caption={Installation of MAVROS},label=lst:install_mavros]
+$ sudo apt install ros-melodic-mavros ros-melodic-mavros-extras python-catkin-tools -y
 \end{lstlisting}
 
-\begin{lstlisting}[language=Bash,frame=none]
-$ pip install pathlib pymavlink pandas scipy
+\href{https://geographiclib.sourceforge.io/}{GeographicLib} is used for performing conversions between UTM, geographic, local Cartesian coordinates etc. This is mandatory in order to use MAVROS along with PX4. This can be installed using Listing \ref{lst:install_geographiclib_datasets}. 
+\begin{lstlisting}[frame=none, caption={Fetching and installation of the geographiclib dataset},label=lst:install_geographiclib_datasets]
+$ wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
+$ chmod 755 install_geographiclib_datasets.sh
+$ sudo ./install_geographiclib_datasets.sh
 \end{lstlisting}
 
+Finally, dependencies for video streaming from USB to ROS, visualizing of the video stream and packages for running the installed scripts, Listing \ref{lst:software_related_installations_for_ros} must be executed. 
+
+\begin{lstlisting}[frame=none, caption={Installation of ROS ralated software },label=lst:software_related_installations_for_ros]
+#Install packages for visualization of video stream (ros rqt)
+$ sudo apt-get install ros-melodic-rqt ros-melodic-rqt-common-plugins
+#Install packages for USB readings using ROS
+$ sudo apt-get install ros-melodic-usb-cam ros-melodic-image-transport ros-melodic-image-transport-plugins ros-melodic-image-transport-plugins ros-melodic-camera-info-manager
+#Install packages fto be able to execute scrips
+$ sudo apt-get install liblapack-dev gfortran libblas-dev libxml2-dev libxslt-dev python-dev python-pip
+$ pip install pathlib pymavlink pandas scipy opencv-contrib-python
+\end{lstlisting}
+
+Now all the packages for pose estimation using ArUco markers, sensor fusion and offboard control can be transferred to the newly created ROS workspace on the Raspberry Pi using the protocol \textit{scp}. Hence, after building the ROS workspace again, the system is up and running on the Raspberry Pi.   
 
 \end{document}
