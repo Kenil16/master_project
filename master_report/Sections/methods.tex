@@ -171,6 +171,14 @@ This section deals with the implementation of the autonomous flight of the drone
 \subsubsection{PX4 flight stack}
 \label{sec:px4_flight_stack}
 
+\todo{Give a more thorough desciption of PX4. Maybe get inspiration from EiT. Furthermore, the calibration of the drone must be mentioned here where QGroundControl can be mentioned. }
+
+\todo{Talk about the transformation from the local coordinate system (start) to that of the aruco board world. This is performed to avoid changing from a very high or low number in regard to altitude and horizontal position which can make the exented kalman filter unstable. Here the mapping method must be discussed. Initial idea was to make the drone move really slowly in this transition. However, it could be challaging if the drone were exposed to wind}
+
+\todo{Talk about the state machine for the autonomous flight from where the drone goes from using GPS, find aruco board, navigate to aruco board, GPS2vision, vision nagigation and vision landing. Moreover, vision takeoff, vision navigation and gps2vision and then gps. Talk about each step and why they are important. diagrams of state machine as well.}
+
+\todo{Talk about the software installation and how to use the implementation.  }
+
 PX4 is an open source control software for unmanned vehicles. PX4 uses software in the loop (SITL) for simulations of a given unit before real world testing. The flight stack runs on a computer which could be any unit on the same network. Hardware in the loop (HITL) uses simulation software on a real flight controller board e.g PX4 mini which will be the used as flight controller on the drone. 
 
 MAVROS is a packages that provides communication drivers for various autopilots with the MAVLink communication protocol. MAVLink is categorized as a light weight messaging protocol for communication with drones, other unmanned vehicles and there onboard components. This follows a hybrid publish-subscribe and point-to-point design pattern. A visualization of how this works can be seen in Figure \ref{fig:sitl_simulation_enviroment}.   
@@ -274,6 +282,8 @@ To enable all nodes to start from a single script, a \textit{roslaunch} file nam
 
 \subsection{Pose estimation using ArUco markers}
 \label{sec:pose_estimation_using_aruco_markers}
+
+\todo{Somethig needs to be done here. Either a more thorough desciption of the aruco pose estimation or other methods in regard to pose estimation using markers could e mentioned. Maybe look at N-fold-markers. How does this pose estimation work and why could that the an alternative to using aruco markers - bring images and calculations for that pose estimation procedure.}
 
 This section deals which pose estimation of ArUco markers to be used as the local coordinate system for the drone for vision based navigation. 
 
@@ -384,6 +394,8 @@ This initial step goes for both cameras. Now to get the pose of the drone w.r.t 
     \label{fig:2d_view_aruco_coordinate_systems}
 \end{figure}
 
+\todo{Here an image of the aruco world from the simulation could be placed beside of the drawings for easy comparisson of coordinate systems to that of the real world}
+
 
 \begin{figure}[H]
     \centering
@@ -431,13 +443,129 @@ These equations for the transformations of the pose will be used for the differe
 
 \subsubsection{Camera calibration}
 
-\subsection{Sensor fusion for pose optimization}
-\label{sec:sensor_fusion_for_pose_optimization}
+\subsection{Sensor fusion}
+\label{sec:sensor_fusion}
+\todo{Sensor fusion is not performed to increase the precision of the psoe estimation. But it is used as an way of handling situations where no markers is visible in the image, which could be critical!}
+
+The Kalman Filter (KF) requires linear models. However, these models are rarely seen in reality and especially not in the dynamics of a Aquacopter. A way to accommodate for this problem could be to approximate the linear model by linearization using an Extended Kalman Filter (EKF). The basic idea behind this approach is to use the mean of a non-linear Gaussian function and linearize at this single point through Taylor expansion. However, if the function turns out to be \textit{very} nonlinear, this method is sub optimal.  
+
+\subsubsection{Unscented Kalman Filter}
+
+\subsubsection{UKF implementation}
+
+% Define box and box title style
+\tikzstyle{mybox} = [draw=white, fill=white!20, very thick,
+    rectangle, rounded corners, inner sep=10pt, inner ysep=20pt]
+\tikzstyle{fancytitle} =[fill=gray, text=white]
+
+\begin{figure}[H]
+\centering
+ \hspace{-4.0em}
+    \begin{subfigure}[t]{.48\textwidth}
+		\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.90\textwidth}
+     {\small\
+        \begin{fleqn}
+        \begin{align}
+        	X_0 = \bar{x}
+        \end{align}
+        \end{fleqn}
+        
+        \begin{fleqn}
+        \begin{align}
+        	X_i = \bar{x} + \left(\sqrt{(L+\lambda})\textbf{P}_x\right)_i \qquad i=1,...,L
+        \end{align}
+        \end{fleqn}
+        
+        \begin{fleqn}
+        \begin{align}
+        	X_i = \bar{x} - \left(\sqrt{(L+\lambda})\textbf{P}_x\right)_{i-L} \qquad i=L,...,2L
+        \end{align}
+        \end{fleqn}
+        
+        \begin{fleqn}
+        \begin{align}
+        	W^{(m)}_0 = \frac{\lambda}{L+\lambda}
+        \end{align}
+        \end{fleqn}
+        
+        \begin{fleqn}
+        \begin{align}
+        	W^{(c)}_0 = \frac{\lambda}{L+\lambda} + (1-\alpha^2 +\beta)
+        \end{align}
+        \end{fleqn}
+        
+        \begin{fleqn}
+        \begin{align}
+        	W^{(m)}_i = W^{(c)}_i = \frac{1}{2(L+\lambda)} \qquad i=1,...,2L
+        \end{align}
+        \end{fleqn}
+        
+        }
+    \end{minipage}
+};
+\vspace{-4.0em}
+		\end{tikzpicture}%
+		\caption{Calculating sigma points and weights} \label{fig:calculating_sigma_points_and_weights}
+    \end{subfigure}
+        \begin{subfigure}[t]{.40\textwidth}
+        \includegraphics[height=6.0cm]{../Figures/ukf.png}
+		\caption{Initialization} \label{fig:M1}
+    \end{subfigure}
+    \caption{Initialization} \label{fig:M1}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+            \begin{subfigure}[t]{.48\textwidth}
+        \centering
+		\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.90\textwidth}
+    {\small\
+    
+        \begin{fleqn}
+        \begin{align}
+            \mathcal{X}^{x}_{k | k-1} = \textbf{F}[\mathcal{X}^{x}_{k-1}, \textit{\textbf{X}}^{v}_{k-1}]  
+        \end{align}
+        \end{fleqn}
+        
+        
+     }
+    \end{minipage}
+};
+		\end{tikzpicture}%
+		\caption{Prediction update} \label{fig:M1}
+    \end{subfigure}
+            \begin{subfigure}[t]{.48\textwidth}
+        \centering
+		\begin{tikzpicture}
+\node [mybox] (box){%
+    \begin{minipage}{0.90\textwidth}
+    {\small\
+        \begin{fleqn}
+        \begin{align}
+            \textit{\textbf{X}}^{x}_{k | k-1} = \textbf{F}[\textit{\textbf{X}}^{x}_{k-1}, \textit{\textbf{X}}^{v}_{k-1}]  
+        \end{align}
+        \end{fleqn}
+     }
+    \end{minipage}
+};
+		\end{tikzpicture}%
+		\caption{easurement update} \label{fig:M1}
+    \end{subfigure}
+    \caption{Initialization} \label{fig:M1}
+\end{figure}
+
 
 \subsection{Companion computer}
 \label{sec:companion_computer}
 
 \subsubsection{Operating system}
+
+\todo{Why use Ubuntu 18.04 instead of the official raspian operating system for raspberry pi?}
 
 For onboard computing a Raspberry Pi 4 is used with an Ubuntu 18.04.5 LTS (Bionic Beaver) 64-bit server operating system. The 64-bit version is used because the Raspberry Pi 4 is build on a 64-bit architecture and the server edition is chosen to minimize overhead because the graphical user interface (GUI) is not needed as the interface used for communicating to the Raspberry Pi will be through ssh from the terminal. The mentioned operating system can be fetched from the official Ubuntu website \cite{ubuntuImage}. The Raspberry Pi 4 gives a number of possibles options in regard to system boot, but in this case an SD card will be used. Now  \href{https://www.balena.io/etcher/}{etcher} is used to flash the Ubuntu 18.04.5 image to the SD card which offers a secure way for image flashing. 
 
@@ -563,5 +691,7 @@ $ pip install pathlib pymavlink pandas scipy opencv-contrib-python
 \end{lstlisting}
 
 Now all the packages for pose estimation using ArUco markers, sensor fusion and offboard control can be transferred to the newly created ROS workspace on the Raspberry Pi using the protocol \textit{scp}. Hence, after building the ROS workspace again, the system is up and running on the Raspberry Pi.   
+
+\todo{Talk about that OpenCV can be installed from source using https://linuxize.com/post/how-to-install-opencv-on-ubuntu-18-04/}
 
 \end{document}
