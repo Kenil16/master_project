@@ -451,113 +451,137 @@ The Kalman Filter (KF) requires linear models. However, these models are rarely 
 
 \subsubsection{Unscented Kalman Filter}
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[height=7.0cm]{../Figures/ukf.png}
+	\caption{Initialization} \label{fig:ukf}
+\end{figure}
+
 \subsubsection{UKF implementation}
+\begin{Pseudo}{UKF initialization}{}
+\begin{Indentation}
+	\item Given scalar values for initialization of $\alpha$, $\beta$, $k$ and $L$
+	\item $\alpha$ \( \leftarrow Chosen\, alpha \)
+	\item $\beta$ \( \leftarrow Chosen\, beta \)
+	\item $k$ \( \leftarrow Chosen\, k \)
+	\item $L$ \( \leftarrow Number\, of\, states \)
+	\item Given vectors of size $L$ for $x$ and $P$ with a matrix of size $L \times L$ for $Q$
+	\item $x$ \( \leftarrow Initial\, state\)
+	\item $Q$ \( \leftarrow Process\, noise \)
+	\item $P$ \( \leftarrow Initial\, covariance \)
+	\item Initialize function which predicts next state
+	\item $iterate$ \( \leftarrow IterateFunction(x,dt) \)
+	\item Initialize weights for associated sigma points 
+	\item $W^{(m)}_0$ \( \leftarrow \frac{\lambda}{L+\lambda} \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:init_weight_zero_mean}
+	\item $W^{(c)}_0$ \( \leftarrow \frac{\lambda}{L+\lambda} + (1-\alpha^2 +\beta)	\)  \qquad \refstepcounter{equation}(\theequation)\label{eq:init_weight_zero_covariance}
 
-% Define box and box title style
-\tikzstyle{mybox} = [draw=white, fill=white!20, very thick,
-    rectangle, rounded corners, inner sep=10pt, inner ysep=20pt]
-\tikzstyle{fancytitle} =[fill=gray, text=white]
+    \item \textbf{for} $i$ \(\leftarrow 1\, to\, 2L\) \textbf{do}
+        \begin{Indentation}
+            \item $W^{(m)}_i$ \(\leftarrow \frac{1}{2(L+\lambda)} \) \qquad \refstepcounter{equation}(\theequation)\label{eq:init_weight_ith_mean}
+            \item $W^{(c)}_i$ \(\leftarrow \frac{1}{2(L+\lambda)} \) \qquad \refstepcounter{equation}(\theequation)\label{eq:init_weight_ith_covariance} \vspace{-5pt}
+    \end{Indentation}
+\end{Indentation}
+\end{Pseudo}
 
-\begin{figure}[H]
-\centering
- \hspace{-4.0em}
-    \begin{subfigure}[t]{.48\textwidth}
-		\begin{tikzpicture}
-\node [mybox] (box){%
-    \begin{minipage}{0.90\textwidth}
-     {\small\
-        \begin{fleqn}
-        \begin{align}
-        	X_0 = \bar{x}
-        \end{align}
-        \end{fleqn}
-        
-        \begin{fleqn}
-        \begin{align}
-        	X_i = \bar{x} + \left(\sqrt{(L+\lambda})\textbf{P}_x\right)_i \qquad i=1,...,L
-        \end{align}
-        \end{fleqn}
-        
-        \begin{fleqn}
-        \begin{align}
-        	X_i = \bar{x} - \left(\sqrt{(L+\lambda})\textbf{P}_x\right)_{i-L} \qquad i=L,...,2L
-        \end{align}
-        \end{fleqn}
-        
-        \begin{fleqn}
-        \begin{align}
-        	W^{(m)}_0 = \frac{\lambda}{L+\lambda}
-        \end{align}
-        \end{fleqn}
-        
-        \begin{fleqn}
-        \begin{align}
-        	W^{(c)}_0 = \frac{\lambda}{L+\lambda} + (1-\alpha^2 +\beta)
-        \end{align}
-        \end{fleqn}
-        
-        \begin{fleqn}
-        \begin{align}
-        	W^{(m)}_i = W^{(c)}_i = \frac{1}{2(L+\lambda)} \qquad i=1,...,2L
-        \end{align}
-        \end{fleqn}
-        
-        }
-    \end{minipage}
-};
-\vspace{-4.0em}
-		\end{tikzpicture}%
-		\caption{Calculating sigma points and weights} \label{fig:calculating_sigma_points_and_weights}
-    \end{subfigure}
-        \begin{subfigure}[t]{.40\textwidth}
-        \includegraphics[height=6.0cm]{../Figures/ukf.png}
-		\caption{Initialization} \label{fig:M1}
-    \end{subfigure}
-    \caption{Initialization} \label{fig:M1}
-\end{figure}
+\begin{Pseudo}{UKF iterate function}{}
+\begin{Indentation}
+	\item $x$ \( \leftarrow State \)
+	\item $dt$ \( \leftarrow\, Time\, since\, last\, update \)
+	\item $x^{new}_0$ \(\leftarrow x_0 + 0.6 \cdot x_3 \cdot dt\) \qquad ($Position\, in\, x$)
+	\item $x^{new}_1$ \(\leftarrow x_1 + 0.6 \cdot x_4 \cdot dt\) \qquad ($Position\, in\, y$)
+	\item $x^{new}_2$ \(\leftarrow x_2\) \qquad ($Position\, in\, z$)
+	\item $x^{new}_3$ \(\leftarrow x_3\) \qquad ($Velocity\, in\, x$)
+	\item $x^{new}_4$ \(\leftarrow x_4\)\qquad ($Velocity\, in\, y$)
+	\item $x^{new}_5$ \(\leftarrow x_5 + x_8 \cdot dt\) \qquad ($Angle\, in\, Roll$)
+	\item $x^{new}_6$ \(\leftarrow x_6 + x_{9} \cdot dt\) \qquad ($Angle\, in\, Pitch$)
+	\item $x^{new}_7$ \(\leftarrow x_7 + x_{10} \cdot dt\) \qquad ($Angle\, in\, Yaw$)
+	\item $x^{new}_8$ \(\leftarrow x_8 \) \qquad ($Velocity\, in\, Roll$)
+	\item $x^{new}_9$ \(\leftarrow x_9 \) \qquad ($Velocity\, in\, Pitch$)
+	\item $x^{new}_{10}$ \(\leftarrow x_{10} \) \qquad ($Velocity\, in\, Yaw$)
+	\item $x^{new}_{11}$ \(\leftarrow x_{11} \) \qquad ($Error\, in\, altimeter$)
+	
+	\item $return$ $x_{new}$
+	
+\end{Indentation}
+\end{Pseudo}
+
+\begin{Pseudo}{UKF calculate sigma points}{}
+\begin{Indentation}
+	\item $\mathcal{X_0}$  \(\leftarrow \bar{x}\) \qquad \refstepcounter{equation}(\theequation)\label{eq:update_zero_sigma_point}
+	\item \textbf{for} $i$ \(\leftarrow 1\, to\, L\) \textbf{do}
+        \begin{Indentation}
+            \item $\mathcal{X_i}$ \(\leftarrow \bar{x} + \left(\sqrt{(L+\lambda})P_i\right)\) \qquad \refstepcounter{equation}(\theequation)\label{eq:update_ith_sigma_point_plus}
+         \end{Indentation}
+            
+    \item \textbf{for} $i$ \(\leftarrow L+1\, to\, 2L\) \textbf{do}
+        \begin{Indentation}
+            \item $\mathcal{X_i}$ \(\leftarrow \bar{x} - \left(\sqrt{(L+\lambda})P_i\right)\) \qquad \refstepcounter{equation}(\theequation)\label{eq:update_ith_sigma_point_minus}
+    	\end{Indentation}
+    	\item $return\, \mathcal{X}$
+\end{Indentation}
+\end{Pseudo}
 
 
-\begin{figure}[H]
-\centering
-            \begin{subfigure}[t]{.48\textwidth}
-        \centering
-		\begin{tikzpicture}
-\node [mybox] (box){%
-    \begin{minipage}{0.90\textwidth}
-    {\small\
+
+
+\begin{Pseudo}{UKF prediction update}{}
+\begin{Indentation}
+
+	\item Prediction step for sigma points  
+	\item \textbf{for} $i$ \(\leftarrow 0\, to\, L\) \textbf{do}
+        \begin{Indentation}
+            \item $\mathcal{X}_i$ \(\leftarrow irerateFunction(\mathcal{X}_i,dt) \) \qquad \refstepcounter{equation}(\theequation)\label{eq:update_predict_sigma_points}
+        \end{Indentation}
     
-        \begin{fleqn}
-        \begin{align}
-            \mathcal{X}^{x}_{k | k-1} = \textbf{F}[\mathcal{X}^{x}_{k-1}, \textit{\textbf{X}}^{v}_{k-1}]  
-        \end{align}
-        \end{fleqn}
+    \item Prediction step for state
+	\item \textbf{for} $i$ \(\leftarrow 0\, to\, L\) \textbf{do}
+        \begin{Indentation}
+        	\item \textbf{for} $j$ \(\leftarrow 0\, to\, 2L\) \textbf{do}
+        		\begin{Indentation}
+            		\item $x_i$ \(\leftarrow  x_i +  W^{m}_j \cdot \mathcal{X}_{ij} \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_predict_state}
+         		\end{Indentation}
+         \end{Indentation}	
+         
+    \item Prediction step for covariance matrix
+	\item \textbf{for} $i$ \(\leftarrow 0\, to\, 2L\) \textbf{do}
+        \begin{Indentation}
+            \item $P$ \(\leftarrow P + W^{c}_i \cdot (\mathcal{X}_i - x_i)(\mathcal{X}_i - x_i)^T \) \qquad \refstepcounter{equation}(\theequation)\label{eq:update_predict_covariance}
+        \end{Indentation}
+    \item $P$ \(\leftarrow Q \cdot dt \)
+\end{Indentation}
+\end{Pseudo}
+
+\begin{Pseudo}{UKF measurement update}{}
+\begin{Indentation}
+
+	\item $\mathbf{y}$ \(\leftarrow Measurements \)
+	\item $\mathbf{r}$ \(\leftarrow Measurement\, noise \)
+	\item Covariance of measurements  
+	\item \textbf{for} $i$ \(\leftarrow 0\, to\, 2L\) \textbf{do}
+        \begin{Indentation}
+            \item $P_{yy}$ \(\leftarrow P_{yy} + W^{c}_i \cdot (\mathcal{Y}_i - y_i)(\mathcal{Y}_i - y_i)^T \) \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_covariance_of_measurements}
+        \end{Indentation}
+     \item  $P_{yy}$ \(\leftarrow  P_{yy} + r\)
         
+    \item Covariance of measurement with states 
+	\item \textbf{for} $i$ \(\leftarrow 0\, to\, 2L\) \textbf{do}
+        \begin{Indentation}
+            \item $P_{yx}$ \(\leftarrow P_{yx} + W^{c}_i \cdot (\mathcal{Y}_i - y_i)(\mathcal{X}_i - x_i)^T \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_covariance_of_measurements_with_states}
+        \end{Indentation}
         
-     }
-    \end{minipage}
-};
-		\end{tikzpicture}%
-		\caption{Prediction update} \label{fig:M1}
-    \end{subfigure}
-            \begin{subfigure}[t]{.48\textwidth}
-        \centering
-		\begin{tikzpicture}
-\node [mybox] (box){%
-    \begin{minipage}{0.90\textwidth}
-    {\small\
-        \begin{fleqn}
-        \begin{align}
-            \textit{\textbf{X}}^{x}_{k | k-1} = \textbf{F}[\textit{\textbf{X}}^{x}_{k-1}, \textit{\textbf{X}}^{v}_{k-1}]  
-        \end{align}
-        \end{fleqn}
-     }
-    \end{minipage}
-};
-		\end{tikzpicture}%
-		\caption{easurement update} \label{fig:M1}
-    \end{subfigure}
-    \caption{Initialization} \label{fig:M1}
-\end{figure}
+    \item Calculate Kalman gain  
+    \item $\mathcal{K}$ \(\leftarrow P_{yy} \cdot P^{-1}_{yx} \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_kalman_gain}
+     
+    \item Update state  
+    \item $x$ \(\leftarrow x + \mathcal{K}(y- \bar{y}) \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_state}
+    
+    \item Update covariance   
+    \item $P$ \(\leftarrow P - \mathcal{K} P_{yy} \mathcal{K}^T \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_covariance}
+    
+    \item Update sigma points   
+    \item $\mathcal{X}$ \(\leftarrow Calculate\, sigma\, points\)  
+\end{Indentation}
+\end{Pseudo}
 
 
 \subsection{Companion computer}
