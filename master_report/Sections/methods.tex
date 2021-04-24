@@ -445,19 +445,25 @@ These equations for the transformations of the pose will be used for the differe
 
 \subsection{Sensor fusion}
 \label{sec:sensor_fusion}
-\todo{Sensor fusion is not performed to increase the precision of the psoe estimation. But it is used as an way of handling situations where no markers is visible in the image, which could be critical!}
+Chances are that ArUco markers placed on the ground will not be visible at all times. This can be due to changes in light conditions and dirt on or wear of the markers. This could be fatal, because the drone in offboard control will relie on constant updates from the pose of ArUco markers when flying indoors. To mitigate this situation sensor fusion will be implemented. 
 
-The Kalman Filter (KF) requires linear models. However, these models are rarely seen in reality and especially not in the dynamics of a Aquacopter. A way to accommodate for this problem could be to approximate the linear model by linearization using an Extended Kalman Filter (EKF). The basic idea behind this approach is to use the mean of a non-linear Gaussian function and linearize at this single point through Taylor expansion. However, if the function turns out to be \textit{very} nonlinear, this method is sub optimal.  
+This section deals with the implementation of sensor fusion for pose estimation. Section \ref{sec:ukf} is about the theory behind the Unscented Kalman filter (UKF) and why using this would be beneficial in regards to other methods e.g. the extended Kalman filter (EKF). Section \ref{sec:ukf_implementation} deals with the implementation of the UKF.   
 
 \subsubsection{Unscented Kalman Filter}
+\label{sec:ukf}
+
+The Kalman Filter (KF) requires linear models. However, these models are rarely seen in reality and especially not in the dynamics of a Aquacopter. A way to accommodate for this problem could be to approximate the linear model by linearization using an Extended Kalman Filter (EKF). The basic idea behind this approach is to use the mean of a non-linear Gaussian function and linearize at this single point through Taylor expansion. However, if the function turns out to be \textit{very} nonlinear, this method is sub optimal \cite{UnscentedKalmanFilter}.  
+
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[height=7.0cm]{../Figures/ukf.png}
-	\caption{Initialization} \label{fig:ukf}
+	\caption{Illustration of the uncented transformation (UT) and how the use of this method in the UKF performas better than EKF in reagrd to better mean and covariance estimation} \label{fig:ukf}
 \end{figure}
 
 \subsubsection{UKF implementation}
+\label{sec:ukf_implementation}
+
 \begin{Pseudo}{UKF initialization}{}
 \begin{Indentation}
 	\item Given scalar values for initialization of $\alpha$, $\beta$, $k$ and $L$
