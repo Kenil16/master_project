@@ -452,17 +452,62 @@ This section deals with the implementation of sensor fusion for pose estimation.
 \subsubsection{Unscented Kalman Filter}
 \label{sec:ukf}
 
-The Kalman Filter (KF) requires linear models. However, these models are rarely seen in reality and especially not in the dynamics of a Aquacopter. A way to accommodate for this problem could be to approximate the linear model by linearization using an Extended Kalman Filter (EKF). The basic idea behind this approach is to use the mean of a non-linear Gaussian function and linearize at this single point through Taylor expansion. However, if the function turns out to be \textit{very} nonlinear, this method is sub optimal \cite{UnscentedKalmanFilter}.  
-
+The Kalman Filter (KF) requires linear models. However, these models are rarely seen in reality and especially not in the dynamics of a Aquacopter. A way to accommodate for this problem could be to approximate the linear model by linearization using an EKF. The basic idea behind this approach is to use the mean of a non-linear Gaussian function and linearize at this single point through Taylor expansion. However, because the EKF only offers \textit{first order} approximations of the optimal terms based on a liniarization for the non linear system of the estimated state destribution of a Gaussion Random Variable (GRV), large errors can occur if functions turn out to be \textit{very} nonlinear. Furthermore, calculations of the Jacobaion are needed which can intruduce errrors if not performed correcly. Becuase of these limitations, this method is considered sub-optimal.  
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[height=7.0cm]{../Figures/ukf.png}
-	\caption{Illustration of the uncented transformation (UT) and how the use of this method in the UKF performas better than EKF in reagrd to better mean and covariance estimation} \label{fig:ukf}
+	\caption{Illustration of the uncented transformation (UT) and how the use of this method in the UKF performas better than EKF in regard to better mean and covariance estimation \cite{UnscentedKalmanFilter}} \label{fig:ut}
 \end{figure}
+
+Another method called UKF takes these considerations into account. The state distribution is still represented using a GRV. However, now a number of sample points around the mean called \textit{sigma points} are chosen which better captures the true mean and covariance of the GRV of the non-linear system using the unscented transformation (UT). An illustration of the superiority of using the UT instead of a first-order linearization in the EKF can be seen in Figure \ref{fig:ut}. For Gaussian functions, the use of the UT results in approximations which are accurate to the third order and at least second order for non Gaussian functions for all nonlinearities. For a more in-depth explanation of the UKF, the paper \cite{UnscentedKalmanFilter} is recommended.  
+
+Because of the discussed optimizations in regard to the EKF, the UKF will be used in the implementation of sensor fusion for estimating the pose of the drone. 
 
 \subsubsection{UKF implementation}
 \label{sec:ukf_implementation}
+
+Because the appropriate choose for parameters of sigma points may give performance improvements, these have been chosen based on a discussion of the UKF in \cite[p.~354]{KalmanAndBayesianFiltersInPython}. Three initial parameters have to be chosen namely $\alpha$, $\beta$ and $k$. $\alpha$ determines the amount of spread of the sigma points from the mean of $\bar{x}$ which is chosen to be 0.04, $\beta$ incorporates prior knowledge of the distribution of $x$ which is set to 2 and $\mathcal{k}$ is defined as a secondary scaling parameter set to 15. The equations for the calculations of \textit{sigma points} can be seen in Equation \ref{eq:update_zero_sigma_point}, \ref{eq:update_ith_sigma_point_plus} and \ref{eq:update_ith_sigma_point_minus} in Pseudocode \textit{UKF calculate sigma points} with associated weights seen in Equation \ref{eq:init_weight_zero_mean}, \ref{eq:init_weight_zero_covariance}, \ref{eq:init_weight_zero_mean} and \ref{eq:init_weight_zero_covariance}. To calculate the weights, a scaling parameter $\lambda = \alpha^2(L+k)-L$ where $L$ is the number of states in the system is used. The superscipt $(m)$ and $(c)$ in the weights defines the mean and covariance of the weights respectively. The initialization of the UKF can be seen in Pseudocode \textit{UKF initialization}. Besides the already defined parameters, the process noise matrix $Q$ and measurements noise matrix $R$ must be set. These can be seen in Equation \ref{eq:process_noise} and \ref{eq:measurement_noise} respectively. Both have been set as diagonal matrices with noise in position x, y and z, noise in velocity in x and y, noise in euler angles in roll, pitch and yaw and noise in euler angle rates in roll, pitch and yaw starting from $(0,0)$ to $(12,12)$ for both matrix $Q$ and $R$. However, with two additional measurement noise parameters in $R$ for altimeter height in $(13,13)$ and altimeter error in $(14,14)$. This results in twelve states in the system to track.
+
+\setcounter{MaxMatrixCols}{13}
+\begin{equation}
+\small
+Q = 
+\begin{bmatrix}
+0.5 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0.5 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0.5 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0.5 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0.5 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0.5 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0.5 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0.5 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0.5 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 3.0
+\end{bmatrix}
+\label{eq:process_noise}
+\end{equation}
+
+\begin{equation}
+\small
+R = 
+\begin{bmatrix}
+0.011& 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0.011& 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0.011& 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0.300 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0.300 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0.005 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0.005 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0.005 & 0 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0.030 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0.030 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0.030 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0.500 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0.500
+\end{bmatrix}
+\label{eq:measurement_noise}
+\end{equation}
 
 \begin{Pseudo}{UKF initialization}{}
 \begin{Indentation}
@@ -471,12 +516,12 @@ The Kalman Filter (KF) requires linear models. However, these models are rarely 
 	\item $\beta$ \( \leftarrow Chosen\, beta \)
 	\item $k$ \( \leftarrow Chosen\, k \)
 	\item $L$ \( \leftarrow Number\, of\, states \)
-	\item Given vectors of size $L$ for $x$ and $P$ with a matrix of size $L \times L$ for $Q$
+	\item Given vectors of size $L$ for $x$ with a matrices of size $L \times L$ for $Q$ and  $P$ 
 	\item $x$ \( \leftarrow Initial\, state\)
 	\item $Q$ \( \leftarrow Process\, noise \)
 	\item $P$ \( \leftarrow Initial\, covariance \)
 	\item Initialize function which predicts next state
-	\item $iterate$ \( \leftarrow IterateFunction(x,dt) \)
+	\item $iterate$ \( \leftarrow iterateFunction(x,dt) \)
 	\item Initialize weights for associated sigma points 
 	\item $W^{(m)}_0$ \( \leftarrow \frac{\lambda}{L+\lambda} \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:init_weight_zero_mean}
 	\item $W^{(c)}_0$ \( \leftarrow \frac{\lambda}{L+\lambda} + (1-\alpha^2 +\beta)	\)  \qquad \refstepcounter{equation}(\theequation)\label{eq:init_weight_zero_covariance}
@@ -488,6 +533,10 @@ The Kalman Filter (KF) requires linear models. However, these models are rarely 
     \end{Indentation}
 \end{Indentation}
 \end{Pseudo}
+
+Because the measurement updates in the pose comes from the estimated ArUco marker pose, the noise in position and orientation have been decided based on the worst STD in Section \ref{sec:hold_pose_using_aruco_pose_estimation} where the error in the estimated ArUco pose were based on a comparison to that of the ground truth. The worst STD where found to be 0.011 meters and 0.005 radians for the position and orientation respectively. Due to the fact that the sensor noise from the accelerometer and gyro are quite noise, these parameters have been chosen to be higher than that of the pose to put more trust on ArUco marker updates. The STD has therefore been set to 0.3 $\frac{m}{s}$ and 0.03 $\frac{r}{s}$ for the velocities in x and y and angular rates from the accelerometer and gyro respectively. Lastly, the noise for height estimates and associated errors between the height estimate and ArUco marker position in z have been set to 0.5 meters because the updates from the barometer tends to be quite noisy as well. The parameters for the process noise where found appropriate by trial and error.
+
+In Pseudocode \textit{UKF initialization}, one may notice the initialization of the $iterateFunction(x,dt)$. This function defines the update of the state in the prediction step of the UKF algorithm. This function can be seen in Pseudocode \textit{UKF iterate function}.           
 
 \begin{Pseudo}{UKF iterate function}{}
 \begin{Indentation}
@@ -505,11 +554,14 @@ The Kalman Filter (KF) requires linear models. However, these models are rarely 
 	\item $x^{new}_9$ \(\leftarrow x_9 \) \qquad ($Velocity\, in\, Pitch$)
 	\item $x^{new}_{10}$ \(\leftarrow x_{10} \) \qquad ($Velocity\, in\, Yaw$)
 	\item $x^{new}_{11}$ \(\leftarrow x_{11} \) \qquad ($Error\, in\, altimeter$)
-	
-	\item $return$ $x_{new}$
-	
+	\item $return$ $x_{new}$	
 \end{Indentation}
+\label{pse:ukf_iterate_function}
 \end{Pseudo}
+
+Here it may be noticed that the values from the accelerometer $x_3$ and $x_4$ are directly passed to the updates in position for x and y with only a single integration. To be completely mathematical correct, these values should have to be put through a double integration from where one goes from acceleration to velocity and velocity to position. The reason for doing this is because of the accumulation in error when integrating twice. To mitigate this issue, only a single integration is used with multiplication of a constant with a value of 0.6 which is found appropriate. Hence, the values from the accelerometer is interpreted as a velocity which reduces error and let go of the need for implementation of \textit{movement end checking} \cite[p.~6]{ImplementingPositioningAlgorithmsUsingAccelerometers}. The need for this implementation would have been likely because the area under the integration curve due rarely align when the acceleration \textit{flips} the opposite way until reaches zero. This may create an accumulated velocity even thought the vehicle is not moving. This approach is only possible because the implementation of sensor fusion is to be used in indoor environments where the drone is not exposed to wind. Otherwise the integration of the values from the accelerometer when the drone having an angle in pitch or roll due to wind, would lead to errors in the position estimation.
+
+In regard to the updates of the altitude of the drone when no new ArUco marker pose is available, a barometer is used. Because barometers uses atmospheric pressure to calculate the altitude, errors in height can occur when pressure or temperature changes. To take into account these scenarios, the error between the altitude estimated from the ArUco marker pose and that of the barometer is calculated every time new pose estimates from ArUco markers are available. This estimated error is then subtracted from the height estimate from the barometer when the barometer is used to update the altitude of the drone. 
 
 \begin{Pseudo}{UKF calculate sigma points}{}
 \begin{Indentation}
@@ -527,14 +579,11 @@ The Kalman Filter (KF) requires linear models. However, these models are rarely 
 \end{Indentation}
 \end{Pseudo}
 
-
-
-
 \begin{Pseudo}{UKF prediction update}{}
 \begin{Indentation}
 
 	\item Prediction step for sigma points  
-	\item \textbf{for} $i$ \(\leftarrow 0\, to\, L\) \textbf{do}
+	\item \textbf{for} $i$ \(\leftarrow 0\, to\, 2L\) \textbf{do}
         \begin{Indentation}
             \item $\mathcal{X}_i$ \(\leftarrow irerateFunction(\mathcal{X}_i,dt) \) \qquad \refstepcounter{equation}(\theequation)\label{eq:update_predict_sigma_points}
         \end{Indentation}
@@ -553,30 +602,31 @@ The Kalman Filter (KF) requires linear models. However, these models are rarely 
         \begin{Indentation}
             \item $P$ \(\leftarrow P + W^{c}_i \cdot (\mathcal{X}_i - x_i)(\mathcal{X}_i - x_i)^T \) \qquad \refstepcounter{equation}(\theequation)\label{eq:update_predict_covariance}
         \end{Indentation}
-    \item $P$ \(\leftarrow Q \cdot dt \)
+    \item $P$ \(\leftarrow P + Q \cdot dt \)
 \end{Indentation}
 \end{Pseudo}
 
 \begin{Pseudo}{UKF measurement update}{}
 \begin{Indentation}
 
+	\item $\mathcal{Y}$ \(\leftarrow Sigma\, points\, for\, measurements \)
 	\item $\mathbf{y}$ \(\leftarrow Measurements \)
-	\item $\mathbf{r}$ \(\leftarrow Measurement\, noise \)
+	\item $\mathbf{R}$ \(\leftarrow Measurement\, noise \)
 	\item Covariance of measurements  
 	\item \textbf{for} $i$ \(\leftarrow 0\, to\, 2L\) \textbf{do}
         \begin{Indentation}
             \item $P_{yy}$ \(\leftarrow P_{yy} + W^{c}_i \cdot (\mathcal{Y}_i - y_i)(\mathcal{Y}_i - y_i)^T \) \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_covariance_of_measurements}
         \end{Indentation}
-     \item  $P_{yy}$ \(\leftarrow  P_{yy} + r\)
+     \item  $P_{yy}$ \(\leftarrow  P_{yy} + R\)
         
     \item Covariance of measurement with states 
 	\item \textbf{for} $i$ \(\leftarrow 0\, to\, 2L\) \textbf{do}
         \begin{Indentation}
-            \item $P_{yx}$ \(\leftarrow P_{yx} + W^{c}_i \cdot (\mathcal{Y}_i - y_i)(\mathcal{X}_i - x_i)^T \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_covariance_of_measurements_with_states}
+            \item $P_{xy}$ \(\leftarrow P_{xy} + W^{c}_i \cdot (\mathcal{X}_i - x_i)(\mathcal{Y}_i - y_i)^T \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_covariance_of_measurements_with_states}
         \end{Indentation}
         
     \item Calculate Kalman gain  
-    \item $\mathcal{K}$ \(\leftarrow P_{yy} \cdot P^{-1}_{yx} \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_kalman_gain}
+    \item $\mathcal{K}$ \(\leftarrow P_{xy} \cdot P^{-1}_{yy} \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_kalman_gain}
      
     \item Update state  
     \item $x$ \(\leftarrow x + \mathcal{K}(y- \bar{y}) \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_state}
@@ -589,6 +639,9 @@ The Kalman Filter (KF) requires linear models. However, these models are rarely 
 \end{Indentation}
 \end{Pseudo}
 
+Pseudocode code for the prediction and measurement update can be seen in \textit{UKF prediction update} and \textit{UKF measurement update}. In the prediction step, the sigma points and state will be updated along with covariance. In the measurement update, the state to be updated is used, where the Kalman gain is calculated based on covariance of the measurement and measurement with states. This Kalman gain is then used to update the state and covariance of the system. 
+
+In regard to the sensor noise in the accelerometer and gyro, they are found by taking the mean of the first 10 seconds of measurements when the drone is initiated and then subtracting this value from new measurement updates. These measurements will then have to be aligned with the ArUco marker pose estimation, which is done by multiplying the data from the accelerometer and gyro by a rotation matrix from the current IMU sensor placement on the drone. Moreover, the barometer error will be estimated as soon as new ArUco pose estimates are available to the system.  
 
 \subsection{Companion computer}
 \label{sec:companion_computer}
