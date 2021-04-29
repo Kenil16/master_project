@@ -4,7 +4,7 @@
 \usepackage{listings}
 \usepackage{xcolor}
 %\usepackage{Pygments}
-%\usepackage{minted}
+\usepackage{minted}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{amsmath}
@@ -64,6 +64,13 @@
 \usetikzlibrary{external}
 \usepackage{nccmath}
 \usepackage{algpseudocode}
+\setcounter{secnumdepth}{4}
+%\titleformat*{\paragraph}{\normalfont\itshape}
+
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\normalsize\itshape}}
 
 \usepackage{unicode-math}
 \usepackage{siunitx}

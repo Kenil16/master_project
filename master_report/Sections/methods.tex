@@ -164,50 +164,12 @@ The world file uses the SDF format which contains things like \textit{worlds}, \
 
 The plugins in gazebo are code which is compiled as a shared library and inserted into the simulation. These plugins includes world, model, sensors, system, visual and GUI. For instance, if one wants to include a feature to an existing model, like a wind plugin, these can be included into the world file to be used in a simulation. This wind plugin will be used in some of the simulations for stress testing of the ArUco pose estimation and the flight control in general. \todo{Explain in detail how these wind tests are going to be performed. The wind test is only relevant for the GPS to vision marker and ground marker following. The landing are to be performed in a indoor environment}
 
-\subsection{PX4 and ROS for autonomous flight}
+\subsection{Autonomous flight}
 
-This section deals with the implementation of the autonomous flight of the drone. The PX4 autopilot will be used as flight controller which offers many features to enable autonomous flight. Along the PX4 software, ROS will be used which enables onboard computing on the raspberry pi and transmission of messages to the PX4 using the MAVROS package. Before the setup of the raspberry pi, this onboard computing will be simulated in Gazebo and tested thoroughly before moving further. This leads to the execution of flight plans and actions taking by the drone which will be discussed along the implementation of ROS. 
+This section deals with the implementation of autonomous flight of the drone. The PX4 autopilot will be used as flight controller which offers many features to enable autonomous flight. This is discussed in Section \ref{sec:px4_flight_stack}. Along the PX4 software, robot operating system (ROS) will be used which enables onboard computing on the Raspberry Pi and transmission of messages to the PX4 using the MAVROS package. ROS is discussed in Section \ref{sec:ros}. For easy setup and access to the drone QGroundControl is used which is discussed in Section \ref{sec:qgroundcontrol}. 
 
-\subsubsection{PX4 flight stack}
-\label{sec:px4_flight_stack}
-
-\todo{Give a more thorough desciption of PX4. Maybe get inspiration from EiT. Furthermore, the calibration of the drone must be mentioned here where QGroundControl can be mentioned. }
-
-\todo{Talk about the transformation from the local coordinate system (start) to that of the aruco board world. This is performed to avoid changing from a very high or low number in regard to altitude and horizontal position which can make the exented kalman filter unstable. Here the mapping method must be discussed. Initial idea was to make the drone move really slowly in this transition. However, it could be challaging if the drone were exposed to wind}
-
-\todo{Talk about the state machine for the autonomous flight from where the drone goes from using GPS, find aruco board, navigate to aruco board, GPS2vision, vision nagigation and vision landing. Moreover, vision takeoff, vision navigation and gps2vision and then gps. Talk about each step and why they are important. diagrams of state machine as well.}
-
-\todo{Talk about the software installation and how to use the implementation.  }
-
-PX4 is an open source control software for unmanned vehicles. PX4 uses software in the loop (SITL) for simulations of a given unit before real world testing. The flight stack runs on a computer which could be any unit on the same network. Hardware in the loop (HITL) uses simulation software on a real flight controller board e.g PX4 mini which will be the used as flight controller on the drone. 
-
-MAVROS is a packages that provides communication drivers for various autopilots with the MAVLink communication protocol. MAVLink is categorized as a light weight messaging protocol for communication with drones, other unmanned vehicles and there onboard components. This follows a hybrid publish-subscribe and point-to-point design pattern. A visualization of how this works can be seen in Figure \ref{fig:sitl_simulation_enviroment}.   
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.48
-    \linewidth}
-        \centering
-        \includegraphics[width=1\linewidth]{../Figures/px4_sitl.png}
-        \caption{}
-        \label{fig:mavlink_comminication}
-    \end{subfigure}
-      \hskip 10ex
-    \begin{subfigure}[b]{0.26\linewidth}
-        \centering
-        \includegraphics[width=1\linewidth]{../Figures/simulator_mavlink_api.png}
-        \caption{}
-        \label{fig:simulator_mavlink_api}
-    \end{subfigure}
-    \caption{Illustrations of the message handling in the SITL simulation environment \cite{px4Autopilot}}
-    \label{fig:sitl_simulation_enviroment}
-\end{figure}
-
-In Figure \ref{fig:simulator_mavlink_api}, a high level view of the communication between the PX4 flight stack and simulation environment (Gazebo) can be seen. Sensor readings like GPS, IMU data etc. are passed to the PX4 flight controller which returns control outputs (motor actuator commands) to the simulation according to sensor readings. 
-
-The transmission of messages between PX4 and external programs happens using  the user datagram protocol (UDP) ports for MAVLink communication. This is illustrated in Figure \ref{fig:mavlink_comminication}. Here a number of ports are associated to different applications. The UDP Port 14540 is used for offboard control communication which will be python scripts running in the simulation or on the Raspberry Pi for autonomous flight using information from sensors e.g. vision feedback. The UDP port 14550 is used for communicating with ground control stations (GCS). QgroundControl, which is explained in Section \ref{sec:qgroundcontrol},  will be used which offers many features like sensor calibration, radio setup and calibration of transmitters, predefined air frame selection for different drones etc. Moreover, parameters for position and attitude control, speed limits and the like can be changed during flights. However, these parameters can also be changed using ROS in the offboard control script, which will be explained in Section \ref{sec:ros}. The last port, UDP 4560, will be used for transmission of messages between PX4 and the simulation environment.
-
-\todo{Here a link to github can be set regarding how the installation for PX4, gazebo and ROS has been preformed. This have to be done in a REAME file with a bash script which can execute the installation automatically. }
+The main reason for chosen PX4, ROS and QGroundControl is because the software have been widely used in MSc in Engineering in robot systems with
+specialization in unmanned aerial systems technology at the University of Southern Denmark. A lot of experience have been gained which will be utilized in the implementation of autonomous flight.
 
 \subsubsection{QGroundControl}
 \label{sec:qgroundcontrol}
@@ -255,11 +217,10 @@ When configuring air frames in QGroundControl, a number predefined setups can be
 
 As it may be noticed in Figure \ref{fig:quadrotor} and \ref{fig:hexarotor}, the green and blue colors illustrate the spin direction of the propellers. Blue is counterclockwise and green clockwise. The use of QGroundControl offers the possibility to check the spin direction of each propeller separately to insure a proper setup. This feature will also be used in this case for safety reasons.  
 
+ 
+\subsubsection{Offboard control}
+\label{sec:offboard_control}
 
-\subsubsection{Robot operating system}
-\label{sec:ros}
-
-\subsub
 ROS is an open source software framework to be used in robot applications. This includes a number of libraries and tools with the aim of simplifying the creation of new robotic solutions. Another important feature is the message handling between nodes in the ROS architecture which is visualized in Figure \ref{fig:ros}. The ROS master keeps track on all the nodes in the system an each node goes through registration via the master. Then each node can publish or subscribe to messages which is initiated through the master. This is called topics under the ROS framework and will be used in offboard control where a number of nodes have to communicate to each other.  
 
 \begin{figure}[H]
@@ -268,6 +229,8 @@ ROS is an open source software framework to be used in robot applications. This 
     \caption{Illustrations of a high level view of the architecture in ROS}
     \label{fig:ros}
 \end{figure}
+
+\paragraph{Structure of ROS nodes}
 
 A flowchart of the system used in offboard control can be seen in Figure \ref{fig:offboard_control}. In this design a number of six nodes are used. The core node is called \textit{\textbf{drone\_control}}. This node is responsible for publishing set points to the PX4 as well as the state on the onboard system. The reason for having only one node publishing set points is for security reasons so that no more than a single node can publish new set points to the drone a once. The states includes takeoff, loiter, return to home or some of the missions which have been defined to be executed during flight. Hence, through keyboard commands, the onboard state can be changed. This is done using the node \textit{\textbf{ground\_control}}. This node listings to keyboard commands as publishes these if an update occurs e.g a keystroke. The reason for having this as a separate node is that now keystrokes does not show up in a the main terminal which makes it hard to analyze important updates from the PX4 and other nodes that publishes updates to the user from the terminal. Hence, a separate terminal (terminal window) will open for keyboard inputs and a main terminal with updates on the current state of the system will be used. Another node which subscribes to updates giving from keystrokes is called  \textit{\textbf{loiter\_pilot}}. This node enables the user to take full control of the drone using keystrokes which makes it much easier to debug the system. The possible commands giving from the user can be seen in Table \ref{tab:ros_commands}. This table is split up into commands passed to the drone control and loiter pilot node. The latter will increment/decrement the current position of the drone with 0.5 m and increment/decrement the yaw angle by 5 degrees for each keystroke given. The loiter pilot node also subscribes to the local position topic, but is not visualized in Figure \ref{fig:offboard_control}.
 
@@ -284,7 +247,108 @@ The use of ROS gives the opportunity to subscribe to services from the PX4 fligh
 
 The \textit{\textbf{marker\_detection}} node will analyze the incoming images from the front and bottom camera and estimate the ArUco pose if any markers is located in the image. The theory behind the pose estimation of the ArUco markers will be giving in Section \ref{sec:pose_estimation_using_aruco_markers}. When the pose has been estimated, the result is published to other nodes in the system.
 
-The node which uses this ArUco marker pose is called \textit{\textbf{sensor\_fusion}}. This nodes takes the pose and optimizes it based on fusion with the accelerometer and gyro. This is done to insure that the drone still gets a updated pose estimation even though no markers should be detected in the image. This is very important because the drone uses the ArUco markers as its local coordinate system. The implementation of sensor fusion will be discussed in \ref{sec:sensor_fusion_for_pose_optimization}.   
+The node which uses this ArUco marker pose is called \textit{\textbf{sensor\_fusion}}. This nodes takes the pose and optimizes it based on fusion with the accelerometer and gyro. This is done to insure that the drone still gets a updated pose estimation even though no markers should be detected in the image. This is very important because the drone uses the ArUco markers as its local coordinate system. The implementation of sensor fusion will be discussed in \ref{sec:sensor_fusion_for_pose_optimization}.  
+
+As seen in Figure \ref{fig:offboard_control}, the drone control node publishes set points to either global position (geographic coordinates), local position (Cartesian coordinates) or vision pose (Cartesian coordinates). The later is a very important aspect of this implementation, which must be mentioned. When the drone gets the pose from a GPS as either   geographic or Cartesian transformed (UTM) coordinates as global or local respectively, the drone uses this coordinate system for navigation. The PX4 auto pilot is relying on an extended Kalman filter for sensor fusion which can be altered from the parameter \textit{EKF2\_AID\_MASK} from the list of services. This uses GPS positions as default, but can be changed to fuse the estimated vision pose instead. By using this configuration, the estimation of the local coordinate system can be changed during flight when the drone is to navigate according to ArUco markers. This way, the use of the build in control schemes for actuator control can still be used, but now the drone navigates according to vision instead of GPS. Hence, a smooth transition from using GPS to vision and vision to GPS can be applied whenever needed. This is also one of the reasons why the pose estimation from the ArUco markers has to be very precise without much variance in its estimates. Otherwise, this could lead to an unstable system where the drone could have trouble positioning itself according to the predefined pose. 
+
+\paragraph{GPS to vision transition}
+
+Because going from one coordinate system to another comes with a cost of an unstable system for a short amount of time, the parameters \textit{MPC\_XY\_VEL\_MAX}, \textit{MPC\_Z\_VEL\_MAX\_DN} and  \textit{MPC\_Z\_VEL\_MAX\_UP} for horizontal and vertical velocities  and \textit{MC\_ROLLRATE\_MAX}, \textit{MC\_PITCHRATE\_MAX} and \textit{MC\_YAWRATE\_MAX} for angular velocities can be set to a very low value before changing between coordinate systems e.g GPS to vision. This insures the drone responds very slowly in the phase of instability caused by the local position and set point position are not aligned i.e. either one is publishing values from the old configuration due to a time delay. Then when the system has settled, the speeds are set back to its initial configuration yielding a smooth transition. This is simply done by inserting a time delay of a few hundreds of milliseconds after a change in the coordinate system to avoid this instability causing problems to the performance of the drone.
+
+However, this  solution does no take into account the contribution of wind, which could make the drone fly away because of decreased rates in angular as well as positional velocities. Moreover, because the ArUco marker board has its own cooridnate system, the local coordinate system of the UAV could potentially be very different in regard to position which would yield errors in the build in Extended Kalman filter of the PX4 if big changes were made in position from one time instant to other.    
+
+A mitigation to this problem is to map the local pose of the drone when it is about to change from using GPS to vision based navigation to that of the vision pose from the ArUco pose estimation. This is done by finding the rotation between the current pose of the drone and that of the ArUco marker board. This is done in Equation \ref{eq:r_uav2aruco}.
+
+\begin{equation}
+	r_{uav2aruco} = r_{aruco}^T \cdot r_{uav}
+	\label{eq:r_uav2aruco}
+\end{equation}
+
+\begin{equation}
+	offset = \begin{bmatrix}
+						  x_{uav} & x_{aruco}\\
+						  y_{uav} & y_{aruco}\\
+						  z_{uav} & z_{aruco}\\
+						  yaw_{uav} & yaw_{aruco}
+					     \end{bmatrix}
+\label{eq:offset}
+\end{equation}
+
+This rotation defines the difference in the orientation between the ArUco board located on the ground and the UAV before initializing the GPS to vision transition. Furthermore, the position and yaw angle of the UAV is mapped to that of the ArUco marker board which can be seen in Equation \ref{eq:offset}. Because the roll and pitch angles are found negligible in size they are not used in the mapping process. 
+
+Now new updates from the pose can be used to transform the estimation from the ArUco marker board to that of the UAV offset which is seen in Equation \ref{eq:t_aruco_offset}.     
+
+\begin{equation}
+	t_{aruco} = \begin{bmatrix}
+			   -(x_{offset_{aruco}} - x_{aruco})\\
+			   -(y_{offset_{aruco}} - y_{aruco})\\
+			   -(z_{offset_{aruco}} - z_{aruco})
+			   \end{bmatrix}
+\label{eq:t_aruco_offset}
+\end{equation}
+
+\begin{equation}
+	t_{aruco} = r_{uav2aruco} \cdot t_{aruco}
+	\label{eq:t_aruco_transform}
+\end{equation}
+
+This vector of the difference between the estimated ArUco position and the offset can be transformed to align to the initial coordinate system of the UAV before the gps to vision transition. This is done in Equation \ref{eq:t_aruco_transform}. 
+
+\begin{equation}
+	x = x_{offset_{uav}} + t_{aruco_{x}}
+	\label{eq:x_transformed}
+\end{equation}
+
+\begin{equation}
+	y = y_{offset_{uav}} + t_{aruco_{y}}
+	\label{eq:y_transformed}
+\end{equation}
+
+\begin{equation}
+	z = z_{offset_{uav}} + t_{aruco_{z}}
+	\label{eq:z_transformed}
+\end{equation}
+
+\begin{equation}
+	yaw = yaw_{offset_{uav}} + t_{aruco_{yaw}}
+	\label{eq:yaw_transformed}
+\end{equation}
+
+When the position has been transformed to align to the original UAV coordinate system they are simply added to the offset of the UAV using Equation \ref{eq:x_transformed},  \ref{eq:y_transformed} and  \ref{eq:z_transformed}. Because both the UAV and ArUco marker board uses coordinate systems with the z-axis pointing up, the yaw angle is just added to the offset as seen in Equation \ref{eq:yaw_transformed} without any transformation needed. These steps are performed in a method called \href{https://github.com/Kenil16/master_project/blob/master/software/ros_workspace/src/offboard_control/transformations_calculations.py} {transformations calculations} which can be seen in GitHub. Hence, the latter solution will be used in the transition from using GPS to vision based navigation to insure a stable and reliable transition. 
+
+This transition of using GPS to vision involves a number of steps. After reaching the target GPS location, the ArUco marker board must be localized, then the drone has to navigate to the board still using GPS coordinates and finally the GPS to vision transition can be initialized if the drone is close enough to the board and estimated poses are stable. A flowchart of this can be seen in Figure \ref{fig:state_machine_gps2vision_transition}. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=5.0cm]{../Figures/state_machine_gps2vision_transition.png}
+    \caption{Illustration of the sub-states when initializing GPS to vision based navigation. Gray boxes defines the use of GPS for pose estimation and blue boxes vision based estimation}
+    \label{fig:state_machine_gps2vision_transition}
+\end{figure}
+
+As it may be seen, the UAV starts by flying towards a giving predefined waypoint. The approach for \href{https://github.com/Kenil16/master_project/blob/master/software/ros_workspace/src/offboard_control/waypoint_checking.py}{checking if the waypoint has been reached}, is to use the current pose of the UAV and subtracting the target setpoint. Here only the x, y, z and yaw values are used. Then the euclidean distance of the four values are computed and if this value is below a giving threshold (default value is 0.25), the waypoint is reached and the UAV begins to locate the marker board. 
+
+Because there is a risk that the UAV will not see the ArUco marker board located on the wall at its final position, the UAV are set to locate the board by moving in a grid structure of predefined waypoints until the board is found. These waypoints are set from the offset of the final position where the UAV will move in steps of one meter and rotate left to right in steps of 45$^{\circ}$. The UAV will complete this list of waypoints and repeat the process if the board has not been found. If the board is still not found after a predefined number of repetitions, the UAV will land and go into \textit{idle} state and wait for further commands. If the board 
+is found, the UAV will begin to navigate to the ArUCo marker board. Because only a single detection of the board could be too unreliable, a sequence of positive detections of the board must be found. This is accomplished by only checking that the board is visible once a second and pushing the result as a Boolean (true/false) on a list with a size of five, where the validate marker board will be true if 80\% of the values on the list have positive observations of the board. This variable is called validate marker board detections in Figure \ref{fig:state_machine_gps2vision_transition}.
+
+Now the UAV will navigate towards the board while keeping its orientation to the board by using Equation \ref{eq:error_navigate_to_board}. 
+
+\begin{equation}
+	error = \frac{\frac{imageWidth}{2} - boardCenter_x}{\frac{imageWidth}{2}}
+\label{eq:error_navigate_to_board}
+\end{equation}    
+
+\begin{equation}
+	yaw = error \cdot 30
+\label{eq:yaw_navigate_to_board}
+\end{equation} 
+
+Here the goal is to have the board be centered at the middle of the image so that the UAV keeps its orientation towards the marker. This results in a normalized error which will be used in a simple P-controller seen in Equation \ref{eq:yaw_navigate_to_board}. Here the maximum change in the yaw angle based on the error is set to be 30$^{\circ}$. This limit is to mitigate the possibility of oscillations in the orientation. Now this yaw angle is added to the setpoint yaw, which will keep the UAV orientated towards the board.  
+
+
+
+\paragraph{Offboard control system} 
+
+The drone can either be controlled using a transmitter for manual flying or controlled from input commands giving from the keyboard. These keyboard commands can be seen in Table \ref{tab:ros_commands}.  
 
 \begin{table}[H]
 \centering
@@ -321,22 +385,134 @@ zx                & loiter\_pilot & Decrease/increase altitude respectively
 \label{tab:ros_commands}
 \end{table}
 
-As seen in Figure \ref{fig:offboard_control}, the drone control node publishes set points to either global position (geographic coordinates), local position (Cartesian coordinates) or vision pose (Cartesian coordinates). The later is a very important aspect of this implementation, which must be mentioned. When the drone gets the pose from a GPS as either   geographic or Cartesian transformed (UTM) coordinates as global or local respectively, the drone uses this coordinate system for navigation. The PX4 auto pilot is relying on an extended Kalman filter for sensor fusion which can be altered from the parameter \textit{EKF2\_AID\_MASK} from the list of services. This uses GPS positions as default, but can be changed to fuse the estimated vision pose instead. By using this configuration, the estimation of the local coordinate system can be changed during flight when the drone is to navigate according to ArUco markers. This way, the use of the build in control schemes for actuator control can still be used, but now the drone navigates according to vision instead of GPS. Hence, a smooth transition from using GPS to vision and vision to GPS can be applied whenever needed. This is also one of the reasons why the pose estimation from the ArUco markers has to be very precise without much variance in its estimates. Otherwise, this could lead to an unstable system where the drone could have trouble positioning itself according to the predefined pose. However, because going from one coordinate system to another comes with a cost of an unstable system for a short amount of time, the parameters \textit{MPC\_XY\_VEL\_MAX}, \textit{MPC\_Z\_VEL\_MAX\_DN} and  \textit{MPC\_Z\_VEL\_MAX\_UP} for horizontal and vertical velocities  and \textit{MC\_ROLLRATE\_MAX}, \textit{MC\_PITCHRATE\_MAX} and \textit{MC\_YAWRATE\_MAX} for angular velocities are set to a very low value before changing between coordinate systems e.g GPS to vision. This insures the drone responds very slowly in the phase of instability caused by the local position and set point position are not aligned i.e. either one is publishing values from the old configuration due to a time delay. Then when the system has settled, the speeds are set back to its initial configuration yielding a smooth transition. This is simply done by inserting a time delay of a few hundreds of milliseconds after a change in the coordinate system to avoid this instability causing problems to the performance of the drone. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=8.0cm]{../Figures/state_machine_state.png}
+    \caption{State machine state}
+    \label{fig:state_machine_state}
+\end{figure}
 
 A state machine of the system can be seen in Figure \ref{fig:state_machine_simulation}. This defines the states which the system can take defined by the \textit{/onboard/state} topic as seen in Figure \ref{fig:offboard_control} giving in the control node. When the simulation starts, the drone will be in the idle state. From this state, the drone can be set to execute missions directly or be put into loiter where both these states goes through a takeoff. In the takeoff state, the drone is armed and set into offboard mode where way points are now passed to the system. In the execution of a mission, the drone can be set to return home a any time. If this is not required, the drone just execute its mission and then enters the loiter state, where it can be set to execute a new mission or sent home to its initial position.  
 
- \begin{figure}[H]
-    \centering
-    \scalebox{.9}{\input{../Drawings/state_machine_simulation.tex}}
-    \caption{Illustration of the state machine used in the simulation for the onboard state of the system}
-    \label{fig:state_machine_simulation}
-\end{figure}
 
-To enable all nodes to start from a single script, a \textit{roslaunch} file named \textit{gazebo\_sim\_v1.0.launch} has been created. This file launches the PX4 SITL, Gazebo environment, spawns the drone at a predefined location in the simulation and starts all defined nodes. Because the ROS workspace is located another place compared to that of the PX4 software, symbolic links have been created which will link world, models, mixers, launch and init.d-posix files to the respective places in the PX4 software directories. The mixer files include information about the control about of a custom made air frame (the drone) and init.d-posix files initiates the parameters of the drone which can be altered before launching the scripts.   
+\definecolor{lightgreen}{rgb}{0.56, 0.93, 0.56}
+\definecolor{moonstoneblue}{rgb}{0.45, 0.66, 0.76}
+\begin{listing}[H] 
+\begin{tcolorbox}[
+    enhanced,
+    attach boxed title to top left={xshift=6mm,yshift=-3mm},
+    colback=lightgreen!20,
+    colframe=lightgreen,
+    fonttitle=\bfseries\color{black},
+]
+\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
+#!/bin/bash
+#Specify data analysis directory, name of data file, name for the test and number of runs
+DIRECTORY="../../data/analyse_vision_navigation_pose_estimation/test5_one_pattern_missing_markers_wear_board/"
+data_file="../../data/sensor_fusion_data.txt"
+test_name="test"
+iterations=20
+#Run for nunmber of test times 
+if [ ! -d "$DIRECTORY" ]; then echo "Dir does not exist" 
+mkdir -p $DIRECTORY else echo "Dir does exist"
+fi
+for (( c=1; c<=$iterations; c++ ))
+do roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern_missing_markers_wear.world drone_control_args:="vision_navigation_test" x:=-3.0 y:=0.0 headless:=true gui:=false 
+cat $data_file > "$DIRECTORY$test_name$c.txt" 
+echo "Test $c completed!"
+done
+
+\end{minted}
+\end{tcolorbox}
+\caption{Bash script for automatic execution of test}
+\label{lst:bash_script_for_automatic_execution_of_test}    
+\end{listing}   
+
+
+To enable all nodes to start from a single script, a \textit{roslaunch} file named \textit{gazebo\_sim\_v1.0.launch} has been created. This file launches the PX4 SITL, Gazebo environment, spawns the drone at a predefined location in the simulation and starts all defined nodes. Because the ROS workspace is located another place compared to that of the PX4 software, symbolic links have been created which will link world, models, mixers, launch and init.d-posix files to the respective places in the PX4 software directories. The mixer files include information about the control about of a custom made air frame (the drone) and init.d-posix files initiates the parameters of the drone which can be altered before launching the scripts.  
+
+\paragraph{Software setup} 
 
 \todo{Describe the tests which are going to be performed. This includes the missions from the autonomous node. Why perform these tests? This could maybe be set up in a table for easy reading. Also number of tests and what to look out for in each tests e.g. STD for errors, precision etc. Maybe a flowchart which describes each mission and why this is important. Also a flowchart of the final autonomous flight GPS to vision and vision to land and back again}
 
 \todo{Should this section include a discussion about the ROS nodes used on the raspberry py?}
+
+\subsubsection{PX4 autopilot}
+\label{sec:px4_flight_stack}
+
+\todo{Talk about the transformation from the local coordinate system (start) to that of the aruco board world. This is performed to avoid changing from a very high or low number in regard to altitude and horizontal position which can make the exented kalman filter unstable. Here the mapping method must be discussed. Initial idea was to make the drone move really slowly in this transition. However, it could be challaging if the drone were exposed to wind}
+
+\todo{Talk about the state machine for the autonomous flight from where the drone goes from using GPS, find aruco board, navigate to aruco board, GPS2vision, vision nagigation and vision landing. Moreover, vision takeoff, vision navigation and gps2vision and then gps. Talk about each step and why they are important. diagrams of state machine as well.}
+
+\todo{Talk about the software installation and how to use the implementation.  }
+
+PX4 is an open source control software for unmanned vehicles. PX4 uses software in the loop (SITL) for simulations of a given unit before real world testing. The flight stack runs on a computer which could be any unit on the same network. For operation on real hardware, 
+
+MAVROS is a packages that provides communication drivers for various autopilots with the MAVLink communication protocol. MAVLink is categorized as a light weight messaging protocol for communication with drones, other unmanned vehicles and there onboard components. This follows a hybrid publish-subscribe and point-to-point design pattern. A visualization of how this works can be seen in Figure \ref{fig:sitl_simulation_enviroment}.   
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48
+    \linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/px4_sitl.png}
+        \caption{}
+        \label{fig:mavlink_comminication}
+    \end{subfigure}
+      \hskip 10ex
+    \begin{subfigure}[b]{0.26\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/simulator_mavlink_api.png}
+        \caption{}
+        \label{fig:simulator_mavlink_api}
+    \end{subfigure}
+    \caption{Illustrations of the message handling in the SITL simulation environment \cite{px4Autopilot}}
+    \label{fig:sitl_simulation_enviroment}
+\end{figure}
+
+In Figure \ref{fig:simulator_mavlink_api}, a high level view of the communication between the PX4 flight stack and simulation environment (Gazebo) can be seen. Sensor readings like GPS, IMU data etc. are passed to the PX4 flight controller which returns control outputs (motor actuator commands) to the simulation according to sensor readings. 
+
+The transmission of messages between PX4 and external programs happens using  the user datagram protocol (UDP) ports for MAVLink communication. This is illustrated in Figure \ref{fig:mavlink_comminication}. Here a number of ports are associated to different applications. The UDP Port 14540 is used for offboard control communication which will be python scripts running in the simulation or on the Raspberry Pi for autonomous flight using information from sensors e.g. vision feedback. The UDP port 14550 is used for communicating with ground control stations (GCS). QGroundControl, which is explained in Section \ref{sec:qgroundcontrol},  will be used which offers many features like sensor calibration, radio setup and calibration of transmitters, predefined air frame selection for different drones etc. Moreover, parameters for position and attitude control, velocity limits and the like can be changed during flights. However, these parameters can also be changed using ROS in the offboard control script, which will be explained in Section \ref{sec:ros}. The last port, UDP 4560, will be used for transmission of messages between PX4 and the simulation environment.
+
+\paragraph{Software setup}
+
+This implementation of PX4 SITL requires firmware vision 1.11.0 to work correctly. This setup relies on the PX4 firmware being installed in the \textit{home} directory of the user, but can be modified to another installation directory with minor configurations. A walk-trough of these initial steps for installing and setting up of the firmware can be seen in Listing \ref{lst:installation_px4_sitl}. 
+
+\begin{lstlisting}[language=bash, frame=none, caption={Installation and setting up of the PX4 SITL firmware},label=lst:installation_px4_sitl]
+#Initialize PX4 SITL environment from your home folder
+cd ~
+mkdir PX4_SITL
+cd PX4_SITL
+git clone https://github.com/PX4/Firmware.git --branch v1.11.0
+cd Firmware
+git submodule update --init --recursive
+#Make symlink to user software models to PX4 SITL
+cd software/ros_workspace/
+ln -s $PWD/PX4-software/init.d-posix/* /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/init.d-posix/
+ln -s $PWD/PX4-software/mixers/* /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/mixers/
+ln -s $PWD/PX4-software/models/* /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/models/
+ln -s $PWD/PX4-software/worlds/* /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/worlds/
+ln -s $PWD/PX4-software/launch/* /home/$USER/PX4_SITL/Firmware/launch/
+#Build the PX4 SITL firmware
+cd /home/$USER/PX4_SITL/Firmware
+DONT_RUN=1 make px4_sitl_default gazebo
+\end{lstlisting}
+
+Here the PX4 firmware is fetched and installed in a directory called \textit{PX4\_SITL} from where dynamic links have been created from a ROS workspace. This configuration was made to easily link updates made in files from \textit{init.d-posix}, \textit{mixers}, \textit{models}, \textit{worlds} and \textit{launch} directories. The \textit{init.d-posix} directory is used for parameter initialization for the vehicle at startup which contains files for the used \textit{sdu model drone} to be used in simulations. The \textit{mixers} directory contains files for the motor configuration of the vehicle. In this case it would be configurations for an hexarotor drone. The directory for \textit{models} contains files to be used in simulations like the \textit{sdu drone model} seen in Figure  \ref{fig:sdu_drone} and models created in Section \ref{sec:3d_modeling_for_gazebo_simulations}. The \textit{worlds} directory includes all world files to be used in the simulation which were defined in Section \ref{sec:3d_modeling_for_gazebo_simulations}. Lastly, the \textit{launch} directory stores the launch files to be used for running the PX4 SITL simulation wrapped in ROS.   
+
+Whenever a new terminal is opened, the variables of the software has to be exported with the ROS workspace and firmware sourced so that the PX4 simulation can be started. In order to do this is one step, a script has been created as seen in Listing \ref{lst:setup_gazebo.bash}. 
+
+\begin{lstlisting}[language=bash, frame=none, caption={Setup gazebo and PX4 from ROS workspace},label=lst:setup_gazebo.bash]
+#!/bin/bash
+source devel/setup.bash
+source ~/PX4_SITL/Firmware/Tools/setup_gazebo.bash ~/PX4_SITL/Firmware ~/PX4_SITL/Firmware/build/px4_sitl_default
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:~/PX4_SITL/Firmware
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:~/PX4_SITL/Firmware/Tools/sitl_gazebo
+export GAZEBO_PLUGIN_PATH=${GAZEBO_PLUGIN_PATH}:~/catkin_ws/devel/lib/
+\end{lstlisting} 
+
+This script can either be run from the ROS workspace or past to the \textit{.bashrc} file to be executed every time a new terminal is opened for easy initialization. 
+
 
 \subsection{Pose estimation using ArUco markers}
 \label{sec:pose_estimation_using_aruco_markers}
@@ -834,5 +1010,9 @@ $ pip install pathlib pymavlink pandas scipy opencv-contrib-python
 Now all the packages for pose estimation using ArUco markers, sensor fusion and offboard control can be transferred to the newly created ROS workspace on the Raspberry Pi using the protocol \textit{scp}. Hence, after building the ROS workspace again, the system is up and running on the Raspberry Pi.   
 
 \todo{Talk about that OpenCV can be installed from source using https://linuxize.com/post/how-to-install-opencv-on-ubuntu-18-04/}
+
+\todo{Talk about the setup of the wireless communication between the Raspbery Pi and PX4. 
+
+}
 
 \end{document}
