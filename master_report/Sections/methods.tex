@@ -230,11 +230,182 @@ ROS is an open source software framework to be used in robot applications. This 
     \label{fig:ros}
 \end{figure}
 
+\paragraph{ROS Packages}
+
+To make the code accessible from within the ROS workspace, a number of ROS packages have been created which will be used in the ROS nodes discussed in Section \ref{sec:structure_of_ros_nodes}. In order to publish and hence subscribe to barometer and IMU data, two additional plugins are needed which will be used in sensor fusion in Gazebo simulations. These plugins have been downloaded and used as packages in the workspace. These can be seen in Table \ref{tab:ros_package_plugins_one}.
+
+\setlist{nolistsep}
+\definecolor{green}{HTML}{66FF66}
+\definecolor{myGreen}{HTML}{009900}
+\renewcommand{\arraystretch}{1.5}
+
+\begin{table}[H]
+\begin{center}
+\caption{Plugins downloaded to utilize the IMU and barometer data within the simulation environment Gazebo}
+\label{tab:ros_package_plugins_one}
+\begin{tabularx}{\textwidth}[t]{XX}
+\arrayrulecolor{green}\hline
+\textbf{\textcolor{myGreen}{ROS package: Hector localization-catkin}} & \\
+\textbf{\textcolor{myGreen}{ROS package: Hector quadrotor-kinetic-devel}} & \\
+\hline
+Downloaded software \cite{HL}  \cite{HQ} &
+\begin{minipage}[t]{\linewidth}%
+Plugins for publishing IMU and barometer data in Gazebo  
+\end{minipage}\\
+\end{tabularx}
+\end{center}
+\end{table}
+
+To give an overview of the created ROS packages and the used python scripts within, three tables have been formed with a small description of the purpose with each python script. This can be seen in Table \ref{tab:ros_package_marker_detection}, \ref{tab:ros_package_sensor_fusion} and \ref{tab:ros_package_offboard_control}. A further discussion of the theory involved in the marker detection and sensor fusion will be discussed in Section \ref{sec:pose_estimation_using_aruco_markers} and \ref{sec:sensor_fusion} respectively.    
+
+\begin{table}[H]
+\begin{center}
+\caption{List of python scripts used in the ROS catkin package \href{https://github.com/Kenil16/master\_project/tree/master/software/ros\_workspace/src/marker\_detection}{marker detection} from the created ROS workspace}
+\label{tab:ros_package_marker_detection}
+\begin{tabularx}{\textwidth}[t]{XX}
+\arrayrulecolor{green}\hline
+\textbf{\textcolor{myGreen}{ROS package: Marker detection}} & \\
+
+\hline
+marker\_detection.py & 
+\begin{minipage}[t]{\linewidth}%
+Responsible for detection and pose estimation of ArUco marker boards   
+\end{minipage}\vspace{0.5em} \\
+
+\arrayrulecolor{black}\hline
+marker\_detection\_ros\_interface.py &
+\begin{minipage}[t]{\linewidth}%
+Interface between the marker detection script and ROS
+\end{minipage}\vspace{0.5em}  \\
+
+\hline
+data\_data.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for logging of estimated ArUco marker board pose data   
+\end{minipage}\\
+
+\end{tabularx}
+\end{center}
+\end{table}
+
+\begin{table}[H]
+\begin{center}
+\caption{List of python scripts used in the ROS catkin package \href{https://github.com/Kenil16/master\_project/tree/master/software/ros\_workspace/src/sensor\_fusion}{sensor fusion} created in the ROS workspace}
+\label{tab:ros_package_sensor_fusion}
+\begin{tabularx}{\textwidth}[t]{XX}
+\arrayrulecolor{green}\hline
+\textbf{\textcolor{myGreen}{ROS package: Sensor fusion}} & \\
+
+\hline
+sensor\_fusion.py & 
+\begin{minipage}[t]{\linewidth}%
+Responsible for sensor fusion of ArUco pose, IMU and barometer data   
+\end{minipage}\vspace{0.5em} \\
+
+\arrayrulecolor{black}\hline
+sensor\_fusion\_ros\_interface.py &
+\begin{minipage}[t]{\linewidth}%
+Interface between the sensor fusion script and ROS
+\end{minipage}\vspace{0.5em}  \\
+
+\arrayrulecolor{black}\hline
+ukf.py &
+\begin{minipage}[t]{\linewidth}%
+Unscented Kalman filter (UKF) implementation 
+\end{minipage}\vspace{0.5em}  \\
+
+\hline
+data\_data.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for logging sensor fusion data   
+\end{minipage}\\
+
+\end{tabularx}
+\end{center}
+\end{table}
+
+
+
+\begin{table}[H]
+\begin{center}
+\caption{List of python scripts used in the ROS catkin package \href{https://github.com/Kenil16/master\_project/tree/master/software/ros\_workspace/src/offboard\_control}{offboard control} from the created ROS workspace}
+\label{tab:ros_package_offboard_control}
+\begin{tabularx}{\textwidth}[t]{XX}
+\arrayrulecolor{green}\hline
+\textbf{\textcolor{myGreen}{ROS package: Offboard control}} & \\
+
+\hline
+autonomous\_flight.py & 
+\begin{minipage}[t]{\linewidth}%
+Responsible of execution of missions and autonomous flight  
+\end{minipage}\vspace{0.5em} \\
+
+\arrayrulecolor{black}\hline
+drone\_control.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for onboard state change from keyboard commands and the passing of setpoints and local pose to PX4
+\end{minipage}\vspace{0.5em}  \\
+
+\hline
+ground\_control.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for listening to keyboard commands which is passed to the program from the laptop for UAV control  
+\end{minipage}\vspace{0.5em} \\
+
+\hline
+loiter\_pilot.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for UAV control given setpoints from keyboard commands   
+\end{minipage}\vspace{0.5em}\\
+
+\hline
+waypoint\_checking.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for checking if the UAV has reached its destination 
+\end{minipage}\vspace{0.5em}\\
+
+\hline
+waypoint\_generator.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for creating waypoints to a given route    
+\end{minipage}\vspace{0.5em}\\
+
+\hline
+transformations\_calculations.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for calculating the orientation of the UAV in regard to the estimated pose of the ArUco marker board   
+\end{minipage}\vspace{0.5em}\\
+
+\hline
+uav\_flight\_modes.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for arming, mode change, service calls and parameter chances of the UAV to the PX4    
+\end{minipage}\vspace{0.5em}\\
+
+\hline
+data\_data.py &
+\begin{minipage}[t]{\linewidth}%
+Responsible for logging of UAV data in tests   
+\end{minipage}\\
+\end{tabularx}
+\end{center}
+\end{table}
+
+
+\renewcommand{\arraystretch}{1.0}
+
+
+
 \paragraph{Structure of ROS nodes}
+\label{sec:structure_of_ros_nodes}
 
-A flowchart of the system used in offboard control can be seen in Figure \ref{fig:offboard_control}. In this design a number of six nodes are used. The core node is called \textit{\textbf{drone\_control}}. This node is responsible for publishing set points to the PX4 as well as the state on the onboard system. The reason for having only one node publishing set points is for security reasons so that no more than a single node can publish new set points to the drone a once. The states includes takeoff, loiter, return to home or some of the missions which have been defined to be executed during flight. Hence, through keyboard commands, the onboard state can be changed. This is done using the node \textit{\textbf{ground\_control}}. This node listings to keyboard commands as publishes these if an update occurs e.g a keystroke. The reason for having this as a separate node is that now keystrokes does not show up in a the main terminal which makes it hard to analyze important updates from the PX4 and other nodes that publishes updates to the user from the terminal. Hence, a separate terminal (terminal window) will open for keyboard inputs and a main terminal with updates on the current state of the system will be used. Another node which subscribes to updates giving from keystrokes is called  \textit{\textbf{loiter\_pilot}}. This node enables the user to take full control of the drone using keystrokes which makes it much easier to debug the system. The possible commands giving from the user can be seen in Table \ref{tab:ros_commands}. This table is split up into commands passed to the drone control and loiter pilot node. The latter will increment/decrement the current position of the drone with 0.5 m and increment/decrement the yaw angle by 5 degrees for each keystroke given. The loiter pilot node also subscribes to the local position topic, but is not visualized in Figure \ref{fig:offboard_control}.
+A flowchart of the system used in offboard control can be seen in Figure \ref{fig:offboard_control}. In this design a number of six nodes are used. The core node is called \textit{\textbf{drone\_control}}. This node is responsible for publishing set points to the PX4 as well as the state on the onboard system. The reason for having only one node publishing set points is for security reasons so that no more than a single node can publish new set points to the drone a once. The states includes takeoff, loiter, return to home or some of the missions which have been defined to be executed during flight. Hence, through keyboard commands, the onboard state can be changed. 
 
-All missions giving to the drone will be controlled in the \textit{\textbf{autonomous\_flight}} node. In this node different missions like testing the ArUco pose estimation for the front and bottom camera are initialized. These missions are started by the control node after giving numerical values to the terminal by keystrokes as seen in Table  \ref{tab:ros_commands}. This is done so that a number of missions can be executed for testing the performance of the drone in the simulation. Moreover, this node listings to the current position of the drone which will be used to determine when a giving set point has been reached giving a predefined flight plan. 
+This is done using the node \textit{\textbf{ground\_control}}. This node listings to keyboard commands as publishes these if an update occurs e.g a keystroke. The reason for having this as a separate node is that keystrokes does show up in a the main terminal which makes it hard to analyze important updates from the PX4 and other nodes that publishes updates to the user from the terminal. Hence, a separate terminal (terminal window) will open for keyboard inputs and a main terminal with updates on the current state of the system will be used. 
+
+Another node which subscribes to updates giving from keystrokes is called  \textit{\textbf{loiter\_pilot}}. This node enables the user to take full control of the drone using keystrokes which makes it much easier to debug the system. The possible commands giving from the user can be seen in Table \ref{tab:ros_commands}. This table is split up into commands passed to the drone control and loiter pilot node. The latter will increment/decrement the current position of the drone with 0.5 m and increment/decrement the yaw angle by 5 degrees for each keystroke given. The loiter pilot node also subscribes to the local position topic, but is not visualized in Figure \ref{fig:offboard_control}.
+
+All missions giving to the drone will be controlled in the \textit{\textbf{autonomous\_flight}} node. In this node different missions can be executed which is discussed in Section \ref{sec:offboard_control_system}. These missions are started by the control node after giving numerical values to the terminal by keystrokes as seen in Table  \ref{tab:ros_commands}. This is done so that a number of missions can be executed for testing the performance of the UAV in the simulation. Moreover, this node listings to the current position of the drone which will be used to determine when a giving set point has been reached giving a predefined flight plan. 
 
 \begin{figure}[H]
     \centering
@@ -243,15 +414,22 @@ All missions giving to the drone will be controlled in the \textit{\textbf{auton
     \label{fig:offboard_control}
 \end{figure}
 
-The use of ROS gives the opportunity to subscribe to services from the PX4 flight stack. These services includes arming the drone, change parameters like vertical or horizontal speed and much more. This is beneficial because the parameters can be changed during flight in the offboard control. Furthermore, this node publishes the wanted ArUco marker board from which a pose estimation wants to be estimated. This is done to distinguish between the GPS to vision marker, world marker on the ground and landing markers. Also the detection of the specified ArUco marker board will be returned as a Boolean to the autonomous flight node by a subscription to the ArUco board found topic. This is done to the mission will not start until the wanted marker has been located.  
+The use of ROS gives the opportunity to subscribe to services from the PX4. These services includes arming the UAV, change parameters like vertical or horizontal speed and much more. This is beneficial because the parameters can be changed during flight in offboard control. This is done using a script called \href{https://github.com/Kenil16/master\_project/blob/master/software/ros\_workspace/src/offboard\_control/uav\_flight\_modes.py}{uav\_flight\_modes.py}. 	
+
+Furthermore, this node publishes the wanted ArUco marker board from which a pose estimation is wanted to be estimated. This is done to distinguish between the GPS to vision marker, world marker on the ground and landing markers. Also the detection of the specified ArUco marker board will be returned as a Boolean to the autonomous flight node by a subscription to the ArUco board found topic. This is done so that the mission will not start until the wanted marker has been located.  
 
 The \textit{\textbf{marker\_detection}} node will analyze the incoming images from the front and bottom camera and estimate the ArUco pose if any markers is located in the image. The theory behind the pose estimation of the ArUco markers will be giving in Section \ref{sec:pose_estimation_using_aruco_markers}. When the pose has been estimated, the result is published to other nodes in the system.
 
 The node which uses this ArUco marker pose is called \textit{\textbf{sensor\_fusion}}. This nodes takes the pose and optimizes it based on fusion with the accelerometer and gyro. This is done to insure that the drone still gets a updated pose estimation even though no markers should be detected in the image. This is very important because the drone uses the ArUco markers as its local coordinate system. The implementation of sensor fusion will be discussed in \ref{sec:sensor_fusion_for_pose_optimization}.  
 
+
+\todo{Talk about the flight modes script from the services and parameters can be changed }
+
+
 As seen in Figure \ref{fig:offboard_control}, the drone control node publishes set points to either global position (geographic coordinates), local position (Cartesian coordinates) or vision pose (Cartesian coordinates). The later is a very important aspect of this implementation, which must be mentioned. When the drone gets the pose from a GPS as either   geographic or Cartesian transformed (UTM) coordinates as global or local respectively, the drone uses this coordinate system for navigation. The PX4 auto pilot is relying on an extended Kalman filter for sensor fusion which can be altered from the parameter \textit{EKF2\_AID\_MASK} from the list of services. This uses GPS positions as default, but can be changed to fuse the estimated vision pose instead. By using this configuration, the estimation of the local coordinate system can be changed during flight when the drone is to navigate according to ArUco markers. This way, the use of the build in control schemes for actuator control can still be used, but now the drone navigates according to vision instead of GPS. Hence, a smooth transition from using GPS to vision and vision to GPS can be applied whenever needed. This is also one of the reasons why the pose estimation from the ArUco markers has to be very precise without much variance in its estimates. Otherwise, this could lead to an unstable system where the drone could have trouble positioning itself according to the predefined pose. 
 
 \paragraph{GPS to vision transition}
+\label{sec:gps_to_vision_transition}
 
 Because going from one coordinate system to another comes with a cost of an unstable system for a short amount of time, the parameters \textit{MPC\_XY\_VEL\_MAX}, \textit{MPC\_Z\_VEL\_MAX\_DN} and  \textit{MPC\_Z\_VEL\_MAX\_UP} for horizontal and vertical velocities  and \textit{MC\_ROLLRATE\_MAX}, \textit{MC\_PITCHRATE\_MAX} and \textit{MC\_YAWRATE\_MAX} for angular velocities can be set to a very low value before changing between coordinate systems e.g GPS to vision. This insures the drone responds very slowly in the phase of instability caused by the local position and set point position are not aligned i.e. either one is publishing values from the old configuration due to a time delay. Then when the system has settled, the speeds are set back to its initial configuration yielding a smooth transition. This is simply done by inserting a time delay of a few hundreds of milliseconds after a change in the coordinate system to avoid this instability causing problems to the performance of the drone.
 
@@ -342,13 +520,32 @@ Now the UAV will navigate towards the board while keeping its orientation to the
 \label{eq:yaw_navigate_to_board}
 \end{equation} 
 
-Here the goal is to have the board be centered at the middle of the image so that the UAV keeps its orientation towards the marker. This results in a normalized error which will be used in a simple P-controller seen in Equation \ref{eq:yaw_navigate_to_board}. Here the maximum change in the yaw angle based on the error is set to be 30$^{\circ}$. This limit is to mitigate the possibility of oscillations in the orientation. Now this yaw angle is added to the setpoint yaw, which will keep the UAV orientated towards the board.  
+Here the goal is to have the board be centered in the middle of the image so that the UAV keeps its orientation towards the marker. This results in a normalized error which will be used in a simple P-controller seen in Equation \ref{eq:yaw_navigate_to_board}. Here the maximum change in yaw angle is set to 30$^{\circ}$ which will be based on the normalized error going from zero to one. This limit is chosen to mitigate the possibility of oscillations in the orientation. Now this yaw angle is added to the setpoint yaw, which will keep the UAV orientated towards the board. From results in Section \ref{sec:GPS2Vision_pose_estimation} and \ref{sec:rolling_average_aruco_pose_estimation}, the minimum allowed distance away from the board when initiating GPS to vision transition is found to be approximately five meters with the giving camera resolution and size of the board discussed in Section \ref{sec:pose_estimation_using_aruco_markers}. This is done to make sure that the pose estimates from ArUco markers are reliable. Hence, both the distance to the board and rolling average of latest estimates are used as validation of the estimated pose. The latter is defined by the variable ArUco marker pose stable. If these conditions are met, the drone will initiate GPS to vision transition as seen in Figure \ref{fig:state_machine_gps2vision_transition}.  What goes for both these two substates is that they will fall back to located marker board if they loose sight of the board. 
+
+In the initiate GPS to vision transition, the UAV will use vision pose estimations of the board for navigation using the front camera towards the GPS2Vision marker located on the wall until it is at a predefined location in front of it and then switching to using the bottom camera for the actual vision based navigation which is the last step in the GPS to vision procedure. In the initiate GPS to vision step, the UAV has also been set to keep its orientation towards the marker, but now in a different way. Because the pose estimation is reliable at this point, knowledge of the placement of the GPS2Vision board on the wall can be used along the current pose of the UAV accoding to the pose estimated from vision, to calculate the new yaw angle of the UAV to keep its orientation towards the board. This is done in Equation \ref{eq:delta_x_ori_towards_gps2vision_board}, \ref{eq:delta_y_ori_towards_gps2vision_board} and \ref{eq:yaw_ori_towards_gps2vision_board} where the $aruco_x$ and $aruco_y$ are the current estimate of the ArUco position in x and y. 
+
+\begin{equation}
+	\Delta_x = aruco_x - 3.2 - 0.5
+	\label{eq:delta_x_ori_towards_gps2vision_board}
+\end{equation}
+
+\begin{equation}
+	\Delta_y = aruco_y - 3.0
+	\label{eq:delta_y_ori_towards_gps2vision_board}
+\end{equation}
+
+\begin{equation}
+	yaw = atan2(\Delta_y, \Delta_x)
+	\label{eq:yaw_ori_towards_gps2vision_board}
+\end{equation}
+
+Here 3.2 meters in Equation \ref{eq:delta_x_ori_towards_gps2vision_board} is the distance of the GPS2Vision marker board away from the origin of the board located on the ground and 0.5 meters is to add it to the center of the board. The same goes for Equation \ref{eq:delta_y_ori_towards_gps2vision_board}. The atan2 function is used to calculate this angle in Equation \ref{eq:yaw_ori_towards_gps2vision_board} where 180$^{\circ}$ will be added to this value if the found yaw is below zero. 
 
 
+\paragraph{Offboard control system}
+\label{sec:offboard_control_system}
 
-\paragraph{Offboard control system} 
-
-The drone can either be controlled using a transmitter for manual flying or controlled from input commands giving from the keyboard. These keyboard commands can be seen in Table \ref{tab:ros_commands}.  
+In order for easy testing of the autonomous system, a set of predefined missions have been set up, which can be executed during a simulation as well as real life testing. For real life execution of these commands, the UAV must be within range of the wireless network or hot-spot created for communication between laptop and the Raspberry Pi on the UAV. However, these commands could also be triggered by using the transmitter for long range communication where the Raspberry Pi using ROS was set to listening for activations of certain switches (high/low) to start the execution of missions from within the script. However, because the UAV will be close to the pilot in this case, a wireless network communication is sufficient for activating missions and control the drone in offboard mode. These keyboard commands can be seen in Table \ref{tab:ros_commands}.  
 
 \begin{table}[H]
 \centering
@@ -385,14 +582,28 @@ zx                & loiter\_pilot & Decrease/increase altitude respectively
 \label{tab:ros_commands}
 \end{table}
 
+Here the UAV can be set to takeoff which will set it into offboard mode and then loiter mode. Because the UAV must get setpoints for the new pose before switching to offboard mode, these are giving before this transition as well as afterwards. The UAV will be in the \textit{takeoff} state until the waypoint giving is reached. Then it will switch to \textit{loiter} state where the UAV can be controlled using keyboard commands as seen in Table \ref{tab:ros_commands} from the node loiter\_pilot. A simplified state machine of these transitions between onboard states of the UAV can be seen in Figure \ref{fig:state_machine_state}. The UAV can be set to return to its home position when it is in \textit{loiter} state. The home position is defined as the place from where the UAV was initiated. This is done in the \textit{Home} state which will result in the UAV switches to \textit{Idle} state when the final home position waypoint has been reached. From \textit{Loiter} state, a number of missions can be executed. 
+
+A number of tests will be performed to evaluate the autonomous system in the simulations. Here the pose estimation of the GPS2Vision board located on the wall must be evaluated to see how reliable the pose estimation is when mowing further away from the board from the \textit{GPS2Vision ArUco pose estimation test}. This is a critical test because this gives an indication of the maximum allowed distance away from this board a safe GPS to vision transition can be performed. This is performed in Section \ref{sec:GPS2Vision_pose_estimation} from where results of this have been used in Section \ref{sec:gps_to_vision_transition} as already discussed. 
+
+The \textit{Hold ArUco pose estimation test} is performed to see how well the UAV is capable of keeping its pose in front of the ArUCo marker boards. The results can be seen in Section \ref{sec:hold_pose_using_aruco_pose_estimation}. This gives an indication of the performance of the control schemes for pose control used within the PX4 autopilot. Moreover, this pose will also be compared to that of the ground truth for performance evaluation. Results from this test will be used in the creation of sensor fusion discussed in Section \ref{sec:sensor_fusion}.
+
+The \textit{GPS to vision test} was performed to evaluate the performance of the GPS to vision transition discussed in Section \ref{sec:gps_to_vision_transition}. This test includes all steps from using GPS, to locate the marker board, navigate to the marker board and initialize the GPS to vision transition. Results of this can be seen in Section \ref{sec:gps2vision_transition}.
+
+In the \textit{Vision based navigation test}, the performance of using the bottom camera to navigate the drone is evaluated. In this test sensor fusion is used in the indoor environment with a number of different configuration of markers located on the ground. Results can be seen in Section \ref{sec:vision_based_navigation}. 
+
+Finally, the vision based landing procedure is tested in \textit{Landing test}. Here the UAV will move between landing stations and land in front of the landing boards where the final landing position will be compared to that of the ground truth to evaluate the performance from the wanted setpoint location. Results can be seen in Section \ref{sec:vision_based_landing}
+
+From being in the \textit{Loiter} state, the UAV can be set to return to one of the landing stations. That way the UAV can be set to execute a route and then afterwards return to the landing stations specified by one, two and three. When the UAV has landed, it will be in \textit{Vision landed} state, where the pose is still calculated using vision from the ArUco marker landing boards. When wanted, the UAV can again execute a route by making it return to using GPS coordinates after moving outside the vision navigation area. This can be seen in Figure \ref{fig:state_machine_state}. 
+
 \begin{figure}[H]
     \centering
     \includegraphics[height=8.0cm]{../Figures/state_machine_state.png}
-    \caption{State machine state}
+    \caption{A simplified state machine of the onboard states of the UAV. Green boxes defines the states with the intention of testing the autonomous flight system. Blue boxes defines the actual autonomous system from where the UAV can be controlled from either keyboard commands in \textit{Loiter} or return to a landing station from using GPS or being at a landing station and then move to a GPS location from using vision to GPS coordinates}
     \label{fig:state_machine_state}
 \end{figure}
 
-A state machine of the system can be seen in Figure \ref{fig:state_machine_simulation}. This defines the states which the system can take defined by the \textit{/onboard/state} topic as seen in Figure \ref{fig:offboard_control} giving in the control node. When the simulation starts, the drone will be in the idle state. From this state, the drone can be set to execute missions directly or be put into loiter where both these states goes through a takeoff. In the takeoff state, the drone is armed and set into offboard mode where way points are now passed to the system. In the execution of a mission, the drone can be set to return home a any time. If this is not required, the drone just execute its mission and then enters the loiter state, where it can be set to execute a new mission or sent home to its initial position.  
+A bash script has been created for automatic execution of tests which can be seen in Listing \ref{lst:bash_script_for_automatic_execution_of_test}. This is done to make the execution of tests scalable and easy to perform. As seen in Listing \ref{lst:bash_script_for_automatic_execution_of_test}, a directory is created if not already defined. Data from each test is saved in the data directory which is copied to the test directory for each execution. This is done so that all data from all simulations can be analyzed afterwards. A predefined number of tests can be set which will be executed in each run defined by iterations. They way the program terminates in each run, is to call \textit{rospy.signal\_shutdown("Test completed!")} from within the end of the code e.g \href{https://github.com/Kenil16/master\_project/blob/0ca6b6205ecfd8cc6a819d7cd30c979fcd39e6e8/software/ros\_workspace/src/offboard\_control/autonomous\_flight.py#L266}{GPS2Vision\_test} from the \href{https://github.com/Kenil16/master\_project/blob/master/software/ros\_workspace/src/offboard\_control/autonomous\_flight.py}{autonomous\_flight.py} script in offboard control. However, to be able so make a single node terminate the entire program \textit{required="true"} must be added in the initialization of the giving node from where the shutdown takes places. This can be seen in the created launch file \href{https://github.com/Kenil16/master\_project/blob/0ca6b6205ecfd8cc6a819d7cd30c979fcd39e6e8/software/ros\_workspace/PX4-software/launch/gazebo\_sim\_v1.0.launch#L63}{gazebo\_sim\_v1.0.launch}. This roslaunch file is used throughout the simulations which can be executed directly from the terminal. The way to start a simulation can be seen in line 12 in Listing \ref{lst:bash_script_for_automatic_execution_of_test}. Here the wanted world can be giving as input to the program, along with the wanted onboard state of the UAV. By giving this state as input to the program, tests can be started directly without having to initiate them by using keyboard commands. This gives the possibility of starting roslaunch in headless mode, which means that no GUI is used. The program will simply be executed silently as a background process which also requires less resources to run. Furthermore, the starting pose of the UAV is giving as input as well. This pose will have to be changed accordingly to the appropriate test from where the test is to be executed. 
 
 
 \definecolor{lightgreen}{rgb}{0.56, 0.93, 0.56}
@@ -427,9 +638,6 @@ done
 \caption{Bash script for automatic execution of test}
 \label{lst:bash_script_for_automatic_execution_of_test}    
 \end{listing}   
-
-
-To enable all nodes to start from a single script, a \textit{roslaunch} file named \textit{gazebo\_sim\_v1.0.launch} has been created. This file launches the PX4 SITL, Gazebo environment, spawns the drone at a predefined location in the simulation and starts all defined nodes. Because the ROS workspace is located another place compared to that of the PX4 software, symbolic links have been created which will link world, models, mixers, launch and init.d-posix files to the respective places in the PX4 software directories. The mixer files include information about the control about of a custom made air frame (the drone) and init.d-posix files initiates the parameters of the drone which can be altered before launching the scripts.  
 
 \paragraph{Software setup} 
 
