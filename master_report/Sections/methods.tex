@@ -30,143 +30,155 @@
 \section{Methods}
 \label{sec:methods}
 
-This section is about the used methods in regards to 3D models, simulation environments, navigation control, general theory for the pose estimation of ArUco markers and setup of the drone to utilize autonomous flight.
+This section is about the creation of 3D models, simulation environments, navigation control, general theory for the pose estimation of ArUco markers and setup of the drone to utilize autonomous flight.
 
 The methods used will follow the general time schedule defined in the introduction where the project has been split up into two major parts i.e. the implementation and simulations of the drone in Gazebo, and real life flight of the drone in Hans Christian Andersen Airport in Odense using the PX4 flight controller and a Raspberry pi for pose estimation with autonomous execution using robot operating system (ROS) as the main target.
 
 \subsection{3D modeling for Gazebo simulations}
-
-This section will go through the models created and why they were considered to be important for properly testing the system before real life implementations on the drone. Moreover, the simulation environment Gazebo will be discussed and how the 3D models have been imported into this software.     
-
 \label{sec:3d_modeling_for_gazebo_simulations}
+
+This section will go through the 3D-models created to be used in Gazebo and why they were considered to be important for properly testing the system before real life implementations on the UAV. The created 3D-models will be discussed in Section \ref{sec:3d_modeling} with a short introduction to Gazebo in Section \ref{sec:gazebo}.
+
 \subsubsection{3D modeling}
-The models have been created using the 3D modeling software Blender. This is an open source software used on Ubuntu which is the operating system used. In the modeling software, the ArUco markers can be imported as images as planes and the final model saved as a \textit{.dae} file which is easily imported in a simulator software like Gazebo.    
+\label{sec:3d_modeling}
 
-Four different 3D models have been created to be used in the simulation environment as seen in Figures \ref{fig:one_pattern_aruco_fig}, \ref{fig:two_pattern_aruco_fig}, \ref{fig:three_pattern_aruco_fig} and \ref{fig:three_pattern_aruco_error_fig}. Since the actual evaluation of the performance of the drone is to be done in the optitrack system in the airport in Odense, a model of this system has been used with the actual dimensions of the real system. The is done so the pose estimation of the    ArUco markers can be compared to that of the optitrack system which got a millimeter precision in regard to tracking the drone. Hence, the model has been created with these considerations in mind which had put a threshold to the size of the model, which has to fit inside the optitrack system as seen in Figure \ref{fig:optitrack_one_pattern_aruco}. 
+The models have been created using the 3D modeling software \href{https://www.blender.org/}{Blender}. This is an open source software used on Ubuntu which is the operating system used. In the modeling software, the ArUco markers can be imported as images as planes and the final model saved as a \textit{.dae} file which is easily imported in a simulator software like Gazebo.    
 
-The general idea behind this design is that the drone can fly towards the wall and locate the ArUco marker placed at the top of the wall. This will enable GPS to vision based navigation where the drone shifts between using the GPS as the global coordinate system to that of the ArUco markers (vision based). When the drone has positioned itself with a certain distance away from this marker board, it will switch to using the bottom camera where the ArUco board located on the ground will function as a  world coordinate system. In this scenario, the drone is to land on one of three different locations in front of the ArUco board located at the end of each track. Here transformations of the pose of these three ArUco boards have been performed to align these with that of the ArUco board located on the ground (world coordinate) to avoid switching between different coordinate systems. This is because the controller in the PX4 becomes unstable when giving vision coordinates with a very high variance. This will be explained further in Section \ref{sec:px4_autopilot}. 
+A number of different 3D models have been created to be used in the simulation environment where two of these can be seen in Figure \ref{fig:one_pattern_aruco_fig} and \ref{fig:full_pattern_aruco_fig}. Since the actual evaluation of the performance of the UAV is to be done in the optitrack system in the airport in Odense, a model of this system has been used with the actual dimensions of the real system. The is done so the pose estimation of the ArUco marker boards can be compared to that of the optitrack system which got a millimeter precision in regard to tracking the UAV. Hence, the model has been created with these considerations in mind which had put a threshold to the size of the model which has to fit inside the optitrack system as seen in Figure \ref{fig:optitrack_one_pattern_aruco}. 
 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/gazebo_one_pattern_view.jpg}
+        \includegraphics[width=\textwidth]{../Figures/3d-modeling/gazebo_one_pattern_view.jpg}
         \caption{}
         \label{fig:optitrack_one_pattern_aruco}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/gazebo_one_pattern.jpg}
+        \includegraphics[width=\textwidth]{../Figures/3d-modeling/gazebo_one_pattern.jpg}
         \caption{}
         \label{fig:one_pattern_aruco}
     \end{subfigure}
-    \caption{Visualisation of the optitrack model in Figure \ref{fig:optitrack_one_pattern_aruco} and top view of the one pattern ArUco marker in Figure \ref{fig:one_pattern_aruco}}
+    \caption{Visualization of the optitrack model in Figure \ref{fig:optitrack_one_pattern_aruco} and top view of the one pattern ArUco marker board in Figure \ref{fig:one_pattern_aruco}}
     \label{fig:one_pattern_aruco_fig}
 \end{figure}
 
-The ArUco markers used in these models will be ($5 \times 5$) bit markers. The GPS to vision marker board located on the top of the wall will be a ($2\times
-4$) with marker length of 0.2 m and marker separation of 0.1 m, the ground marker a ($25\times25$) with marker length of 0.2 m and marker separation of 0.1 m and the landing markers ($4\times2$) with marker length of 0.2 m and marker separation of 0.1 m. These sizes have been chosen to be appropriate taken a flying height of approximately 1.5 m into account based on tests where the pose estimation of the ArUco markers has been found for different flying heights along with the resolution of the camera. These parameters have shown to have a significant impact on the pose estimation which will be analyzed in Section \ref{sec:results}. \todo{Talk more precisely about the tests which have been done to make this evaluation. How many test, under which conditions etc. This goes for all sub chapters in the sections}
 
-If this setup were to be implemented in real life, an implementation with fewer ArUco markers would be beneficial if this would not decrease the precision of the pose estimation too much. In this small ($25\times25$) bit scenario it would not be a general problem, but if this has to be scalable e.g. big industrial companies, great performance using a small amount of ArUco markers would be preferred.
-Because the precision of the ArUco pose estimation will be based on the number of ArUco markers located in the image \cite{DetectionOfArUcoBoards}, the estimation of the pose will be based on a full ($25\times25$) ArUco board and a one and three pattern setup as seen in Figure \ref{fig:full_pattern_aruco}, \ref{fig:one_pattern_aruco} and \ref{fig:three_pattern_aruco} respectively. The performance of these different setups will be evaluated where the drone is starting from the position illustrated in \ref{fig:optitrack_three_pattern_aruco}, takes off and moves to one of the landing locations. The outcome of this will be compared between the three models along with the error in the pose estimation. This will be analyzed in Section \ref{sec:results}.      
+The general idea behind this design is that the UAV can fly towards the wall and locate the ArUco marker board placed at the top of the wall. This board can be seen in Figure \ref{fig:gazebo_gps2vision_board} which is called GPS2Vsion board because the UAV will use this board when switching from using GPS to vision coordinates. This will enable GPS to vision based navigation where the UAV shifts between using the GPS as the global coordinate system to that of the ArUco marker board (vision based). When the UAV has positioned itself with a certain distance away from this marker board, it will switch to using the bottom camera where the ArUco board located on the ground will function as a world coordinate system. In this scenario, the UAV is to land on one of three different locations in front of the ArUco board located at the end of each track. Here transformations of the pose of these three ArUco boards have been performed to align these with that of the ArUco board located on the ground (world coordinate) to avoid switching between different coordinate systems. This will be explained further in Section \ref{sec:pose_estimation_using_aruco_markers}. 
 
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[t]{.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/gazebo_three_pattern_view.jpg}
-        \caption{}
-        \label{fig:optitrack_three_pattern_aruco}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../Figures/gazebo_three_pattern.jpg}
-        \caption{}
-        \label{fig:three_pattern_aruco}
-    \end{subfigure}
-    \caption{Visualisation of the optitrack model in Figure \ref{fig:optitrack_three_pattern_aruco} and top view of the three pattern ArUco marker in Figure \ref{fig:three_pattern_aruco}}
-    \label{fig:two_pattern_aruco_fig}
-\end{figure}
+The ArUco markers used in these models will be ($5 \times 5$) bit markers. The GPS to vision marker board located on the top of the wall will be a ($2\times 4$) with marker length of 0.2 m and marker separation of 0.1 m, the ground marker a ($25\times25$) with marker length of 0.2 m and marker separation of 0.1 m and the landing markers ($4\times2$) with marker length of 0.2 m and marker separation of 0.1 m. These sizes have been chosen to be appropriate taking into account the size of the optitrack system where a flying height of approximately 1.5 m will be used.
+
+If this setup were to be implemented in real life, an implementation with fewer ArUco markers would be beneficial if this would not decrease the precision of the pose estimation too much. In this small ($25\times25$) ArUco marker board scenario it would not be a general problem, but if this has to be scalable e.g. big industrial companies, great performance using a small amount of ArUco markers would be preferred.
+
+Because the precision of the pose estimation from ArUco marker boards will be based on the number of ArUco markers located in the image \cite{DetectionOfArUcoBoards}, the estimation of the pose will be based on a full ($25\times25$) ArUco marker board and a one pattern setup as seen in Figure \ref{fig:full_pattern_aruco} and \ref{fig:one_pattern_aruco} respectively. The performance of these different setups will be evaluated in Section \ref{sec:vision_based_navigation}.  
 
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/gazebo_full_pattern_view.jpg}
+        \includegraphics[width=\textwidth]{../Figures//3d-modeling/gazebo_full_pattern_view.jpg}
         \caption{}
         \label{fig:optitrack_full_pattern_aruco}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/gazebo_full_pattern.jpg}
+        \includegraphics[width=\textwidth]{../Figures/3d-modeling/gazebo_full_pattern.jpg}
         \caption{}
         \label{fig:full_pattern_aruco}
     \end{subfigure}
-    \caption{Visualisation of the optitrack model in Figure \ref{fig:optitrack_full_pattern_aruco} and top view of the full pattern ArUco marker in Figure \ref{fig:full_pattern_aruco}}
-    \label{fig:three_pattern_aruco_fig}
+    \caption{Visualisation of the optitrack model in Figure \ref{fig:optitrack_full_pattern_aruco} and top view of the full pattern ArUco marker board in Figure \ref{fig:full_pattern_aruco}}
+    \label{fig:full_pattern_aruco_fig}
 \end{figure}
 
-Because relying completely on vision based navigation will put the system in a vulnerable position e.g. no markers are found in the image, optimizations have to be performed. This will be utilized through sensor fusion where the pose estimation from the ArUco markers, drone acceleration and angular velocity from the accelerometer and gyro (Inertial measurement unit) will be fused together to give a more reliable estimation of the current position of the drone. To evaluate the performance of sensor fusion, a model with missing ArUco markers has been created as seen in Figure \ref{fig:three_pattern_aruco_error_fig}. The goal of this is to have the drone to fly a couple of meters without any global position (vision) for the pose estimation and still keeps its track until the pose will be updated when markers again is visible for the drone. More of the implementation of this in Section \ref{sec:sensor_fusion_for_pose_optimization}. 
+Because relying completely on vision based navigation will put the system in a vulnerable position e.g. no markers are found in the image, optimizations have to be performed. This will be utilized through sensor fusion where the pose estimation from the ArUco marker board and sensor data from the inertial measurement unit (IMU) and barometer will be fused together to give a more reliable estimation of the current position of the drone. The implementation of this will be discussed in Section \ref{sec:sensor_fusion}. 
 
-When operating in real life scenarios, a clean image without any noise is rarely seen. To take this into account, the ($25\times25$) ground marker will be added noise like Gaussian noise, custom rain, snow and fog to illustrate real life conditions \cite{imgaug}. This is used to stress test the system and see how the pose estimation of the ArUco markers will perform under hard conditions. Illustrations of such noisy environments can be seen in Figure \ref{fig:added_fog_one_pattern_aruco_fig}. Here the evaluations will be based on the one pattern ArUco marker where the noise added images are used in the simulations and compared to those without any noise.      
+To evaluate the performance of sensor fusion, two models with missing ArUco markers have been created as seen in Figure \ref{fig:gazebo_one_pattern_board_missing_markers} and \ref{fig:gazebo_one_pattern_board_missing_markers_wear}. The goal of this is to have the UAV to fly a couple of meters without any global position (vision) for the pose estimation and still keep its track until the pose will be updated when markers again is visible for the UAV.
+
+For the vision based landing, three different ArUco marker boards have been created. These can be seen in Figure \ref{fig:gazebo_landing_board_one}, \ref{fig:gazebo_landing_board_two} and \ref{fig:gazebo_landing_board_three} which are called landing board one, landing board two and landing board three respectively. Because these boards have been created is to analyze the performance of pose estimation when a different number of ArUco markers are visible in the image. More ArUco markers in the image should give better pose estimates, because more points from each marker are fused together to give a better pose estimation. Hence, these three landing boards will be used to analyze if a very high number of ArUco markers in the image are required for a precise landing. Results of this can be seen in Section \ref{sec:hold_pose_using_aruco_pose_estimation} and \ref{sec:vision_based_landing}. 
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[t]{.48\textwidth}
+    \begin{subfigure}[t]{.22\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/gazebo_three_pattern_error_view.jpg}
+        \includegraphics[width=\textwidth]{../Figures/3d-modeling/gazebo_gps2vision_board.jpg}
         \caption{}
-        \label{fig:optitrack_three_pattern_aruco_error}
+        \label{fig:gazebo_gps2vision_board}
     \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{.48\textwidth}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.22\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/gazebo_three_pattern_error.jpg}
+        \includegraphics[width=\textwidth]{../Figures/3d-modeling/gazebo_landing_board_one.jpg}
         \caption{}
-        \label{fig:three_pattern_aruco_error}
+        \label{fig:gazebo_landing_board_one}
     \end{subfigure}
-    \caption{Visualisation of the optitrack model in Figure \ref{fig:optitrack_three_pattern_aruco_error} and top view of the three pattern ArUco marker with errors in Figure \ref{fig:three_pattern_aruco_error} to be used for testing the implementation of sensor fusion}
-    \label{fig:three_pattern_aruco_error_fig}
-\end{figure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.22\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/3d-modeling/gazebo_landing_board_two.jpg}
+        \caption{}
+        \label{fig:gazebo_landing_board_two}
+    \end{subfigure}
+         \hspace{0.2em}
+    \begin{subfigure}[t]{.22\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/3d-modeling/gazebo_landing_board_three.jpg}
+        \caption{}
+        \label{fig:gazebo_landing_board_three}
+    \end{subfigure}
+    \caption{Illustration of the created ArUco marker boards used in simulation. The board in \ref{fig:gazebo_gps2vision_board} is used for the GPS to vision transition for navigation and the boards in Figure \ref{fig:gazebo_landing_board_one}, \ref{fig:gazebo_landing_board_two} and \ref{fig:gazebo_landing_board_three} are used for vision based landing}  
+    \label{fig:gazebo_aruco_marker_boards}
+\end{figure}      
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[t]{.34\textwidth}
+    \begin{subfigure}[t]{.20\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/one_pattern_aruco_noise1.png}
+        \includegraphics[width=\textwidth]{../Figures/vision_navigation/grid_board_new_200_full.png}
         \caption{}
-        \label{fig:added_noise_one_pattern_aruco}
+        \label{fig:gazebo_full_pattern_board}
     \end{subfigure}
-      \hskip 15ex
-    \begin{subfigure}[t]{.34\textwidth}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.20\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../Figures/one_pattern_aruco_noise3.png}
+        \includegraphics[width=\textwidth]{../Figures/vision_navigation/grid_board_new_200_big_onepattern.png}
         \caption{}
-        \label{fig:added_fog_one_pattern_aruco}
+        \label{fig:gazebo_one_pattern_board}
     \end{subfigure}
-    \caption{Examples of added noise like Gaussian blur, Gaussian noise, custom fog, rain and snow to illustrate real life scenarios which can be seen in Figure \ref{fig:added_noise_one_pattern_aruco} and \ref{fig:added_fog_one_pattern_aruco} for stress testing of the ArUco pose estimation}
-    \label{fig:added_fog_one_pattern_aruco_fig}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.20\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/vision_navigation/grid_board_new_200_big_onepattern_missing_markers1.png}
+        \caption{}
+        \label{fig:gazebo_one_pattern_board_missing_markers}
+    \end{subfigure}
+         \hspace{0.2em}
+    \begin{subfigure}[t]{.20\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/vision_navigation/grid_board_new_200_big_onepattern_missing_markers_wear.png}
+        \caption{}
+        \label{fig:gazebo_one_pattern_board_missing_markers_wear}
+    \end{subfigure}
+    \caption{Illustration of the ArUco marker boards used which are located on the ground. Four \textbf{.world} files will be created where each include one of the following boards namely the full board in Figure \ref{fig:gazebo_full_pattern_board}, the one pattern board in Figure \ref{fig:gazebo_one_pattern_board} and the one pattern board with missing markers and custom made wear in Figure \ref{fig:gazebo_one_pattern_board_missing_markers} and \ref{fig:gazebo_one_pattern_board_missing_markers_wear} respectively}  
+    \label{fig:gazebo_full_and_one_patterns_boards}
 \end{figure}
-
-\todo{talk about which kinds of noise has will be added and how many tests are performed. Consider to use some kind of average performance for the specific kind of noise in the image - maybe the systems performs better which Gaussian noise than fog. Make tables for inference of the required data. }
 
 \subsubsection{Gazebo simulator}
 \label{sec:gazebo}
 
-Gazebo is an open source 3D robotic simulator which integrates the open dynamics engine (ODE) physics engine, openGL rendering and supports code for both actuator control and sensor simulation. Using this software, the drone can be tested and simulated in environments and conditions close to real life. Hence, all tests will be performed in simulation before further action will be executed with the drone. Furthermore, wind can be applied to the simulation which will also be a critical aspect to consider before deployment of the drone. 
+Gazebo is an open source 3D robotic simulator which integrates the open dynamics engine (ODE) physics engine, openGL rendering and supports code for both actuator control and sensor simulation. Using this software, the UAV can be tested and simulated in environments and conditions close to real life. Hence, all tests will be performed in simulation before further action will be executed with the UAV. Furthermore, wind can be applied to the simulation which will also be a critical aspect to consider before deployment of the UAV. 
 
 To use the newly created models, a world file must be defined. The world file includes all elements which are to be included in a given simulation such as robots, lights, sensors, objects etc. The file must end with a \textit{.world} extension to be recognized as a world file. The GZServer will read this file which builds the world as a virtual environment for which the robot can operate. This means that the operation can be visualized using GZClient or be run in the background only using GZServer to save systems resources. The latter corresponds to running Gazebo in headless mode, which is a great feature to use if a number of simulations have to be performed in a automatic fashion.
 
-The world file uses the SDF format which contains things like \textit{worlds}, \textit{models} etc. Joints can be set to be either revolute or prismatic according to the wanted configuration. To each joint a link can be attached. The collision, visualization and inertia tags specifies the visualization for the model, collision detection and physics in gazebo respectively. The static tags are used for models which have to be static throughout a simulation like ground, tress etc. The same SDF format is used when creating a model, where the \textit{.dae} file is included to use the 3D models created in Blender.  
+The world file uses the SDF format which contains things like \textit{worlds}, \textit{models} etc. Joints can be set to be either revolute or prismatic according to the wanted configuration. To each joint a link can be attached. The collision, visualization and inertia tags specifies the visualization for the model, collision detection and physics in Gazebo respectively. The static tags are used for models which have to be static throughout a simulation like ground, tress etc. The same SDF format is used when creating a model, where the \textit{.dae} file is included to use the 3D models created in Blender.  
 
-The plugins in gazebo are code which is compiled as a shared library and inserted into the simulation. These plugins includes world, model, sensors, system, visual and GUI. For instance, if one wants to include a feature to an existing model, like a wind plugin, these can be included into the world file to be used in a simulation. This wind plugin will be used in some of the simulations for stress testing of the ArUco pose estimation and the flight control in general. \todo{Explain in detail how these wind tests are going to be performed. The wind test is only relevant for the GPS to vision marker and ground marker following. The landing are to be performed in a indoor environment}
+The plugins in gazebo are code which is compiled as a shared library and inserted into the simulation. These plugins includes world, model, sensors, system, visual and GUI. For instance, if one wants to include a feature to an existing model, like a wind plugin, these can be included into the world file to be used in a simulation. This wind plugin will be used in some of the simulations for stress testing of the ArUco pose estimation and the flight control in general.
 
 \subsection{Autonomous flight}
 
-This section deals with the implementation of autonomous flight of the drone. The PX4 autopilot will be used as flight controller which offers many features to enable autonomous flight. This is discussed in Section \ref{sec:px4_flight_stack}. Along the PX4 software, robot operating system (ROS) will be used which enables onboard computing on the Raspberry Pi and transmission of messages to the PX4 using the MAVROS package. ROS is discussed in Section \ref{sec:ros}. For easy setup and access to the drone QGroundControl is used which is discussed in Section \ref{sec:qgroundcontrol}. 
+This section deals with the implementation of autonomous flight of the UAV. The PX4 autopilot will be used as flight controller which offers many features to enable autonomous flight. This is discussed in Section \ref{sec:px4_flight_stack}. Along the PX4 software, robot operating system (ROS) will be used which enables onboard computing on the Raspberry Pi and transmission of messages to the PX4 using the MAVROS package. ROS is discussed in Section \ref{sec:offboard_control}. For easy setup and access to the drone QGroundControl is used which is discussed in Section \ref{sec:qgroundcontrol}. 
 
 The main reason for chosen PX4, ROS and QGroundControl is because the software have been widely used in MSc in Engineering in robot systems with
 specialization in unmanned aerial systems technology at the University of Southern Denmark. A lot of experience have been gained which will be utilized in the implementation of autonomous flight.
@@ -221,14 +233,18 @@ As it may be noticed in Figure \ref{fig:quadrotor} and \ref{fig:hexarotor}, the 
 \subsubsection{Offboard control}
 \label{sec:offboard_control}
 
-ROS is an open source software framework to be used in robot applications. This includes a number of libraries and tools with the aim of simplifying the creation of new robotic solutions. Another important feature is the message handling between nodes in the ROS architecture which is visualized in Figure \ref{fig:ros}. The ROS master keeps track on all the nodes in the system an each node goes through registration via the master. Then each node can publish or subscribe to messages which is initiated through the master. This is called topics under the ROS framework and will be used in offboard control where a number of nodes have to communicate to each other.  
+For the implementation of offboard control as well as communication between units, ROS will be used. ROS is an open source software framework to be used in robot applications. This includes a number of libraries and tools with the aim of simplifying the creation of new robotic solutions. Another important feature is the message handling between nodes in the ROS architecture which is visualized in Figure \ref{fig:ros}. Here the ROS master keeps track on all the nodes in the system an each node goes through registration via the master. Then each node can publish or subscribe to messages which is initiated through the master. This is called topics under the ROS framework and will be used in offboard control where a number of nodes have to communicate to each other.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\linewidth]{../Figures/ros.png}
-    \caption{Illustrations of a high level view of the architecture in ROS}
+    \includegraphics[width=0.75\linewidth]{../Figures/ros.png}
+    \caption{Illustration of a high level view of the architecture in the communication between nodes in ROS. Here three ROS nodes have been created, but the number of nodes can be much bigger according to the specific application}
     \label{fig:ros}
 \end{figure}
+
+A number of ROS nodes have been created in the implementation of autonomous flight, which will be discussed in Section \ref{sec:structure_of_ros_nodes}.
+
+In order to achieve communication between the Raspberry Pi and PX4, MAVROS is used. MAVROS is a packages that provides communication drivers for various autopilots with the MAVLink communication protocol. MAVLink is categorized as a light weight messaging protocol for communication with drones, other unmanned vehicles and there onboard components. This follows a hybrid publish-subscribe and point-to-point design pattern. A visualization of how this works can be seen in Figure \ref{fig:sitl_simulation_enviroment}. 
 
 \paragraph{ROS Packages}
 
@@ -641,22 +657,90 @@ done
 
 \paragraph{Software setup} 
 
-\todo{Describe the tests which are going to be performed. This includes the missions from the autonomous node. Why perform these tests? This could maybe be set up in a table for easy reading. Also number of tests and what to look out for in each tests e.g. STD for errors, precision etc. Maybe a flowchart which describes each mission and why this is important. Also a flowchart of the final autonomous flight GPS to vision and vision to land and back again}
+Additional software will have to be installed and configured in order to use ROS. For performing conversions between UTM, geographic, local Cartesian coordinates etc.  \href{https://geographiclib.sourceforge.io/}{GeographicLib} is used. This is mandatory in order to use MAVROS along with PX4. This can be installed using Listing \ref{lst:install_geographiclib_datasets}.
 
-\todo{Should this section include a discussion about the ROS nodes used on the raspberry py?}
+\definecolor{lightgreen}{rgb}{0.56, 0.93, 0.56}
+\definecolor{moonstoneblue}{rgb}{0.45, 0.66, 0.76}
+\begin{listing}[H] 
+\begin{tcolorbox}[
+    enhanced,
+    attach boxed title to top left={xshift=6mm,yshift=-3mm},
+    colback=lightgreen!20,
+    colframe=lightgreen,
+    fonttitle=\bfseries\color{black},
+]
+\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
+#Update system before installation 
+$ Sudo update
+#Fetch the sofware, change permissions and execute script from terminal
+$ wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
+$ sudo chmod 755 install_geographiclib_datasets.sh
+$ sudo ./install_geographiclib_datasets.sh
+\end{minted}
+\end{tcolorbox}
+\caption{Installation of the Geographiclib datasets as dependencies for MAVROS}
+\label{lst:install_geographiclib_datasets}    
+\end{listing}
+
+Because the simulations will be running on an Ubuntu 18.04.5 LTS (Bionic Beaver) 64-bit desktop operating system and server edition for the Raspberry Pi, ROS melodic will be used. Furthermore, the Raspberry Pi does not need the full installation of ROS due to the fact that no GUI is used as the communication between the Raspberry Pi and Laptop will be through SSH from the terminal. Therefore, ROS base will be installed on the Raspberry Pi and the full desktop version installed on the laptop. 
+
+The system must be configured to accept packages from \href{http://wiki.ros.org/melodic/Installation/Ubuntu}{ROS} along with setting up the cryptographic keys for package authentication. When this is done, ROS can be installed which is seen in Listing \ref{lst:ros_installation}. Here the full edition of MAVROS will be installed for communication as already discussed. 
+
+\begin{listing}[H] 
+\begin{tcolorbox}[
+    enhanced,
+    attach boxed title to top left={xshift=6mm,yshift=-3mm},
+    colback=lightgreen!20,
+    colframe=lightgreen,
+    fonttitle=\bfseries\color{black},
+]
+\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
+#Setup your sources.list
+$ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+#Set up your keys
+$ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+#Install ROS dependencies 
+$ sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential python-rosdep
+#Installation
+$ sudo apt install ros-melodic-desktop-full
+#Install mavros along with extra packages
+$ sudo apt install ros-melodic-mavros ros-melodic-mavros-extras -y python-catkin-tools -y ros-melodic-hector-gazebo-plugins dvipng
+\end{minted}
+\end{tcolorbox}
+\caption{Installation of ROS with required dependencies}
+\label{lst:ros_installation}    
+\end{listing}   
+
+For easy debugging of the system, rqt is installed. This is a software framework which includes plugins for varies GUIs e.g plotting, graphs and image viewing. This will utilize the possibility of visualizing the images from the front and bottom cameras of the UAV, to see the detected ArUco boards. Moreover, to enable ROS to access images from attached cameras from the USB, the USB camera plugin will be installed on the Raspberry Pi using line 4 in Listing \ref{lst:software_related_installations_for_ros}.  
+
+\begin{listing}[H] 
+\begin{tcolorbox}[
+    enhanced,
+    attach boxed title to top left={xshift=6mm,yshift=-3mm},
+    colback=lightgreen!20,
+    colframe=lightgreen,
+    fonttitle=\bfseries\color{black},
+]
+\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
+#Install packages for visualization of video stream (ros rqt)
+$ sudo apt-get install ros-melodic-rqt ros-melodic-rqt-common-plugins
+#Install packages for USB readings using ROS
+$ sudo apt-get install ros-melodic-usb-cam ros-melodic-image-transport ros-melodic-image-transport-plugins ros-melodic-image-transport-plugins ros-melodic-camera-info-manager
+#Install packages fto be able to execute scrips
+$ sudo apt-get install liblapack-dev gfortran libblas-dev libxml2-dev libxslt-dev python-dev python-pip
+$ pip install pathlib pymavlink pandas scipy opencv-contrib-python matplotlib numpy
+\end{minted}
+\end{tcolorbox}
+\caption{Dependencies for created ROS nodes and visualization}
+\label{lst:software_related_installations_for_ros}    
+\end{listing}   
+
+For easy creation of paths for files \textit{pathlib} is used. For communication along MAVROS a python version of \textit{pymavlink} is installed. \textit{Pandas} and \textit{matplotlib} will be used for data analysis for plotting, \textit{scipy} in the creation of the Unscented Kalman filter and \textit{opencv-contrib-python} for enabling the use of OpenCV for computer vision algorithms e.g detecting ArUco marker boards where the \textit{contrib} edition of OpenCV includes the  mandatory ArUco libraries. Lastly \textit{numpy} is used for data structuring.      
 
 \subsubsection{PX4 autopilot}
 \label{sec:px4_flight_stack}
 
-\todo{Talk about the transformation from the local coordinate system (start) to that of the aruco board world. This is performed to avoid changing from a very high or low number in regard to altitude and horizontal position which can make the exented kalman filter unstable. Here the mapping method must be discussed. Initial idea was to make the drone move really slowly in this transition. However, it could be challaging if the drone were exposed to wind}
-
-\todo{Talk about the state machine for the autonomous flight from where the drone goes from using GPS, find aruco board, navigate to aruco board, GPS2vision, vision nagigation and vision landing. Moreover, vision takeoff, vision navigation and gps2vision and then gps. Talk about each step and why they are important. diagrams of state machine as well.}
-
-\todo{Talk about the software installation and how to use the implementation.  }
-
-PX4 is an open source control software for unmanned vehicles. PX4 uses software in the loop (SITL) for simulations of a given unit before real world testing. The flight stack runs on a computer which could be any unit on the same network. For operation on real hardware, 
-
-MAVROS is a packages that provides communication drivers for various autopilots with the MAVLink communication protocol. MAVLink is categorized as a light weight messaging protocol for communication with drones, other unmanned vehicles and there onboard components. This follows a hybrid publish-subscribe and point-to-point design pattern. A visualization of how this works can be seen in Figure \ref{fig:sitl_simulation_enviroment}.   
+PX4 is an open source control software for unmanned vehicles. PX4 uses software in the loop (SITL) for simulations of a given unit before real world testing. The flight stack runs on a computer which could be any unit on the same network. For operation on real hardware,    
 
 \begin{figure}[H]
     \centering
@@ -686,38 +770,64 @@ The transmission of messages between PX4 and external programs happens using  th
 
 This implementation of PX4 SITL requires firmware vision 1.11.0 to work correctly. This setup relies on the PX4 firmware being installed in the \textit{home} directory of the user, but can be modified to another installation directory with minor configurations. A walk-trough of these initial steps for installing and setting up of the firmware can be seen in Listing \ref{lst:installation_px4_sitl}. 
 
-\begin{lstlisting}[language=bash, frame=none, caption={Installation and setting up of the PX4 SITL firmware},label=lst:installation_px4_sitl]
+\begin{listing}[H] 
+\begin{tcolorbox}[
+    enhanced,
+    attach boxed title to top left={xshift=6mm,yshift=-3mm},
+    colback=lightgreen!20,
+    colframe=lightgreen,
+    fonttitle=\bfseries\color{black},
+]
+\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
+#Update system 
+$ Sudo update 
 #Initialize PX4 SITL environment from your home folder
-cd ~
-mkdir PX4_SITL
-cd PX4_SITL
-git clone https://github.com/PX4/Firmware.git --branch v1.11.0
-cd Firmware
-git submodule update --init --recursive
+$ cd ~
+$ mkdir PX4_SITL
+$ cd PX4_SITL
+$ git clone https://github.com/PX4/Firmware.git --branch v1.11.0
+$ cd Firmware
+$ git submodule update --init --recursive
 #Make symlink to user software models to PX4 SITL
-cd software/ros_workspace/
-ln -s $PWD/PX4-software/init.d-posix/* /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/init.d-posix/
-ln -s $PWD/PX4-software/mixers/* /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/mixers/
-ln -s $PWD/PX4-software/models/* /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/models/
-ln -s $PWD/PX4-software/worlds/* /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/worlds/
-ln -s $PWD/PX4-software/launch/* /home/$USER/PX4_SITL/Firmware/launch/
+$ cd software/ros_workspace/
+$ ln -s $PWD/PX4-software/init.d-posix/* /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/init.d-posix/
+$ ln -s $PWD/PX4-software/mixers/* /home/$USER/PX4_SITL/Firmware/ROMFS/px4fmu_common/mixers/
+$ ln -s $PWD/PX4-software/models/* /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/models/
+$ ln -s $PWD/PX4-software/worlds/* /home/$USER/PX4_SITL/Firmware/Tools/sitl_gazebo/worlds/
+$ ln -s $PWD/PX4-software/launch/* /home/$USER/PX4_SITL/Firmware/launch/
 #Build the PX4 SITL firmware
-cd /home/$USER/PX4_SITL/Firmware
-DONT_RUN=1 make px4_sitl_default gazebo
-\end{lstlisting}
+$ cd /home/$USER/PX4_SITL/Firmware
+$ DONT_RUN=1 make px4_sitl_default gazebo
+\end{minted}
+\end{tcolorbox}
+\caption{Installation and setting up of the PX4 SITL firmware}
+\label{lst:installation_px4_sitl}    
+\end{listing}  
 
 Here the PX4 firmware is fetched and installed in a directory called \textit{PX4\_SITL} from where dynamic links have been created from a ROS workspace. This configuration was made to easily link updates made in files from \textit{init.d-posix}, \textit{mixers}, \textit{models}, \textit{worlds} and \textit{launch} directories. The \textit{init.d-posix} directory is used for parameter initialization for the vehicle at startup which contains files for the used \textit{sdu model drone} to be used in simulations. The \textit{mixers} directory contains files for the motor configuration of the vehicle. In this case it would be configurations for an hexarotor drone. The directory for \textit{models} contains files to be used in simulations like the \textit{sdu drone model} seen in Figure  \ref{fig:sdu_drone} and models created in Section \ref{sec:3d_modeling_for_gazebo_simulations}. The \textit{worlds} directory includes all world files to be used in the simulation which were defined in Section \ref{sec:3d_modeling_for_gazebo_simulations}. Lastly, the \textit{launch} directory stores the launch files to be used for running the PX4 SITL simulation wrapped in ROS.   
 
 Whenever a new terminal is opened, the variables of the software has to be exported with the ROS workspace and firmware sourced so that the PX4 simulation can be started. In order to do this is one step, a script has been created as seen in Listing \ref{lst:setup_gazebo.bash}. 
 
-\begin{lstlisting}[language=bash, frame=none, caption={Setup gazebo and PX4 from ROS workspace},label=lst:setup_gazebo.bash]
+\begin{listing}[H] 
+\begin{tcolorbox}[
+    enhanced,
+    attach boxed title to top left={xshift=6mm,yshift=-3mm},
+    colback=lightgreen!20,
+    colframe=lightgreen,
+    fonttitle=\bfseries\color{black},
+]
+\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
 #!/bin/bash
-source devel/setup.bash
-source ~/PX4_SITL/Firmware/Tools/setup_gazebo.bash ~/PX4_SITL/Firmware ~/PX4_SITL/Firmware/build/px4_sitl_default
-export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:~/PX4_SITL/Firmware
-export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:~/PX4_SITL/Firmware/Tools/sitl_gazebo
-export GAZEBO_PLUGIN_PATH=${GAZEBO_PLUGIN_PATH}:~/catkin_ws/devel/lib/
-\end{lstlisting} 
+$ source devel/setup.bash
+$ source ~/PX4_SITL/Firmware/Tools/setup_gazebo.bash ~/PX4_SITL/Firmware ~/PX4_SITL/Firmware/build/px4_sitl_default
+$ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:~/PX4_SITL/Firmware
+$ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:~/PX4_SITL/Firmware/Tools/sitl_gazebo
+$ export GAZEBO_PLUGIN_PATH=${GAZEBO_PLUGIN_PATH}:~/catkin_ws/devel/lib/
+\end{minted}
+\end{tcolorbox}
+\caption{Setup gazebo and PX4 from ROS workspace}
+\label{lst:setup_gazebo.bash}    
+\end{listing}  
 
 This script can either be run from the ROS workspace or past to the \textit{.bashrc} file to be executed every time a new terminal is opened for easy initialization. 
 
@@ -829,15 +939,24 @@ This initial step goes for both cameras. Now to get the pose of the drone w.r.t 
 	\label{eq:translation_drone2ground_gps2vision} 
 \end{equation}
 
- \begin{figure}[H]
+\begin{figure}[H]
     \centering
-    \scalebox{1.0}{\input{../Drawings/2d_coordinate_system_simulation.tex}}
-    \caption{Visualization of the coordinate systems of the ArUco markers in the simulation seen from above}
+    \begin{subfigure}[t]{.4\textwidth}
+        \centering
+    \scalebox{0.75}{\input{../Drawings/2d_coordinate_system_simulation.tex}}
+    \caption{}
     \label{fig:2d_view_aruco_coordinate_systems}
+    \end{subfigure}
+    \hspace{9.5em}
+    \begin{subfigure}[t]{.33\textwidth}
+        \includegraphics[angle=-0.5,width=1\linewidth]{../Figures/3d-modeling/one_pattern_board_top_view.png}
+        \hspace{-0.0em}
+        \caption{}
+        \label{fig:2d_view_aruco_marker_board}
+    \end{subfigure}
+    \caption{Visualization of the coordinate systems of the ArUco marker boards in the simulation seen from above. The actual coordinate systems can be seen in Figure \ref{fig:2d_view_aruco_coordinate_systems} and an image of the simulation environment in Figure \ref{fig:2d_view_aruco_marker_board} for easy comparison}
+    \label{fig:3d_view_aruco_coordinate_systems}
 \end{figure}
-
-\todo{Here an image of the aruco world from the simulation could be placed beside of the drawings for easy comparisson of coordinate systems to that of the real world}
-
 
 \begin{figure}[H]
     \centering
@@ -884,6 +1003,79 @@ Here a transformation of the pose of the GPS to vision marker w.r.t the ground m
 These equations for the transformations of the pose will be used for the different configurations in regard to the wanted action from the drone e.g GPS to vision, indoor navigation or landing.    
 
 \subsubsection{Camera calibration}
+The camera calibration consists of 20 images used for both camera..
+
+\begin{minipage}{0.45\linewidth}
+\begin{equation}
+C_{front_{camera}} = \begin{bmatrix}
+908.43 & 0 & 335.44\\
+0 & 906.65 & 225.52\\
+0 & 0 & 1
+\end{bmatrix}
+\end{equation}
+\label{eq:camera_matrix_front}
+\end{minipage}
+\hspace*{\fill}
+\begin{minipage}{0.45\linewidth}
+\begin{equation}
+C_{bottom_{camera}}  = \begin{bmatrix}
+560.98 & 0 & 323.54\\
+0 & 561.19 & 247.85\\
+0 & 0 & 1
+\end{bmatrix}
+\end{equation}
+\label{eq:camera_matrix_bottom}
+\end{minipage}
+
+
+\begin{equation}
+P_{front_{camera}} = \begin{bmatrix}
+0.2750 & -0.8760 & -0.0003 & 0.0012 & 0.910
+\end{bmatrix}
+\label{eq:distortion_coefficients_front}
+\end{equation}
+
+\begin{equation}
+P_{bottom_{camera}} = \begin{bmatrix}
+0.0062 & 1.4230 & -0.0005 & 0.0011 & -5.5344
+\end{bmatrix}
+\label{eq:distortion_coefficients_bottom}
+\end{equation}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.22\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/camera_calibration/1.png}
+        \caption{}
+        \label{fig:gazebo_gps2vision_board}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.22\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures//camera_calibration/3.png}
+        \caption{}
+        \label{fig:gazebo_landing_board_one}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.22\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures//camera_calibration/4.png}
+        \caption{}
+        \label{fig:gazebo_landing_board_two}
+    \end{subfigure}
+         \hspace{0.2em}
+    \begin{subfigure}[t]{.22\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/camera_calibration/5.png}
+        \caption{}
+        \label{fig:gazebo_landing_board_three}
+    \end{subfigure}
+    \caption{Illustration }  
+    \label{fig:gazebo_aruco_marker_boards}
+\end{figure}    
+
 
 \subsection{Sensor fusion}
 \label{sec:sensor_fusion}
@@ -1145,82 +1337,5 @@ $ sudo netplan apply
 \end{lstlisting}
 
 Now the outgoing IP-address through WiFi from the Raspberry Pi can be found. This IP-address can now be used to \textit{ssh} into Raspberry Pi if both the Laptop and Raspberry Pi are connected to the same WiFi network.
-
-\subsubsection{Installation of software}
-
-Because Ubuntu 18.04.5 LTS is installed as operating system, ROS melodic will be used on the Raspberry Pi. Before installing ROS, the system has to be update and upgraded using Listing \ref{lst:update_system}
-
-\begin{lstlisting}[frame=none, caption={Updating the system before software installation},label=lst:update_system]
-#Update the system
-$ sudo apt update
-#Update time because default is set to 1970
-$ timedatectl 
-#Upgrade system 
-$ sudo apt upgrade -y
-\end{lstlisting} 
-
-The system must be configured to accept packages from \href{http://wiki.ros.org/melodic/Installation/Ubuntu}{ROS} along with setting up the cryptographic keys for package authentication. When this is done, ROS can be installed where it is sourced to \textit{.bashrc} to avoid sourcing every time a new terminal is opened. This can be done using Listing \ref{lst:ros_installation}. 
-
-\begin{lstlisting}[frame=none, caption={ROS installation and source to \textit{.bashrc}},label=lst:ros_installation]
-#Setup your sources.list
-$ sudo sh -c 'echo deb http://packages.ros.org/ros/ubuntu $(lsb_release sc) main > /etc/apt/sources.list.d/ros-latest.list'
-#Set up your keys
-$ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-#Update system
-sudo apt update
-#Install ROS
-sudo apt install ros-melodic-ros-base
-#Source ROS workspace to .bashrc to be enabled a every terminal opening
-echo 'source /opt/ros/melodic/setup.bash' >> ~/.bashrc
-source ~/.bashrc
-#Install ROS dependencies 
-sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential python-rosdep
-\end{lstlisting}
-
-When ROS has been installed, a workspace can be created where all user packages for pose estimation of ArUco markers, sensor fusion and offboard control of the drone can be installed. The ROS workspace can be created using Listing \ref{lst:init_ros_workspace}. 
-
-\begin{lstlisting}[frame=none, caption={Initiating ROS workspace},label=lst:init_ros_workspace]
-#Initialize workspace
-$ sudo rosdep init
-$ rosdep update
-$ mkdir -p catkin_ws/src
-$ catkin_init_workspace 
-$ catkin build
-#Source before use
-$ source .bashrc
-\end{lstlisting}
-
-For communication between devices, MAVROS must be installed which can be done using Listing \ref{lst:install_mavros}
-
-\begin{lstlisting}[frame=none, caption={Installation of MAVROS},label=lst:install_mavros]
-$ sudo apt install ros-melodic-mavros ros-melodic-mavros-extras python-catkin-tools -y
-\end{lstlisting}
-
-\href{https://geographiclib.sourceforge.io/}{GeographicLib} is used for performing conversions between UTM, geographic, local Cartesian coordinates etc. This is mandatory in order to use MAVROS along with PX4. This can be installed using Listing \ref{lst:install_geographiclib_datasets}. 
-\begin{lstlisting}[frame=none, caption={Fetching and installation of the geographiclib dataset},label=lst:install_geographiclib_datasets]
-$ wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
-$ chmod 755 install_geographiclib_datasets.sh
-$ sudo ./install_geographiclib_datasets.sh
-\end{lstlisting}
-
-Finally, dependencies for video streaming from USB to ROS, visualizing of the video stream and packages for running the installed scripts, Listing \ref{lst:software_related_installations_for_ros} must be executed. 
-
-\begin{lstlisting}[frame=none, caption={Installation of ROS ralated software },label=lst:software_related_installations_for_ros]
-#Install packages for visualization of video stream (ros rqt)
-$ sudo apt-get install ros-melodic-rqt ros-melodic-rqt-common-plugins
-#Install packages for USB readings using ROS
-$ sudo apt-get install ros-melodic-usb-cam ros-melodic-image-transport ros-melodic-image-transport-plugins ros-melodic-image-transport-plugins ros-melodic-camera-info-manager
-#Install packages fto be able to execute scrips
-$ sudo apt-get install liblapack-dev gfortran libblas-dev libxml2-dev libxslt-dev python-dev python-pip
-$ pip install pathlib pymavlink pandas scipy opencv-contrib-python
-\end{lstlisting}
-
-Now all the packages for pose estimation using ArUco markers, sensor fusion and offboard control can be transferred to the newly created ROS workspace on the Raspberry Pi using the protocol \textit{scp}. Hence, after building the ROS workspace again, the system is up and running on the Raspberry Pi.   
-
-\todo{Talk about that OpenCV can be installed from source using https://linuxize.com/post/how-to-install-opencv-on-ubuntu-18-04/}
-
-\todo{Talk about the setup of the wireless communication between the Raspbery Pi and PX4. 
-
-}
 
 \end{document}

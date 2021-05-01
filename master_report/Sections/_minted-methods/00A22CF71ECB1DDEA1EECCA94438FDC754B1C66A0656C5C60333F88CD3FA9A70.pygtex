@@ -1,0 +1,21 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{c+c1}{\PYGZsh{}Update system}
+\PYGZdl{} Sudo update
+\PYG{c+c1}{\PYGZsh{}Initialize PX4 SITL environment from your home folder}
+\PYGZdl{} \PYG{n+nb}{cd} \PYGZti{}
+\PYGZdl{} mkdir PX4\PYGZus{}SITL
+\PYGZdl{} \PYG{n+nb}{cd} PX4\PYGZus{}SITL
+\PYGZdl{} git clone https://github.com/PX4/Firmware.git \PYGZhy{}\PYGZhy{}branch v1.11.0
+\PYGZdl{} \PYG{n+nb}{cd} Firmware
+\PYGZdl{} git submodule update \PYGZhy{}\PYGZhy{}init \PYGZhy{}\PYGZhy{}recursive
+\PYG{c+c1}{\PYGZsh{}Make symlink to user software models to PX4 SITL}
+\PYGZdl{} \PYG{n+nb}{cd} software/ros\PYGZus{}workspace/
+\PYGZdl{} ln \PYGZhy{}s \PYG{n+nv}{\PYGZdl{}PWD}/PX4\PYGZhy{}software/init.d\PYGZhy{}posix/* /home/\PYG{n+nv}{\PYGZdl{}USER}/PX4\PYGZus{}SITL/Firmware/ROMFS/px4fmu\PYGZus{}common/init.d\PYGZhy{}posix/
+\PYGZdl{} ln \PYGZhy{}s \PYG{n+nv}{\PYGZdl{}PWD}/PX4\PYGZhy{}software/mixers/* /home/\PYG{n+nv}{\PYGZdl{}USER}/PX4\PYGZus{}SITL/Firmware/ROMFS/px4fmu\PYGZus{}common/mixers/
+\PYGZdl{} ln \PYGZhy{}s \PYG{n+nv}{\PYGZdl{}PWD}/PX4\PYGZhy{}software/models/* /home/\PYG{n+nv}{\PYGZdl{}USER}/PX4\PYGZus{}SITL/Firmware/Tools/sitl\PYGZus{}gazebo/models/
+\PYGZdl{} ln \PYGZhy{}s \PYG{n+nv}{\PYGZdl{}PWD}/PX4\PYGZhy{}software/worlds/* /home/\PYG{n+nv}{\PYGZdl{}USER}/PX4\PYGZus{}SITL/Firmware/Tools/sitl\PYGZus{}gazebo/worlds/
+\PYGZdl{} ln \PYGZhy{}s \PYG{n+nv}{\PYGZdl{}PWD}/PX4\PYGZhy{}software/launch/* /home/\PYG{n+nv}{\PYGZdl{}USER}/PX4\PYGZus{}SITL/Firmware/launch/
+\PYG{c+c1}{\PYGZsh{}Build the PX4 SITL firmware}
+\PYGZdl{} \PYG{n+nb}{cd} /home/\PYG{n+nv}{\PYGZdl{}USER}/PX4\PYGZus{}SITL/Firmware
+\PYGZdl{} \PYG{n+nv}{DONT\PYGZus{}RUN}\PYG{o}{=}\PYG{l+m}{1} make px4\PYGZus{}sitl\PYGZus{}default gazebo
+\end{Verbatim}

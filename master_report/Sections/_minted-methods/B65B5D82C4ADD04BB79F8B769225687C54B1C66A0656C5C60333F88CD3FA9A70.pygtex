@@ -1,0 +1,8 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{c+c1}{\PYGZsh{}Update system before installation}
+\PYGZdl{} Sudo update
+\PYG{c+c1}{\PYGZsh{}Fetch the sofware, change permissions and execute script from terminal}
+\PYGZdl{} wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install\PYGZus{}geographiclib\PYGZus{}datasets.sh
+\PYGZdl{} sudo chmod \PYG{l+m}{755} install\PYGZus{}geographiclib\PYGZus{}datasets.sh
+\PYGZdl{} sudo ./install\PYGZus{}geographiclib\PYGZus{}datasets.sh
+\end{Verbatim}

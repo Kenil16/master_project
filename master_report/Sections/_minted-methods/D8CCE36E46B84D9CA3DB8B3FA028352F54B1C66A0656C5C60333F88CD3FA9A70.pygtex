@@ -1,0 +1,8 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{c+ch}{\PYGZsh{}!/bin/bash}
+\PYGZdl{} \PYG{n+nb}{source} devel/setup.bash
+\PYGZdl{} \PYG{n+nb}{source} \PYGZti{}/PX4\PYGZus{}SITL/Firmware/Tools/setup\PYGZus{}gazebo.bash \PYGZti{}/PX4\PYGZus{}SITL/Firmware \PYGZti{}/PX4\PYGZus{}SITL/Firmware/build/px4\PYGZus{}sitl\PYGZus{}default
+\PYGZdl{} \PYG{n+nb}{export} \PYG{n+nv}{ROS\PYGZus{}PACKAGE\PYGZus{}PATH}\PYG{o}{=}\PYG{n+nv}{\PYGZdl{}ROS\PYGZus{}PACKAGE\PYGZus{}PATH}:\PYGZti{}/PX4\PYGZus{}SITL/Firmware
+\PYGZdl{} \PYG{n+nb}{export} \PYG{n+nv}{ROS\PYGZus{}PACKAGE\PYGZus{}PATH}\PYG{o}{=}\PYG{n+nv}{\PYGZdl{}ROS\PYGZus{}PACKAGE\PYGZus{}PATH}:\PYGZti{}/PX4\PYGZus{}SITL/Firmware/Tools/sitl\PYGZus{}gazebo
+\PYGZdl{} \PYG{n+nb}{export} \PYG{n+nv}{GAZEBO\PYGZus{}PLUGIN\PYGZus{}PATH}\PYG{o}{=}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}GAZEBO\PYGZus{}PLUGIN\PYGZus{}PATH\PYG{l+s+si}{\PYGZcb{}}:\PYGZti{}/catkin\PYGZus{}ws/devel/lib/
+\end{Verbatim}
