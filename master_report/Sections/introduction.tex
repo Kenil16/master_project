@@ -1,4 +1,4 @@
-\documentclass[../Head/Report.tex]{subfiles}
+\documentclass[../Head/report.tex]{subfiles}
 \begin{document}
 \section{Introduction}
 
@@ -20,7 +20,15 @@ A solution to this problem could be to use a camera placed on the drone and anal
 
 This project proposes methods for navigation in environments using computer vision. The basic idea of this can be seen in Figure \ref{fig:masterProjectIllustration}. Here the drone will fly autonomously using GPS coordinates until a higher accuracy is needed. In this case, it will be the navigation and precision landing of the drone using markers on the ground. Hence, the drone will follow the markers till a landing is required which is illustrated as step 3. The markers considered in this case will be ArUco markers, where the detection of these markers has been shown to be very accurate and reliable in changing light conditions \cite{visualmarkers}. In this example, the same marker is used for illustration, but different bit encoded ArUco markers will be used to navigate the drone to the landing sight. This is a cheap and effective solution when lack of GPS precision is present e.g using low cost GPS systems or inside buildings \cite{Visual-Inertial-Navigation}. 
 
-The robot operating system (ROS) will be used in order to achieve autonomous flight of the drone with Gazebo as the simulation environment so that the drone can be sufficiently tested before flying. Testing of the drone will take place at Hans Christian Andersen Airport in Odense which is why the building labeled \textit{Hangar} is used in Figure \ref{fig:masterProjectIllustration}.    
+The robot operating system (ROS) will be used in order to achieve autonomous flight of the drone with Gazebo as the simulation environment so that the drone can be sufficiently tested before flying. Testing of the drone will take place at Hans Christian Andersen Airport in Odense which is why the building labeled \textit{Hangar} is used in Figure \ref{fig:masterProjectIllustration}.  
+
+\subsection{Related work}
+\label{sec:related_work}
+
+Vision based navigation is a vast research area for utilizing computer vision for navigation and precision landings. According to \cite{OnBoardVisionAutonomousLanding}, landing platforms can be categorized into the three groups for different landing scenarios. \textit{Category one} defines platforms which are fixed, \textit{category two} for moving platforms of two degrees and \textit{category three} which considers landings on ships where the platform of the ship deck can be modeled as a rigid body with six additional degrees of freedom based on the psychical movements of the waves. 
+
+Fixed based platforms have been used for some time to enable landings for better accuracy compared to that of using GPS. In \cite{AVisionBasedSystemForAutonomousVerticaLanding}, an implementation of using ArUco markers as landing platform is discussed. Here the UAV is able to land and recognize the ArUco marker located on the ground from an altitude of twenty meters using Pixhawk 4 as flight controller with a Raspberry Pi 3 for onboard computing.   
+  
 
 \subsection{Problem Statement}
 
@@ -47,6 +55,105 @@ From the outline of the project as well as the problem statement, the following 
     \item The landing must be performed within 5 seconds from which the drone is hovering 2 meters above the landing sight to a landing is performed e.g a settling time below 5 seconds is wanted.   
 
 \end{itemize}
+
+\subsection{Tentative time schedule}
+\label{sec:tentative_time_schedule}
+
+A tentative time schedule for the project has been formulated which can be seen in Figure \ref{fig:Tentative_time_schedule_2020} and \ref{fig:Tentative_time_schedule_2021}. The first part of the project will focus on the creation of CAD models for buildings and markers. This will be used heavily in the simulations.  
+
+\newcounter{myWeekNum}
+\stepcounter{myWeekNum}
+%
+\newcommand{\myWeek}{\themyWeekNum
+    \stepcounter{myWeekNum}
+    \ifnum\themyWeekNum=53
+         \setcounter{myWeekNum}{1}
+    \else\fi
+}
+
+\setcounter{myWeekNum}{36}
+\ganttset{%
+calendar week text={\myWeek{}}%
+}
+%
+\begin{figure}[h!bt]
+\begin{center}
+
+\advance\leftskip-2.0cm
+
+\begin{ganttchart}[
+vgrid={*{6}{draw=none}, dotted},
+x unit=.08cm,
+y unit title=.7cm,
+y unit chart=.44cm,
+time slot format=isodate,
+time slot format/start date=2020-09-01]{2020-09-01}{2020-12-27}
+\ganttset{bar height=.6}
+\gantttitlecalendar{year, month=name, week} \\
+\ganttbar[bar/.append style={fill=blue}]{Simulation (Gazebo)}{2020-09-15}{2020-11-30}\\
+
+\ganttbar[bar/.append style={fill=green}]{CAD modelling}{2020-09-01}{2020-09-14}\\
+
+\ganttbar[bar/.append style={fill=red}]{ROS implementation}{2020-09-08}{2020-10-05}\\
+
+\ganttbar[bar/.append style={fill=yellow}]{Computer vision}{2020-09-22}{2020-12-07}\\
+
+\ganttbar[bar/.append style={fill=gray}]{Flight tests}{2020-12-01}{2020-12-07}\\
+
+\ganttbar[bar/.append style={fill=black}]{Report writing}{2020-12-08}{2020-12-14}
+\ganttbar[bar/.append style={fill=black}]{}{2020-11-24}{2020-11-30}
+\ganttbar[bar/.append style={fill=black}]{}{2020-11-10}{2020-11-16}
+\ganttbar[bar/.append style={fill=black}]{}{2020-10-27}{2020-11-02}
+
+\end{ganttchart}
+\caption{Tentative time schedule for 2020}
+\label{fig:Tentative_time_schedule_2020}
+\end{center}
+
+\end{figure}
+
+The implementation of ROS will be initiated from where the basis of the project will take place and sensor simulations of the drone for IMU, GPS and camera data have to be extracted for further analyzing. 
+Hence, the main focus of the project for 2020 will be the computer vision part where marker detection, pose estimation, navigation between markers and landing will be in focus. This will be programmed in python with OpenCV as the computer vision software.
+
+The first draft of the report is expected to be given to the supervisor in the end of December 2020. This will involve theory, methods used and initial testing of simulations of the drone.  
+
+In the second part of the project, the focus will be to reduce settling time of the landing as well as wind simulations. In this stage, the drone will be tested in real conditions. Hence, lot of time has been put side for testing of the drone, where computer vision still plays a big part because of possible changes to the software which would be expected when shifting to real flight from simulations.     
+
+\setcounter{myWeekNum}{5}
+\ganttset{%
+calendar week text={\myWeek{}}%
+}
+%
+\begin{figure}[h!bt]
+\begin{center}
+
+\advance\leftskip-2.0cm
+
+\begin{ganttchart}[
+vgrid={*{6}{draw=none}, dotted},
+x unit=.08cm,
+y unit title=.7cm,
+y unit chart=.44cm,
+time slot format=isodate,
+time slot format/start date=2021-02-01]{2021-02-01}{2021-05-30}
+\ganttset{bar height=.6}
+\gantttitlecalendar{year, month=name, week} \\
+
+\ganttbar[bar/.append style={fill=blue}]{Simulation (Gazebo)}{2021-02-01}{2021-02-28}\\
+
+\ganttbar[bar/.append style={fill=yellow}]{Computer vision}{2021-02-01}{2021-03-28}\\
+
+\ganttbar[bar/.append style={fill=gray}]{Flight tests}{2021-02-29}{2021-05-02}\\
+
+\ganttbar[bar/.append style={fill=black}]{Report writing}{2021-05-03}{2021-05-30}
+\ganttbar[bar/.append style={fill=black}]{}{2021-03-22}{2021-03-28}
+\ganttbar[bar/.append style={fill=black}]{}{2021-04-05}{2021-04-11}
+\ganttbar[bar/.append style={fill=black}]{}{2021-04-19}{2021-04-25}
+\end{ganttchart}
+\end{center}
+\caption{Tentative time schedule for 2021}
+\label{fig:Tentative_time_schedule_2021}
+\end{figure}
 
 
 \end{document}
