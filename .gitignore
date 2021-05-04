@@ -19,6 +19,7 @@ __pycache__
 *.swp
 *.pdf
 *.pytxcode
+*.pygtex
 
 #!.png
 
