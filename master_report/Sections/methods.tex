@@ -234,6 +234,8 @@ As it may be noticed in Figure \ref{fig:quadrotor} and \ref{fig:hexarotor}, the 
 \subsubsection{Offboard control}
 \label{sec:offboard_control}
 
+\todo{Talk about the loop frequency in ROS nodes and why they where chosen}
+
 For the implementation of offboard control as well as communication between units, ROS will be used. ROS is an open source software framework to be used in robot applications. This includes a number of libraries and tools with the aim of simplifying the creation of new robotic solutions. Another important feature is the message handling between nodes in the ROS architecture which is visualized in Figure \ref{fig:ros}.
 
 \begin{figure}[H]
@@ -916,7 +918,7 @@ Knowing the size of the marker defined when creating the ArUco marker board, the
 	\label{eq:pnp_simplified}
 \end{equation}
 
-Here $f_x$ and $f_y$ defines focal lengths, $c_x$ and $c_y$ are the principle points which are expected to be the center of the image, $\gamma$ the skew parameter and $s$ a scaling factor for the image. The two vectors $p_c$ and $p_w$ defines the 2D and 3D points for the projection in the image and known locations of the marker corners respectively. Hence, the rotation matrix $R$ and translation vector $T$ can be estimated, which yields a rotation and translation of the board in respect to the camera \cite{pnp} \cite{estimatePoseBoard}. 
+Here $f_x$ and $f_y$ defines focal lengths, $c_x$ and $c_y$ are the principle points which are expected to be the center of the image, $\gamma$ the skew parameter and $s$ a scaling factor for the image. The two vectors $p_c$ and $p_w$ defines the 2D and 3D points for the projection in the image and known locations of the marker corners respectively. Hence, the rotation matrix $R$ and translation vector $T$ can be estimated, which yields a rotation and translation of the board in respect to the camera \cite{estimatePoseBoard}. 
 
 As defined in Section \ref{sec:3d_modeling_for_gazebo_simulations}, the UAV will use the marker located on the ground as the local coordinate system. Because the GPS2Vision marker board is located on the wall to the entrance of the building used for GPS to vision transition and three landing markers used when the UAV is to land, the $Marker_{GPS2vision}$, $Marker_{landing_1}$, $Marker_{landing_2}$ and $Marker_{landing_3}$ must be transformed to align with the local coordinate system. An illustration of the placement of these marker boards visualized from above can be seen in Figure \ref{fig:2d_view_aruco_coordinate_systems}. 
 
