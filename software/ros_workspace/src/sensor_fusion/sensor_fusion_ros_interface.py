@@ -24,7 +24,7 @@ class sensor_fusion_ros_interface():
 
         #Init ROS node
         rospy.init_node('sensor_fusion')
-        self.dt = 1./5.
+        self.dt = 1./20.
 
         #Variables
         self.aruco_marker_pose = PoseStamped()
@@ -48,7 +48,7 @@ class sensor_fusion_ros_interface():
         #self.imux_pub = rospy.Publisher('/onboard/imux',Float64, queue_size=1)
         #self.imuy_pub = rospy.Publisher('/onboard/imuy',Float64, queue_size=1)
         #self.imuz_pub = rospy.Publisher('/onboard/imuz',Float64, queue_size=1)
-        self.ground_truth_pub = rospy.Publisher('/onboard/ground_truth',PoseStamped, queue_size=1)
+        #self.ground_truth_pub = rospy.Publisher('/onboard/ground_truth',PoseStamped, queue_size=1)
         
         rospy.Timer(rospy.Duration(self.dt), self.timer_callback)
         rospy.spin()

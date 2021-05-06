@@ -12,7 +12,7 @@ class plot_data():
 
         self.data = []
 
-        self.read_data('../aruco_pose_estimation.txt')
+        self.read_data('../sensor_fusion_data.txt')
         
         #Aruco pose estimations
         self.aruco_x = np.array([item[0] for item in self.data])
@@ -32,17 +32,35 @@ class plot_data():
 
         #Time
         self.time = np.array([item[12] for item in self.data])
-
+    
     def read_data(self, file_name):
         init = True
         seq = 0
+        old_lines = []
         with open(file_name,"r") as text_file:
             for line in text_file:
                 items = line.split(' ')
                 items[-1] = items[-1].strip()
                 str_to_float = [float(item) for item in items]
-                self.data.append(str_to_float)
+                
+                old_lines.append(str_to_float)
 
+                if seq > 500:
+                    self.data.append([old_lines[-1][0], 
+                                      old_lines[-1][1], 
+                                      old_lines[-1][2], 
+                                      old_lines[-1][5], 
+                                      old_lines[-1][6], 
+                                      old_lines[-1][7],
+                                      old_lines[-1][21],
+                                      old_lines[-1][22],
+                                      old_lines[-1][23],
+                                      old_lines[-1][18],
+                                      old_lines[-1][19],
+                                      old_lines[-1][20],
+                                      old_lines[-1][17]])
+                else:
+                    seq +=1
     def plot_data(self, index, label_x_fig1, label_x_fig2, label_y_fig1, label_y_fig2, title, labels, fig_name):
 
         plt.rcParams.update({
@@ -93,7 +111,7 @@ if __name__ == "__main__":
     
     tt.plot_data([tt.aruco_z, tt.g_z], 'Time [s]', 'Time [s]', 'Position [m]', 
         'Error [m]', 'Error in z', [['Aruco pos z'],['Ground truth z']], 'pose_error_z.png')
-    """
+    
     tt.plot_data([tt.aruco_roll, tt.g_roll], 'Time [s]', 'Time [s]', 'Angle [degress]', 
         'Error [m]', 'Error in roll', [['Aruco angle roll'],['Ground truth roll']], 'pose_error_roll.png')
     
@@ -102,4 +120,4 @@ if __name__ == "__main__":
     
     tt.plot_data([tt.aruco_yaw, tt.g_yaw], 'Time [s]', 'Time [s]', 'Angle [degress]', 
             'Error [m]', 'Error in yaw', [['Aruco angle yaw'],['Ground truth yaw']], 'pose_error_yaw.png')
-    """
+

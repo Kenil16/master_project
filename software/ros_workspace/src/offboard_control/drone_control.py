@@ -15,7 +15,7 @@ class drone_control():
 
         #Init ROS
         rospy.init_node('drone_control')
-        self.rate = rospy.Rate(30)
+        self.rate = rospy.Rate(50)
         
         #Make object to make uav2aruco offset calculations
         self.tc = transformations_calculations()
@@ -176,7 +176,7 @@ class drone_control():
 
             output_msg = None
 
-            self.pub_msg(self.aruco_marker_pose, self.pub_vision_pose)
+            #self.pub_msg(self.aruco_marker_pose, self.pub_vision_pose)
             
             #If wanted map aruco marker estimate to UAV globle pose
             if self.aruco_offset_init and self.uav_offset_init:
