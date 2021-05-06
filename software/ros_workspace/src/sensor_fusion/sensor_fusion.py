@@ -26,43 +26,43 @@ class sensor_fusion():
         
         # Process Noise
         self.q = np.eye(12)
-        self.q[0][0] = 0.5 #x
-        self.q[1][1] = 0.5 #y
-        self.q[2][2] = 0.5 #z
-        self.q[3][3] = 0.5 #vel x
-        self.q[4][4] = 0.5 #vel y
-        self.q[5][5] = 0.5 #roll
-        self.q[6][6] = 0.5 #pitch
-        self.q[7][7] = 0.5 #yaw
-        self.q[8][8] = 0.5 #rate roll
-        self.q[9][9] = 0.5 #rate pitch
-        self.q[10][10] = 0.5#rate yaw
-        self.q[11][11] = 2.5 #baro bias
+        self.q[0][0] = 0.5 #x 0.5
+        self.q[1][1] = 0.5 #y 0.5
+        self.q[2][2] = 0.5 #z 0.5
+        self.q[3][3] = 0.5 #vel x 0.5
+        self.q[4][4] = 0.5 #vel y 0.5
+        self.q[5][5] = 0.5 #roll 0.5
+        self.q[6][6] = 0.5 #pitch 0.5
+        self.q[7][7] = 0.5 #yaw 0.5
+        self.q[8][8] = 0.5 #rate roll 0.5
+        self.q[9][9] = 0.5 #rate pitch 0.5
+        self.q[10][10] = 0.5 #rate yaw 0.5
+        self.q[11][11] = 3.0 #baro bias 2.5
 
 
         # Create measurement noise covariance matrices
         self.r_imu_acc = np.zeros([2, 2])
         self.r_imu_gyro_v = np.zeros([3, 3])
-        self.r_imu_acc[0][0] = 0.5 #acc x
-        self.r_imu_acc[1][1] = 0.5 #acc y
-        self.r_imu_gyro_v[0][0] = 0.05 #gyro roll
-        self.r_imu_gyro_v[1][1] = 0.05 #gyro pitch
-        self.r_imu_gyro_v[2][2] = 0.05 #gyro yaw
+        self.r_imu_acc[0][0] = 0.3 #acc x 0.5
+        self.r_imu_acc[1][1] = 0.3 #acc y 0.5
+        self.r_imu_gyro_v[0][0] = 0.03 #gyro roll 0.05
+        self.r_imu_gyro_v[1][1] = 0.03 #gyro pitch 0.05
+        self.r_imu_gyro_v[2][2] = 0.03 #gyro yaw 0.05
 
         self.r_vision_pos = np.zeros([3, 3])
         self.r_vision_ori = np.zeros([3, 3])
-        self.r_vision_pos[0][0] = 0.0005 #x
-        self.r_vision_pos[1][1] = 0.0005 #y
-        self.r_vision_pos[2][2] = 0.0005 #z
-        self.r_vision_ori[0][0] = 0.0005 #roll rate
-        self.r_vision_ori[1][1] = 0.0005 #pitch rate
-        self.r_vision_ori[2][2] = 0.0005 #yaw rate
+        self.r_vision_pos[0][0] = 0.011 #x 0.0005 
+        self.r_vision_pos[1][1] = 0.011 #y 0.0005
+        self.r_vision_pos[2][2] = 0.011 #z 0.0005
+        self.r_vision_ori[0][0] = 0.0054 #roll rate 0.0005
+        self.r_vision_ori[1][1] = 0.0054 #pitch rate 0.0005
+        self.r_vision_ori[2][2] = 0.0054 #yaw rate 0.0005
 
         self.r_baro = np.zeros([1,1])
-        self.r_baro[0][0] = 0.5
+        self.r_baro[0][0] = 0.5 #0.5
 
         self.r_baro_offset = np.zeros([1,1])
-        self.r_baro_offset[0][0] = 0.005
+        self.r_baro_offset[0][0] = 0.5 #0.005
 
         #For visualisation of data
         self.write_data_log = True

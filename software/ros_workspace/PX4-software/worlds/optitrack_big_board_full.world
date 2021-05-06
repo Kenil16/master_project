@@ -3,7 +3,6 @@
   <world name="map">
 
     <!-- A global light source -->
-
     <include>
       <uri>model://sun</uri>
     </include>
@@ -29,7 +28,6 @@
     </model>
 
     <!-- OptiTrack setup -->
-
     <model name="stand0">
       <pose>6 6 3 0 0 0</pose>
       <include>
@@ -171,7 +169,6 @@
     </model>
 
     <!-- Center -->
-
     <model name="center">
       <pose>0 0 6 0 0 0</pose>
       <include>
@@ -208,7 +205,6 @@
     </model>
 
     <!-- OptiTrack Prime cameras -->
-
     <model name="prime01">
       <pose>5.8 0 5.8 0 0.785 3.14</pose>
       <include>
