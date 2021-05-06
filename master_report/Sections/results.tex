@@ -125,8 +125,6 @@ roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern.worl
 \subsubsection{Rolling average from ArUco pose estimation}
 \label{sec:rolling_average_aruco_pose_estimation}
 
-To analyze the possibility of fluctuations in the ArUco pose estimates, the rolling average is used for calculating the mean and standard deviation (STD) in two different positions for one-hundred iterations. This can be seen in Figure \ref{fig:rolling_average_pos}. 
-
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{.30\textwidth}
@@ -142,11 +140,11 @@ To analyze the possibility of fluctuations in the ArUco pose estimates, the roll
         \caption{}
         \label{fig:rolling_average_bad_pos}
     \end{subfigure}
-    \caption{Illustrations of the two positions used to evaluate the rolling average for one-hundred iterations. The positions of the drone in Figures \ref{fig:rolling_average_good_pos} and \ref{fig:rolling_average_bad_pos} are (0,-5) and (3,-7) respectively from the coordinate system in Figures \ref{fig:GPS2Vision_pose_estimation_test1_error_pos} and \ref{fig:GPS2Vision_pose_estimation_test1_error_ori}} 
+    \caption{Illustrations of the two positions used to evaluate the rolling average for one-hundred iterations. The positions of the UAV in Figures \ref{fig:rolling_average_good_pos} and \ref{fig:rolling_average_bad_pos} are (0,-5) and (3,-7) respectively from the coordinate system in Figures \ref{fig:GPS2Vision_pose_estimation_test1_error_pos} and \ref{fig:GPS2Vision_pose_estimation_test1_error_ori}} 
     \label{fig:rolling_average_pos}
 \end{figure}
 
-This is done as an extension to the maximum allowed distance from the GPS2Vision marker from Section \ref{sec:GPS2Vision_pose_estimation} to insure that the GPS to vision transition is only performed when the pose estimates are stable and reliable. 
+To analyze the possibility of fluctuations in the ArUco pose estimates, the rolling average is used for calculating the mean and standard deviation (STD) in two different positions for one-hundred iterations. This can be seen in Figure \ref{fig:rolling_average_pos}. 
 
 \begin{figure}[H]
     \centering
@@ -252,10 +250,10 @@ This is done as an extension to the maximum allowed distance from the GPS2Vision
     \label{fig:rolling_average_angle_test2}
 \end{figure}  
 
+This is done as an extension to the maximum allowed distance from the GPS2Vision marker from Section \ref{sec:GPS2Vision_pose_estimation} to insure that the GPS to vision transition is only performed when the pose estimates are stable and reliable. 
+
 \subsubsection{Hold pose using ArUco pose estimation}
 \label{sec:hold_pose_using_aruco_pose_estimation}
-
-To analyses how the ArUco pose estimations effects the algorithms for pose control, the drone was set to hold its pose for 30 seconds in a number of different configurations as seen in Figure \ref{fig:hold_pose_aruco_boards}. In Figures \ref{fig:hold_pose_aruco_board_three}, \ref{fig:hold_pose_aruco_board_four} and \ref{fig:hold_pose_aruco_board_five}, the ArUco landing boards are used where the drone are set to keep its pose one meter in front of the board with an altitude of 1.5 meters. This is done to insure that most of the markers in the board can be seen in the image without been too close to the board to cause damage to the drone. In Figures \ref{fig:hold_pose_aruco_board_one_noWind} and \ref{fig:hold_pose_aruco_board_one_5-7ms_wind}, the GPS2Vision board are used without and with simulated wind. Here the drone are set to keep and altitude of 2.5 meters approximately 4 meters in front of the board.
 
 \begin{figure}[H]
     \centering
@@ -279,6 +277,7 @@ To analyses how the ArUco pose estimations effects the algorithms for pose contr
         \caption{}
         \label{fig:hold_pose_aruco_board_five}
     \end{subfigure}
+    \hspace{0.2em}
         \begin{subfigure}[t]{.30\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../Figures/hold_pose_using_aruco_pose_estimation/aruco_board_one_noWind.png}
@@ -295,13 +294,18 @@ To analyses how the ArUco pose estimations effects the algorithms for pose contr
     \label{fig:hold_pose_aruco_boards}
 \end{figure}
 
+To analyses how the ArUco pose estimations effects the algorithms for pose control, the UAV was set to hold its pose for 30 seconds in a number of different configurations as seen in Figure \ref{fig:hold_pose_aruco_boards}. 
+
+
+In Figures \ref{fig:hold_pose_aruco_board_three}, \ref{fig:hold_pose_aruco_board_four} and \ref{fig:hold_pose_aruco_board_five}, the ArUco landing boards are used where the UAV are set to keep its pose one meter in front of the board with an altitude of 1.5 meters. This is done to insure that most of the markers in the board can be seen in the image without been too close to the board to cause damage to the UAV. In Figures \ref{fig:hold_pose_aruco_board_one_noWind} and \ref{fig:hold_pose_aruco_board_one_5-7ms_wind}, the GPS2Vision board is used without and with simulated wind. Here the UAV are set to keep and altitude of 2.5 meters approximately 4 meters in front of the board.
+
 This distance in front of the GPS2Vision board is chosen on the basis of the results in Section \ref{sec:GPS2Vision_pose_estimation} and \ref{sec:rolling_average_aruco_pose_estimation} which was found to be a safe transition area when going from using GPS to vision based navigation.   
 
 \begin{table}[H]
     \centering
     \addtolength{\leftskip} {-2cm}
     \addtolength{\rightskip}{-2cm}
-        \caption{Statistics of the results of holding the pose using the GPS2Vision boards. It may be noticed that adding wind to the simulation, hence giving the drone an angle in roll and pitch, does not seem no effect the pose estimation error significantly. Only the target setpoints are effected}
+        \caption{Statistics of the results of holding the pose using the GPS2Vision boards. It may be noticed that adding wind to the simulation, hence giving the UAV an angle in roll and pitch, does not seem no effect the pose estimation error significantly. Only the target setpoints are effected}
         \pgfplotstabletypeset[normal,
                 columns/eg/.style={
                 column name={Runs},
@@ -394,7 +398,7 @@ Setpoint         & 10      & No & $2.89cm$ & $2.85cm$ & $0.11^{\circ}$ & $0.09^{
         \caption{}
         \label{fig:hold_pose_estimation_test2_yaw}
     \end{subfigure}
-    \caption{Illustration of the pose estimation and setpoint error using configuration in Figure \ref{fig:hold_pose_aruco_board_one_5-7ms_wind}. It may be noticed that the drone has trouble keeping roll and pitch close to zero due to the wind in the simulation in Figures \ref{fig:hold_pose_estimation_test2_roll} and \ref{fig:hold_pose_estimation_test2_pitch}}
+    \caption{Illustration of the pose estimation and setpoint error using configuration in Figure \ref{fig:hold_pose_aruco_board_one_5-7ms_wind}. It may be noticed that the UAV has trouble keeping roll and pitch close to zero due to the wind in the simulation in Figures \ref{fig:hold_pose_estimation_test2_roll} and \ref{fig:hold_pose_estimation_test2_pitch}}
     \label{fig:hold_pose_estimation_test2_error_angle}
 \end{figure}
 
@@ -420,7 +424,7 @@ Setpoint         & 10      & No & $2.89cm$ & $2.85cm$ & $0.11^{\circ}$ & $0.09^{
         \caption{}
         \label{fig:hold_pose_estimation_test5_z}
     \end{subfigure}
-    \caption{Illustration of the pose estimation and setpoint error using configuration in Figure \ref{fig:hold_pose_aruco_board_five}. It can be seen that the error in position estimation is almost negligible down to millimeters of error which was also mentioned in Table \ref{tab:hold_pose_using_landing_station_boards}. Moreover, that setpoint error has decreased significantly which illustrates that the overall stability of the system increases when the drone operates closer to the board}
+    \caption{Illustration of the pose estimation and setpoint error using configuration in Figure \ref{fig:hold_pose_aruco_board_five}. It can be seen that the error in position estimation is almost negligible down to millimeters of error which was also mentioned in Table \ref{tab:hold_pose_using_landing_station_boards}. Moreover, the setpoint error has decreased significantly which illustrates that the overall stability of the system increases when the UAV operates closer to the board}
     \label{fig:hold_pose_estimation_test5_error_pos}
 \end{figure}
 
@@ -550,7 +554,7 @@ The most important part of the simulations was the actual transitions between us
     \centering
     \addtolength{\leftskip} {-2cm}
     \addtolength{\rightskip}{-2cm}
-        \caption{Statistics of the results of the GPS2Vision tests. The GPS, locate board, navigate to board and GPS2Vision defines how much time the drone in average spend in the different sub-states when executing the tests. It may be noticed that the drone used a lot more time in GPS2Vision (gps to vision transition) in test 3. That it because the drone had a hard time finding the ArUco markers located on the ground due to the angle in roll and pitch caused by the simulated wind. Moreover, it was only able to complete 17 out of 20 runs in test 3, because it lost sight of the ground marker in the gps to vision transition and had to land}
+        \caption{Statistics of the results of the GPS2Vision tests. The GPS, locate board, navigate to board and GPS2Vision defines how much time the UAV in average spend in the different substates when executing the tests. It may be noticed that the UAV used a lot more time in GPS2Vision (gps to vision transition) in test 3. That it because the UAV had a hard time finding the ArUco markers located on the ground due to the angle in roll and pitch caused by the simulated wind. Moreover, it was only able to complete 17 out of 20 runs in test 3, because it lost sight of the ground marker in the gps to vision transition and had to land}
         \pgfplotstabletypeset[normal,
                 columns/eg/.style={
                 column name={Runs},
@@ -568,8 +572,6 @@ The most important part of the simulations was the actual transitions between us
 \label{tab:gps2vision_statistics}
 \end{table}
 
-In Figure \ref{fig:gps2vision_gps}, the drone starts from an initial pose and moves to a predefined GPS target location. In Figure \ref{fig:gps2vision_locate_board}, the drone has reached the target GPS location and begins to search for the GPS2Vision board. When the drone has found the GPS2Vision board, it begins to navigate to it still using GPS as seen in Figure \ref{fig:gps2vision_navigate_to_board}. When the drone is of a radius of maximum 5 meters away from the GPS2Vision board and the estimated pose is stable, it makes a GPS2Vision transition as seen in Figure \ref{fig:gps2vision_gps2vision_transition}. When the last setpoint is reached, the drone now uses the bottom camera to enable the actual vision navigation which can be seen in Figure \ref{fig:gps2vision_vision_navigation}. 
-  
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{.45\textwidth}
@@ -585,12 +587,14 @@ In Figure \ref{fig:gps2vision_gps}, the drone starts from an initial pose and mo
         \caption{}
         \label{fig:GPS2Vision_test3}
     \end{subfigure}
-    \caption{Illustrations of test 1 in Figure\ref{fig:GPS2Vision_test1} and test 3 in Figure \ref{fig:GPS2Vision_test3} summarized in Table \ref{tab:gps2vision_statistics}. The black arrows define the directions of movement of the drone for each run along with ended GPS target location due to variations of $\pm 6$ meters in the GPS accuracy to take into account real life conditions. The actual target GPS location is predefined to be centered in the gray circle}
+    \caption{Illustrations of test 1 in Figure\ref{fig:GPS2Vision_test1} and test 3 in Figure \ref{fig:GPS2Vision_test3} summarized in Table \ref{tab:gps2vision_statistics}. The black arrows define the directions of movement of the UAV for each run along with ended GPS target location due to variations of $\pm 6$ meters in the GPS accuracy to take into account real life conditions. The actual target GPS location is predefined to be centered in the gray circle}
     \label{fig:GPS2Vision_test1_test3}
 \end{figure}
 
-In Figure \ref{fig:GPS2Vision_test1_test3}, a total of forty runs were performed with no wind in Figure \ref{fig:GPS2Vision_test1} and 7-10 $\frac{m}{s}$ simulated wind speeds in \ref{fig:GPS2Vision_test3}. The dots between the lines defines the actual point of ground truth measurement of the position of the drone. The blue, red and yellow lines defines the use of GPS as pose estimate for navigation while the green lines defines the use of the GPS2Vision board as pose estimate. As it can be seen, the
-transition of using vision instead of GPS first happens when the drone is located inside of the \textit{safe transition area} visualized with a sky blue color. 
+In Figure \ref{fig:gps2vision_gps}, the UAV starts from an initial pose and moves to a predefined GPS target location. In Figure \ref{fig:gps2vision_locate_board}, the UAV has reached the target GPS location and begins to search for the GPS2Vision board. When the UAV has found the GPS2Vision board, it begins to navigate to it still using GPS as seen in Figure \ref{fig:gps2vision_navigate_to_board}. When the UAV is of a radius of maximum 5 meters away from the GPS2Vision board and the estimated pose is stable, it makes a GPS2Vision transition as seen in Figure \ref{fig:gps2vision_gps2vision_transition}. When the last setpoint is reached, the UAV now uses the bottom camera to enable the actual vision navigation which can be seen in Figure \ref{fig:gps2vision_vision_navigation}. 
+
+In Figure \ref{fig:GPS2Vision_test1_test3}, a total of forty runs were performed with no wind in Figure \ref{fig:GPS2Vision_test1} and 7-10 $\frac{m}{s}$ simulated wind speeds in \ref{fig:GPS2Vision_test3}. The dots between the lines defines the actual point of ground truth measurement of the position of the UAV. The blue, red and yellow lines defines the use of GPS as pose estimate for navigation while the green lines defines the use of the GPS2Vision board as pose estimate. As it can be seen, the
+transition of using vision instead of GPS first happens when the UAV is located inside of the \textit{safe transition area} visualized with a sky blue color. 
 
 In order to replicate the tests, the command in Listing \ref{lst:GPS2Vision_test} can be run from the terminal.
 
@@ -613,12 +617,14 @@ roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern.worl
 \label{lst:GPS2Vision_test}    
 \end{listing} 
 
-For acting wind the wind Listing \ref{lst:hold_aruco_pose_test_activate_wind} must be set. However, in the same piece of code the \textit{windVelocityMean} is set to 1.0 and 1.5 for test 1 and test 2 respectively. 
+For activating wind Listing \ref{lst:hold_aruco_pose_test_activate_wind} must be set. However, in the same piece of code the \textit{windVelocityMean} is set to 1.0 and 1.5 for test 1 and test 2 which insures wind speeds on approximately $5-7 \frac{m}{s}$ and $7-10 \frac{m}{s}$ respectively 
 
 \subsubsection{Vision based navigation}
 \label{sec:vision_based_navigation}
 
-To analyze how the system performs when markers are not always visible in the image, a setup of different ArUco boards located on the ground has been proposed which can be seen in Figure \ref{fig:vision_navigation_boards}. This is done to stress test the system and evaluate the performance using the implemented sensor fusion. The drone is set to move from a predefined location, to one of the landing stations and then back again. This can be seen in Figure \ref{fig:vision_navigation}.  
+To analyze how the system performs when markers are not always visible in the image, a setup of different ArUco boards located on the ground has been proposed which can be seen in Figure \ref{fig:vision_navigation_boards}. This is done to stress test the system and evaluate the performance using the implemented sensor fusion. The UAV is set to move from a predefined location, to one of the landing stations and then back again. This can be seen in Figure \ref{fig:vision_navigation}. 
+
+The ground truth pose of the UAV will be compared to the estimates of the pose from sensor fusion which is summarized in Table \ref{tab:vision_navigation_stastitics}. The waypoint error defined in Table \ref{tab:vision_navigation_stastitics}, means the maximum allowed error between the target setpoint and the estimated pose before moving on to the next target location. This error is calculated using the euclidean error distance added with the error in the yaw angle.   
 
 \begin{figure}[H]
     \centering
@@ -642,7 +648,7 @@ To analyze how the system performs when markers are not always visible in the im
         \caption{}
         \label{fig:vision_navigation_vision_navigation_two}
     \end{subfigure}
-    \caption{Illustrations of the vision based navigation test. The drone initially starts in front of the GPS2Vision board as seen in Figure \ref{fig:vision_navigation_gps2vision}. Then it moves either to landing station one, two or three and then back to its initial position. In this case, the drone can be seen to move to landing station three in Figures \ref{fig:vision_navigation_vision_navigation_one} and \ref{fig:vision_navigation_vision_navigation_two}. Videos of the test can be seen on Github using \href{https://github.com/Kenil16/master_project/tree/master/test_videos/vision_navigation_full_marker_board_vel_1.0}{Vision navigation ( full ArUco board)} and \href{https://github.com/Kenil16/master_project/tree/master/test_videos/vision_navigation_one_pattern_board_missing_markers_wear_vel_5.0}{Vision navigation (ArUco board with missing markers)}}
+    \caption{Illustrations of the vision based navigation test. The UAV initially starts in front of the GPS2Vision board as seen in Figure \ref{fig:vision_navigation_gps2vision}. Then it moves either to landing station one, two or three and then back to its initial position where the target landing station is chosen randomly at the initialization of the test. In this case, the UAV can be seen to move to landing station three in Figures \ref{fig:vision_navigation_vision_navigation_one} and \ref{fig:vision_navigation_vision_navigation_two}. Videos of the test can be seen on Github using \href{https://github.com/Kenil16/master_project/tree/master/test_videos/vision_navigation_full_marker_board_vel_1.0}{Vision navigation ( full ArUco board)} and \href{https://github.com/Kenil16/master_project/tree/master/test_videos/vision_navigation_one_pattern_board_missing_markers_wear_vel_5.0}{Vision navigation (ArUco board with missing markers)}}
     \label{fig:vision_navigation}
 \end{figure}
 
@@ -679,13 +685,11 @@ To analyze how the system performs when markers are not always visible in the im
     \label{fig:vision_navigation_boards}
 \end{figure}
 
-The ground truth pose of the drone will be compared to the estimates of the pose from sensor fusion which is summarized in Table \ref{tab:vision_navigation_stastitics}. The waypoint error defined in Table \ref{tab:vision_navigation_stastitics}, means the maximum allowed error between the target setpoint and the estimated pose before moving on to the next target location. This error is calculated using the euclidean error distance added with the error in the yaw angle.  
-
 \begin{table}[H]
     \centering
     \addtolength{\leftskip} {-2cm}
     \addtolength{\rightskip}{-2cm}
-        \caption{Statistics of the results in the vision navigation tests. The mean error can be seen to be in the range of centimeters in all tests, but with an increase when the number of visible markers decreases and speed increases. The large errors are primarily caused by a time delay between the ground truth of the drone and the estimated pose based on sensor fusion}
+        \caption{Statistics of the results in the vision navigation tests. The mean error can be seen to be in the range of centimeters in all tests, but with an increase when the number of visible markers decreases and speed increases. The large errors are primarily caused by a time delay between the ground truth of the UAV and the estimated pose based on sensor fusion}
         \pgfplotstabletypeset[normal,
                 columns/eg/.style={
                 column name={Runs},
@@ -781,7 +785,7 @@ The ground truth pose of the drone will be compared to the estimates of the pose
         \caption{}
         \label{fig:vision_navigation_2d_path_missing_markers_wear_vel_5.0}
     \end{subfigure}
-    \caption{Illustrations of the ground truth path of the drone seen from above in Figure \ref{fig:vision_navigation_2d_path_full_board}, \ref{fig:vision_navigation_2d_path_missing_markers_wear_vel_1.0} and \ref{fig:vision_navigation_2d_path_missing_markers_wear_vel_5.0} for test 1, 4 and 5 respectively. The blue dots illustrates the target setpoints when going to either landing station one, two or three. The gray lines defines the wanted trajectories and black lines the actual path of the drone. Each test was performed for twenty runs}
+    \caption{Illustrations of the ground truth path of the UAV seen from above in Figure \ref{fig:vision_navigation_2d_path_full_board}, \ref{fig:vision_navigation_2d_path_missing_markers_wear_vel_1.0} and \ref{fig:vision_navigation_2d_path_missing_markers_wear_vel_5.0} for test 1, 4 and 5 respectively. The blue dots illustrates the target setpoints when going to either landing station one, two or three. The gray lines defines the wanted trajectories and black lines the actual path of the UAV. Each test was performed for twenty runs}
     \label{fig:vision_navigation_2d_path}
 \end{figure}  
 
@@ -811,8 +815,6 @@ Here the \textit{.world} file must be changed in Listing \ref{lst:vision_navigat
 \subsubsection{Vision based landing}
 \label{sec:vision_based_landing}
 
-To see how well the drone is capable of performing landings when using the ArUco pose estimations, the drone was set to start at landing station one. Then randomly move between landing stations and each time perform a landing where the landing position would be compared to the target landing position for error analysis. This can be seen in Figure \ref{fig:vision_based_landing_landing_stations}.  
-
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{.30\textwidth}
@@ -835,7 +837,7 @@ To see how well the drone is capable of performing landings when using the ArUco
         \caption{}
         \label{fig:vision_based_landing_landing_station_three}
     \end{subfigure}
-    \caption{Illustrations of the landing test. The drone is set to move between the landing stations in a random order and make a landing using either landing station one, two or three which can be seen in Figures \ref{fig:vision_based_landing_landing_station_one}, \ref{fig:vision_based_landing_landing_station_two} and \ref{fig:vision_based_landing_landing_station_three} respectively. A video of the test can be seen on Github using \href{https://github.com/Kenil16/master_project/tree/master/test_videos/vision_landing_precision_and_accuracy_vertical_vel_0.5_max_error_0.05}{Vision based landing}}
+    \caption{Illustrations of the landing test. The UAV is set to move between the landing stations in a random order and make a landing using either landing station one, two or three which can be seen in Figures \ref{fig:vision_based_landing_landing_station_one}, \ref{fig:vision_based_landing_landing_station_two} and \ref{fig:vision_based_landing_landing_station_three} respectively. A video of the test can be seen on Github using \href{https://github.com/Kenil16/master_project/tree/master/test_videos/vision_landing_precision_and_accuracy_vertical_vel_0.5_max_error_0.05}{Vision based landing}}
     \label{fig:vision_based_landing_landing_stations}
 \end{figure}  
 
@@ -843,7 +845,7 @@ To see how well the drone is capable of performing landings when using the ArUco
     \centering
     \addtolength{\leftskip} {-2cm}
     \addtolength{\rightskip}{-2cm}
-        \caption{Statistics of the results from landing tests. Each test runs for 100 landings randomly picked between landing stations. The error between the wanted landing setpoint and actual end position is defined with minimum, maximum, mean and STD error. The stabilize time is the time it takes the drone to settle in front of the ArUco landing board before beginning the actual landing. The waypoint error defines the maximum allowed error as already mentioned before moving on to the next waypoint (landing is this case). It may be noticed that a decrease in stabilize and landing time comes with a cost of a larger final landing error. Also the velocity (vertical) has an impact on the final landing error}
+        \caption{Statistics of the results from landing tests. Each test runs for 100 landings randomly picked between landing stations. The error between the wanted landing setpoint and actual end position is defined with minimum, maximum, mean and STD error. The stabilize time is the time it takes the UAV to settle in front of the ArUco landing board before beginning the actual landing. The waypoint error defines the maximum allowed error, as already mentioned, before moving on to the next waypoint (landing is this case). It may be noticed that a decrease in stabilize and landing time comes with a cost of a larger final landing error. Also the velocity (vertical) has an impact on the final landing error}
         \pgfplotstabletypeset[normal,
                 columns/eg/.style={
                 column name={Runs},
@@ -864,31 +866,6 @@ To see how well the drone is capable of performing landings when using the ArUco
         two         & 36    & $0.1 m$ & $0.9 \frac{m}{s}$ & $4.79cm$ & $14.00 cm$& $9.54cm$ & $1.92cm$& $0.19s$ &$2.13s$\\     
         Three       & 32     & $0.1 m$ & $0.9 \frac{m}{s}$ & $3.35cm$ & $18.45cm$ & $9.45cm$ & $2.88cm$& $2.09s$ &$2.18s$\\}
         \label{tab:vision_based_landing_statistics_waypoint_error_0.1}
-\end{table}
-
-\begin{table}[H]
-    \centering
-    \addtolength{\leftskip} {-2cm}
-    \addtolength{\rightskip}{-2cm}
-        \caption{Statistics of the results from landing tests. It can be seen that if the waypoint check error is set lower, meaning the drone has to settle even more before landing, the error in the final landing position decreases quite a lot. But again this comes with a cost of a longer stabilization time. In the best case as seen from test 4, the mean landing position error is decreased to be in the order of centimeters with a maximum error just above ten centimeters}
-        \pgfplotstabletypeset[normal,
-                columns/eg/.style={
-                column name={Runs},
-                dec sep align
-        }
-        ]{ %
-        Station & eg & Waypoint error & Velocity & Min & Max & Mean & STD & Stabilize time & Landing time\\
-        \topmidheader{11}{\textbf{Test 4}}
-One         & 33      & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.08cm$ & $9.46cm$ & $4.81cm$ & $2.15cm$ & $9.93s$ &$11.45s$\\
-        two         & 33    & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.97cm$ & $11.18 cm$& $4.74cm$ & $2.56cm$& $6.96s$ &$11.69s$\\     
-        Three       & 34     & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.19cm$ & $11.84cm$ & $4.54cm$ & $2.41cm$& $9.11s$ &$11.58s$\\        		\midheader{11}{\textbf{Test 5}}
-        One         & 32     & $0.05 m$ & $0.5 \frac{m}{s}$ & $1.63cm$ & $9.84cm$ & $5.25cm$ & $2.36cm$ & $8.43s$ &$3.00s$\\
-        two         & 32    & $0.05 m$ & $0.5 \frac{m}{s}$ & $1.31cm$ & $13.07 cm$& $5.98cm$ & $2.90cm$& $6.34s$ &$3.00s$\\     
-        Three       & 36     & $0.05 m$ & $0.5 \frac{m}{s}$ & $0.45cm$ & $12.22cm$ & $4.98cm$ & $2.88cm$& $9.33s$ &$3.00s$\\				\midheader{11}{\textbf{Test 6}}
-        One         & 32     & $0.05 m$ & $0.9 \frac{m}{s}$ & $0.20cm$ & $11.89cm$ & $4.96cm$ & $2.77cm$ & $9.18s$ &$2.28s$\\
-        two         & 35    & $0.05 m$ & $0.9 \frac{m}{s}$ & $0.65cm$ & $14.13 cm$& $5.90cm$ & $3.32cm$& $5.91s$ &$2.34s$\\     
-        Three       & 33     & $0.05 m$ & $0.9 \frac{m}{s}$ & $1.06cm$ & $13.54cm$ & $5.35cm$ & $2.70cm$& $8.54s$ &$2.36s$\\}
-        \label{tab:vision_based_landing_statistics_waypoint_error_0.05}
 \end{table}
 
 \begin{figure}[H]
@@ -917,6 +894,31 @@ One         & 33      & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.08cm$ & $9.46cm$ & $4.
     \label{fig:vision_based_landing_test3}
 \end{figure}
 
+\begin{table}[H]
+    \centering
+    \addtolength{\leftskip} {-2cm}
+    \addtolength{\rightskip}{-2cm}
+        \caption{Statistics of the results from landing tests. It can be seen that if the waypoint check error is set lower, meaning the UAV has to settle even more before landing. The error in the final landing position decreases quite a lot. But again this comes with a cost of a longer stabilization time. In the best case as seen from test 4, the mean landing position error is decreased to be in the order of centimeters with a maximum error just above ten centimeters}
+        \pgfplotstabletypeset[normal,
+                columns/eg/.style={
+                column name={Runs},
+                dec sep align
+        }
+        ]{ %
+        Station & eg & Waypoint error & Velocity & Min & Max & Mean & STD & Stabilize time & Landing time\\
+        \topmidheader{11}{\textbf{Test 4}}
+One         & 33      & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.08cm$ & $9.46cm$ & $4.81cm$ & $2.15cm$ & $9.93s$ &$11.45s$\\
+        two         & 33    & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.97cm$ & $11.18 cm$& $4.74cm$ & $2.56cm$& $6.96s$ &$11.69s$\\     
+        Three       & 34     & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.19cm$ & $11.84cm$ & $4.54cm$ & $2.41cm$& $9.11s$ &$11.58s$\\        		\midheader{11}{\textbf{Test 5}}
+        One         & 32     & $0.05 m$ & $0.5 \frac{m}{s}$ & $1.63cm$ & $9.84cm$ & $5.25cm$ & $2.36cm$ & $8.43s$ &$3.00s$\\
+        two         & 32    & $0.05 m$ & $0.5 \frac{m}{s}$ & $1.31cm$ & $13.07 cm$& $5.98cm$ & $2.90cm$& $6.34s$ &$3.00s$\\     
+        Three       & 36     & $0.05 m$ & $0.5 \frac{m}{s}$ & $0.45cm$ & $12.22cm$ & $4.98cm$ & $2.88cm$& $9.33s$ &$3.00s$\\				\midheader{11}{\textbf{Test 6}}
+        One         & 32     & $0.05 m$ & $0.9 \frac{m}{s}$ & $0.20cm$ & $11.89cm$ & $4.96cm$ & $2.77cm$ & $9.18s$ &$2.28s$\\
+        two         & 35    & $0.05 m$ & $0.9 \frac{m}{s}$ & $0.65cm$ & $14.13 cm$& $5.90cm$ & $3.32cm$& $5.91s$ &$2.34s$\\     
+        Three       & 33     & $0.05 m$ & $0.9 \frac{m}{s}$ & $1.06cm$ & $13.54cm$ & $5.35cm$ & $2.70cm$& $8.54s$ &$2.36s$\\}
+        \label{tab:vision_based_landing_statistics_waypoint_error_0.05}
+\end{table}
+
 \begin{figure}[H]
     \centering
     \begin{subfigure}[t]{.30\textwidth}
@@ -942,6 +944,8 @@ One         & 33      & $0.05 m$ & $0.1 \frac{m}{s}$ & $0.08cm$ & $9.46cm$ & $4.
     \caption{Illustrations of the final landings seen from above for test 4 in Figure \ref{fig:vision_based_landing_landing_station_one_test4}, \ref{fig:vision_based_landing_landing_station_two_test4} and \ref{fig:vision_based_landing_landing_station_three_test4} for landing station one, two and three respectively. It can be seen that lowering the checkpoint error as well as decreasing the landing speed (vertical velocity), the accuracy and precision of the landings increases quite a lot}
     \label{fig:vision_based_landing_test4}
 \end{figure}
+
+To see how well the UAV is capable of performing landings when using the ArUco pose estimations, the UAV was set to start at landing station one. Then randomly move between landing stations and each time perform a landing where the landing position would be compared to the target landing position for error analysis. This can be seen in Figure \ref{fig:vision_based_landing_landing_stations}.  
 
 In order to replicate the tests, the command in Listing \ref{lst:landing_test} can be run from the terminal.
 

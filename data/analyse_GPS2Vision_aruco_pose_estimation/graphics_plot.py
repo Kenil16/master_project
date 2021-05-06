@@ -13,7 +13,6 @@ class graphics_plot:
     def __init__(self):
 
         self.data = []
-        pass
 
     def read_data(self, file_name):
         
@@ -83,9 +82,7 @@ class graphics_plot:
         plt.xticks(x_, xticks,fontsize=20)
         plt.yticks(y_, yticks,fontsize=20)
 
-        #Only for illustration of where the rolling average testt positions where made. Could also
-        #also be used to illustrate the place where the interpolation where made (points)
-        
+        #Plot black circles to illustrate where the stimations where made
         for x in range(9):
             for y in range(8):
                 cir1=plt.Circle((x,y), 0.03, color='k')
