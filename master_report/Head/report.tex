@@ -24,16 +24,19 @@
     \fancyhead[R]{\normalsize\rightmark}
     \fancyhead[L]{\large \textsc{Section }\normalsize\thesection}
 	    
-    \subfile{../Sections/introduction}
+    %\subfile{../Sections/introduction}
     %\clearpage
-    \subfile{../Sections/materials}
-    \subfile{../Sections/methods}
+    %\subfile{../Sections/materials}
+    %\subfile{../Sections/methods}
+    %\clearpage
     \subfile{../Sections/results}
+    %\clearpage
     \subfile{../Sections/discussion}
-    \subfile{../Sections/conclusion}
+    %\subfile{../Sections/conclusion}
     \clearpage
    
 	%\printbibliography
+	\appto{\bibsetup}{\sloppy}
 	\printbibliography[heading=bibintoc]
 
 \end{document}

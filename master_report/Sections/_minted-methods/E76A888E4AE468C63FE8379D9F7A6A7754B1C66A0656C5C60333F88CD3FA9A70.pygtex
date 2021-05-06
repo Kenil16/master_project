@@ -1,0 +1,12 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{c+c1}{\PYGZsh{}Setup your sources.list}
+\PYGZdl{} sudo sh \PYGZhy{}c \PYG{l+s+s1}{\PYGZsq{}echo \PYGZdq{}deb http://packages.ros.org/ros/ubuntu \PYGZdl{}(lsb\PYGZus{}release \PYGZhy{}sc) main\PYGZdq{} \PYGZgt{} /etc/apt/sources.list.d/ros\PYGZhy{}latest.list\PYGZsq{}}
+\PYG{c+c1}{\PYGZsh{}Set up your keys}
+\PYGZdl{} sudo apt\PYGZhy{}key adv \PYGZhy{}\PYGZhy{}keyserver \PYG{l+s+s1}{\PYGZsq{}hkp://keyserver.ubuntu.com:80\PYGZsq{}} \PYGZhy{}\PYGZhy{}recv\PYGZhy{}key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+\PYG{c+c1}{\PYGZsh{}Install ROS dependencies}
+\PYGZdl{} sudo apt install python\PYGZhy{}rosdep python\PYGZhy{}rosinstall python\PYGZhy{}rosinstall\PYGZhy{}generator python\PYGZhy{}wstool build\PYGZhy{}essential python\PYGZhy{}rosdep
+\PYG{c+c1}{\PYGZsh{}Installation}
+\PYGZdl{} sudo apt install ros\PYGZhy{}melodic\PYGZhy{}desktop\PYGZhy{}full
+\PYG{c+c1}{\PYGZsh{}Install mavros along with extra packages}
+\PYGZdl{} sudo apt install ros\PYGZhy{}melodic\PYGZhy{}mavros ros\PYGZhy{}melodic\PYGZhy{}mavros\PYGZhy{}extras \PYGZhy{}y python\PYGZhy{}catkin\PYGZhy{}tools \PYGZhy{}y ros\PYGZhy{}melodic\PYGZhy{}hector\PYGZhy{}gazebo\PYGZhy{}plugins dvipng
+\end{Verbatim}

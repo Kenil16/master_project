@@ -13,12 +13,12 @@ class print_markers:
         #The scale factor in Blender for x and why are approx 0.86 and 0.43 m
 
         self.dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_5X5_1000)
-        self.markers_x = 4 #25
+        self.markers_x = 8 #25
         self.markers_y = 12 #25
-        self.marker_separation_meters = 0.05 #0.01
-        self.marker_length_meters = 0.1 #0.02
-        self.marker_length = 377.95275591 #Approx 0.02 meters in pixels 755.90551181
-        self.marker_separation = 188.97637795 #Approx 0.01 meters in pixels 377.95275591
+        self.marker_separation_meters = 0.005 #0.01
+        self.marker_length_meters = 0.01 #0.02
+        self.marker_length = 37.795275591  #Approx 0.02 meters in pixels 755.90551181
+        self.marker_separation = 18.897637795 #Approx 0.01 meters in pixels 377.95275591
         self.first_marker = 1 #200
         self.aruco_board = cv2.board = aruco.GridBoard_create(self.markers_x, self.markers_y, self.marker_length, self.marker_separation, self.dictionary, firstMarker = self.first_marker)
 
@@ -37,7 +37,7 @@ class print_markers:
         
         img = self.aruco_board.draw((int(image_width),int(image_height)))
         #cv2.imwrite('../../blender_models/aruco_boards_used/grid_board_vision' + str(self.first_marker) +'.png',img) # Set back to grid_board_new_
-        cv2.imwrite('grid_board_landing_2_' + str(self.first_marker) +'.png',img) # Set back to grid_board_new_
+        cv2.imwrite('grid_board_test' + str(self.first_marker) +'.png',img) # Set back to grid_board_new_
 
 
     def print_multible_boards(self):

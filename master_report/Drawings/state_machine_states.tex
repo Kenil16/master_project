@@ -1,0 +1,31 @@
+\begin{tikzpicture}[font=\sffamily]
+
+        % Setup the style for the states
+        \tikzset{node style/.style={state, 
+                                    minimum width=2cm,
+                                    line width=0.5mm,
+                                    fill=gray!20!white}}
+
+        % Draw the states
+        \node[node style] at (0, 0)     (returnHome)  {Return home};
+        \node[node style] at (6, 0)     (takeoff)     {Takeoff};
+        \node[node style] at (3, 3)     (idle)     {Idle};
+        \node[node style] at (3, -5) (loiter) {Loiter};
+        \node[node style] at (3, 0)     (ReturnToLandingStationOne)     {Return to landing \newline station one};
+        \draw [draw=black, inner sep=10pt]  (3,3) circle (25pt);
+
+        % Connect the states with arrows
+        \draw[every loop,
+              auto=right,
+              line width=0.5mm,
+              >=latex,
+              draw=black,
+              fill=black]
+            (returnHome) edge[bend left=45] node {} (idle)
+            (idle) edge[bend left=45] node {} (takeoff)
+            (takeoff) edge[bend left=20] node {} (loiter)
+            (takeoff) edge[left=20] node {} (ReturnToLandingStationOne)
+            (loiter)  edge[bend right=20, auto=left] node {} (ReturnToLandingStationOne)
+            (ReturnToLandingStationOne) edge[bend right=20] node {} (loiter)
+            (ReturnToLandingStationOne) edge[left=20] node {} (returnHome)            					(loiter) edge[bend left=20, auto=left] node {} (returnHome);
+\end{tikzpicture}

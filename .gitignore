@@ -19,6 +19,7 @@ __pycache__
 *.swp
 *.pdf
 *.pytxcode
+*.pygtex
 
 #!.png
 
@@ -32,3 +33,5 @@ software/ros_workspace/devel*
 software/ros_workspace/logs*
 software/ros_workspace/.catkin_tools*
 data/analyse_vision_navigation_pose_estimation/*
+master_report/Head/_minted-report/*
+master_report/Sections/_minted-results/*

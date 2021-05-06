@@ -1,0 +1,17 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
+\PYG{c+ch}{\PYGZsh{}!/bin/bash}
+\PYG{c+c1}{\PYGZsh{}Specify data analysis directory, name of data file, name for the test and number of runs}
+\PYG{n+nv}{DIRECTORY}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}../../data/analyse\PYGZus{}vision\PYGZus{}navigation\PYGZus{}pose\PYGZus{}estimation/test5\PYGZus{}one\PYGZus{}pattern\PYGZus{}missing\PYGZus{}markers\PYGZus{}wear\PYGZus{}board/\PYGZdq{}}
+\PYG{n+nv}{data\PYGZus{}file}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}../../data/sensor\PYGZus{}fusion\PYGZus{}data.txt\PYGZdq{}}
+\PYG{n+nv}{test\PYGZus{}name}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}test\PYGZdq{}}
+\PYG{n+nv}{iterations}\PYG{o}{=}\PYG{l+m}{20}
+\PYG{c+c1}{\PYGZsh{}Run for nunmber of test times}
+\PYG{k}{if} \PYG{o}{[} ! \PYGZhy{}d \PYG{l+s+s2}{\PYGZdq{}}\PYG{n+nv}{\PYGZdl{}DIRECTORY}\PYG{l+s+s2}{\PYGZdq{}} \PYG{o}{]}\PYG{p}{;} \PYG{k}{then} \PYG{n+nb}{echo} \PYG{l+s+s2}{\PYGZdq{}Dir does not exist\PYGZdq{}}
+mkdir \PYGZhy{}p \PYG{n+nv}{\PYGZdl{}DIRECTORY} \PYG{k}{else} \PYG{n+nb}{echo} \PYG{l+s+s2}{\PYGZdq{}Dir does exist\PYGZdq{}}
+\PYG{k}{fi}
+\PYG{k}{for} \PYG{o}{(}\PYG{o}{(} \PYG{n+nv}{c}\PYG{o}{=}\PYG{l+m}{1}\PYG{p}{;} c\PYGZlt{}\PYG{o}{=}\PYG{n+nv}{\PYGZdl{}iterations}\PYG{p}{;} c++ \PYG{o}{)}\PYG{o}{)}
+\PYG{k}{do} roslaunch px4 gazebo\PYGZus{}sim\PYGZus{}v1.0.launch worlds:\PYG{o}{=}optitrack\PYGZus{}big\PYGZus{}board\PYGZus{}onepattern\PYGZus{}missing\PYGZus{}markers\PYGZus{}wear.world drone\PYGZus{}control\PYGZus{}args:\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}vision\PYGZus{}navigation\PYGZus{}test\PYGZdq{}} x:\PYG{o}{=}\PYGZhy{}3.0 y:\PYG{o}{=}\PYG{l+m}{0}.0 headless:\PYG{o}{=}\PYG{n+nb}{true} gui:\PYG{o}{=}\PYG{n+nb}{false}
+cat \PYG{n+nv}{\PYGZdl{}data\PYGZus{}file} \PYGZgt{} \PYG{l+s+s2}{\PYGZdq{}}\PYG{n+nv}{\PYGZdl{}DIRECTORY}\PYG{n+nv}{\PYGZdl{}test\PYGZus{}name}\PYG{n+nv}{\PYGZdl{}c}\PYG{l+s+s2}{.txt}\PYG{l+s+s2}{\PYGZdq{}}
+\PYG{n+nb}{echo} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{Test }\PYG{n+nv}{\PYGZdl{}c}\PYG{l+s+s2}{ completed!}\PYG{l+s+s2}{\PYGZdq{}}
+\PYG{k}{done}
+\end{Verbatim}
