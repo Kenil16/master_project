@@ -13,8 +13,11 @@ class plot_data():
 
         self.data = []
 
+        #Target waypoints above acceptence region
+        self.errors_above_acc = 0
+
         #self.read_data('test2.txt')
-        self.read_data('test5_speed_0.5_error_0.05/vision_landing_precision_and_accuracy.txt')
+        self.read_data('test2_speed_0.5_error_0.1/vision_landing_precision_and_accuracy.txt')
         
         #Landing station 
         self.landing_station = np.array([item[0] for item in self.data])
@@ -135,7 +138,7 @@ class plot_data():
         ax1 = plt.subplot2grid((1,1), (0,0))
         ax1.legend(loc='best',fontsize=60)
         
-        df = pd.read_csv('test5_speed_0.5_error_0.05/vision_landing_precision_and_accuracy.txt', delimiter=" ")
+        df = pd.read_csv('test6_speed_0.9_error_0.05/vision_landing_precision_and_accuracy.txt', delimiter=" ")
         
         aruco = pd.Series(index[1], index=index[0])
         setpoint = pd.Series(index[3], index=index[2])
@@ -164,6 +167,13 @@ class plot_data():
         min_error = target_error.min()
         max_error = target_error.max()
 
+        #Find number of target errors above 10 cm
+        below_threshold = 0
+        for error in target_error:
+            if error < 0.10:
+                below_threshold += 1
+        self.errors_above_acc += (len(target_error)-below_threshold)
+
         print("Runs: " + str(runs))
         print("Mean error: " + "{:.4f}".format(mean_error))
         print("STD error: " + "{:.4f}".format(std_error))
@@ -171,6 +181,7 @@ class plot_data():
         print("Max error: " + "{:.4f}".format(max_error))
         print("Mean stabilization time: " + "{:.4f}".format(sum(index[6])/len(index[6])))
         print("Mean landing time: " + "{:.4f}".format(sum(index[7])/len(index[7])))
+        print("Landings in acceptence region: " + str(below_threshold) + " of " + str(len(target_error)))
         
         data = open(self.data_path,'a')
         data.write(str(runs) + " " + "{:.4f}".format(mean_error) + " " + "{:.4f}".format(std_error) + " " + "{:.4f}".format(min_error) + " " + "{:.4f}".format(max_error))
@@ -192,3 +203,5 @@ if __name__ == "__main__":
     tt.plot_data([tt.aruco_x_three, tt.aruco_y_three, tt.setpoint_x_three, tt.setpoint_y_three, tt.pose_estimation_error_three, tt.target_error_three, tt.stabilization_time_three,
         tt.landing_time_three], 'Position x [m]', 'Position y [m]', 
             'Precision and accuracy of landing for station three', [['Target landing'],['Final landing position'],['Acceptance buffer']], 'landing_for_station_three.png', radius = 0.25, s=375000) 
+
+    print("Landings outside acceptence region: " + str(tt.errors_above_acc))

@@ -12,7 +12,7 @@ class plot_data():
 
         self.data = []
 
-        self.read_data('../hold_pose_using_aruco_pose_estimation.txt')
+        self.read_data('test2_gps2visionBoard_1.0Wind_-1.0y/test1.txt')
         
         #Aruco pose estimations
         self.aruco_x = np.array([item[0] for item in self.data])
@@ -63,7 +63,7 @@ class plot_data():
         
         ax1.legend(loc='best',fontsize=60)
         
-        df = pd.read_csv('../hold_pose_using_aruco_pose_estimation.txt', delimiter=" ")
+        df = pd.read_csv('test2_gps2visionBoard_1.0Wind_-1.0y/test1.txt', delimiter=" ")
         aruco = pd.Series(index[0], index=self.time)
         setpoint = pd.Series(index[1], index=self.time)
         ground_truth = pd.Series(index[2], index=self.time)
@@ -107,10 +107,10 @@ if __name__ == "__main__":
         'Error [m]', 'Error in position and setpoint deviation in z', [['Aruco pos z'],['Setpoint z'],['Ground truth z']], 'pose_error_z.png')
     
     tt.plot_data([tt.aruco_roll, tt.setpoint_roll, tt.g_roll], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-        'Error [m]', 'Error in angle and setpoint deviation in roll', [['Aruco angle roll'],['Setpoint roll'],['Ground truth roll']], 'pose_error_roll.png')
+        'Error [degress]', 'Error in angle and setpoint deviation in roll', [['Aruco angle roll'],['Setpoint roll'],['Ground truth roll']], 'pose_error_roll.png')
     
     tt.plot_data([tt.aruco_pitch, tt.setpoint_pitch, tt.g_pitch], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-            'Error [m]', 'Error in angle and setpoint deviation in pitch', [['Aruco angle pitch'],['Setpoint pitch'],['Ground truth pitch']], 'pose_error_pitch.png')
+            'Error [degress]', 'Error in angle and setpoint deviation in pitch', [['Aruco angle pitch'],['Setpoint pitch'],['Ground truth pitch']], 'pose_error_pitch.png')
     
     tt.plot_data([tt.aruco_yaw, tt.setpoint_yaw, tt.g_yaw], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-            'Error [m]', 'Error in angle and setpoint deviation in yaw', [['Aruco angle yaw'],['Setpoint yaw'],['Ground truth yaw']], 'pose_error_yaw.png')
+            'Error [degress]', 'Error in angle and setpoint deviation in yaw', [['Aruco angle yaw'],['Setpoint yaw'],['Ground truth yaw']], 'pose_error_yaw.png')
