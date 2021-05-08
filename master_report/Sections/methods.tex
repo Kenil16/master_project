@@ -234,8 +234,6 @@ As it may be noticed in Figure \ref{fig:quadrotor} and \ref{fig:hexarotor}, the 
 \subsubsection{Offboard control}
 \label{sec:offboard_control}
 
-\todo{Talk about the loop frequency in ROS nodes and why they where chosen}
-
 For the implementation of offboard control as well as communication between units, ROS will be used. ROS is an open source software framework to be used in robot applications. This includes a number of libraries and tools with the aim of simplifying the creation of new robotic solutions. Another important feature is the message handling between nodes in the ROS architecture which is visualized in Figure \ref{fig:ros}.
 
 \begin{figure}[H]
@@ -411,22 +409,18 @@ Responsible for logging of UAV data in tests
 \end{tabularx}
 \end{center}
 \end{table}
-
-
 \renewcommand{\arraystretch}{1.0}
-
-
 
 \paragraph{Structure of ROS nodes}
 \label{sec:structure_of_ros_nodes}
 
-A flowchart of the system used in offboard control can be seen in Figure \ref{fig:offboard_control}. This gives a simplified overview of the main messages distributed between the nodes. In this design a number of six nodes are used. The core node is called \textit{\textbf{drone\_control}}. This node is responsible for publishing set points to the PX4 as well as the state on the onboard system. The reason for having only one node publishing set points is for safety reasons so that no more than a single node can publish new set points to the UAV. The onboard states includes takeoff, loiter, return to home or some of the missions which have been defined to be executed during flight. Hence, through keyboard commands, the onboard state can be changed. 
+A flowchart of the system used in offboard control can be seen in Figure \ref{fig:offboard_control}. This gives a simplified overview of the main messages distributed between the nodes. In this design a number of six nodes are used. The core node is called \textit{\textbf{drone\_control}} which is set with 30 updates each second. This node is responsible for publishing set points to the PX4 as well as the state on the onboard system. The reason for having only one node publishing set points is for safety reasons so that no more than a single node can publish new set points to the UAV. The onboard states includes takeoff, loiter, return to home or some of the missions which have been defined to be executed during flight. Hence, through keyboard commands, the onboard state can be changed. 
 
-This is done using the node \textit{\textbf{ground\_control}}. This node listings to keyboard commands and publishes these if an update occurs e.g a keystroke. The reason for having this as a separate node is that keystrokes does show up in a the main terminal which makes it hard to analyze important updates from the PX4 and other nodes that publishes updates to the user from the terminal. Hence, a separate terminal (terminal window) will open for keyboard inputs and a main terminal with updates on the current state of the system will be used. 
+This is done using the node \textit{\textbf{ground\_control}} which is set with 10 updates each second. This node listings to keyboard commands and publishes these if an update occurs e.g a keystroke. The reason for having this as a separate node is that keystrokes does show up in a the main terminal which makes it hard to analyze important updates from the PX4 and other nodes that publishes updates to the user from the terminal. Hence, a separate terminal (terminal window) will open for keyboard inputs and a main terminal with updates on the current state of the system will be used. 
 
-Another node which subscribes to updates giving from keystrokes is called  \textit{\textbf{loiter\_pilot}}. This node enables the user to take full control of the UAV using keystrokes which makes it much easier to debug the system. The possible commands giving from the user can be seen in Table \ref{tab:ros_commands}. This table is split up into commands passed to the drone control and loiter pilot node. The latter will increment/decrement the current position of the UAV with 0.5 m and increment/decrement the yaw angle by 5 degrees for each keystroke given. The loiter pilot node also subscribes to the local position topic, but is not visualized in Figure \ref{fig:offboard_control}.
+Another node which subscribes to updates giving from keystrokes is called  \textit{\textbf{loiter\_pilot}} which is set with 20 updates each second. This node enables the user to take full control of the UAV using keystrokes which makes it much easier to debug the system. The possible commands giving from the user can be seen in Table \ref{tab:ros_commands}. This table is split up into commands passed to the drone control and loiter pilot node. The latter will increment/decrement the current position of the UAV with 0.5 m and increment/decrement the yaw angle by 5 degrees for each keystroke given. The loiter pilot node also subscribes to the local position topic, but is not visualized in Figure \ref{fig:offboard_control}.
 
-All missions giving to the UAV will be controlled in the \textit{\textbf{autonomous\_flight}} node. In this node different missions can be executed which is discussed in Section \ref{sec:offboard_control_system}. These missions are started by the control node after giving numerical values to the terminal by keystrokes as seen in Table  \ref{tab:ros_commands}. This is done so that a number of missions can be executed for testing the performance of the UAV in the simulation. Moreover, this node listings to the current position of the UAV which will be used to determine when a giving set point has been reached giving a predefined flight plan. 
+All missions giving to the UAV will be controlled in the \textit{\textbf{autonomous\_flight}} node which is set with 10 updates each second. In this node different missions can be executed which is discussed in Section \ref{sec:offboard_control_system}. These missions are started by the control node after giving numerical values to the terminal by keystrokes as seen in Table  \ref{tab:ros_commands}. This is done so that a number of missions can be executed for testing the performance of the UAV in the simulation. Moreover, this node listings to the current position of the UAV which will be used to determine when a giving set point has been reached giving a predefined flight plan. 
 
 \begin{figure}[H]
     \centering
@@ -439,9 +433,9 @@ The use of ROS gives the opportunity to subscribe to services from the PX4. Thes
 
 Furthermore, this node publishes the wanted ArUco marker board from which a pose estimation is wanted to be estimated. This is done to distinguish between the GPS to vision marker, world marker on the ground and landing markers. Also the detection of the specified ArUco marker board will be returned as a Boolean to the autonomous flight node by a subscription to the ArUco board found topic. This is done so that the mission will not start until the wanted marker has been located. Furthermore, the distance to the GPS2Vision marker board, its center and a Boolean of whether the estimated pose is considered stable is given to this node.  
 
-The \textit{\textbf{marker\_detection}} node will analyze the incoming images from the front and bottom camera and estimate the ArUco pose if any markers is located in the image. The theory behind the pose estimation of the ArUco markers will be giving in Section \ref{sec:pose_estimation_using_aruco_markers}. When the pose has been estimated, the result is published to other nodes in the system.
+The \textit{\textbf{marker\_detection}} node will analyze the incoming images from the front and bottom camera and estimate the ArUco pose if any markers is located in the image. This node is set with 5 updates each second. The theory behind the pose estimation of the ArUco markers will be giving in Section \ref{sec:pose_estimation_using_aruco_markers}. When the pose has been estimated, the result is published to other nodes in the system.
 
-The node which uses the ArUco marker pose is called \textit{\textbf{sensor\_fusion}}. This node takes the pose and optimizes it based on fusion with IMU and altimeter (barometer) data. This is done to insure that the UAV still gets an updated pose estimation even though no markers being detected in the image. This is very important because the UAV uses the ArUco markers as its local coordinate system. The implementation of sensor fusion will be discussed in \ref{sec:sensor_fusion}. Moreover, this node also gets a boolean of whether the ArUco marker board has been detected, because it first initiates when reliable pose estimates from ArUco markers are being published. 
+The node which uses the ArUco marker pose is called \textit{\textbf{sensor\_fusion}} which is set with 20 updates each second. This node takes the pose and optimizes it based on fusion with IMU and altimeter (barometer) data. This is done to insure that the UAV still gets an updated pose estimation even though no markers being detected in the image. This is very important because the UAV uses the ArUco markers as its local coordinate system. The implementation of sensor fusion will be discussed in \ref{sec:sensor_fusion}. Moreover, this node also gets a boolean of whether the ArUco marker board has been detected, because it first initiates when reliable pose estimates from ArUco markers are being published. 
 
 As seen in Figure \ref{fig:offboard_control}, the drone control node publishes set points to either global position (geographic coordinates), local position (Cartesian coordinates) or vision pose (Cartesian coordinates). The later is a very important aspect of this implementation, which must be mentioned. When the UAV gets the pose from a GPS as either   geographic or Cartesian transformed (UTM) coordinates as global or local respectively, the UAV uses this coordinate system for navigation. The PX4 auto pilot is relying on an extended Kalman filter for sensor fusion which can be altered from the parameter \textit{EKF2\_AID\_MASK} from the list of services. This uses GPS positions as default, but can be changed to fuse the estimated vision pose instead. By using this configuration, the estimation of the local coordinate system can be changed during flight when the UAV is to navigate according to ArUco markers. This way, the use of the build in control schemes for pose control can still be used, but now the UAV navigates according to vision instead of GPS. Hence, a smooth transition from using GPS to vision and vision to GPS can be applied whenever needed. This is also one of the reasons why the pose estimation from the ArUco markers has to be very precise without much variance in its estimates. Otherwise, this could lead to an unstable system where the UAV could have trouble positioning itself according to the predefined pose. 
 
@@ -513,7 +507,7 @@ When the position has been transformed to align to the original UAV coordinate s
 
 \begin{figure}[H]
     \centering
-    \includegraphics[height=5.0cm]{../Figures/state_machine_gps2vision_transition.png}
+    \includegraphics[height=4.5cm]{../Figures/state_machine_gps2vision_transition.png}
     \caption{Illustration of the sub-states when initializing GPS to vision based navigation. Gray boxes defines the use of GPS for pose estimation and blue boxes vision based estimation}
     \label{fig:state_machine_gps2vision_transition}
 \end{figure}
@@ -844,7 +838,7 @@ A number of visual markers could be used for pose estimation e.g ArUco markers, 
 
 Another method using convolution with complex kernel for detecting n-fold edges of markers could be used.\cite{nFoldMarkers} This n-fold marker could be placed on the ground and used as a helipad for the UAV which could navigate to it from a very high altitude.  
 
-Because the ArUco markers have been shown to have high performance along with libraries for ArUco marker boards for better precision, ArUco markers will be used for pose estimation. Furthermore, these estimations are performed using OpenCVs marker detection and pose estimation for ArUco markers.
+Because the ArUco markers have been shown to have high performance along with libraries for ArUco marker boards for better precision, ArUco markers will be used for pose estimation.\cite{visualmarkers} Furthermore, these estimations are performed using OpenCVs marker detection and pose estimation for ArUco markers.
 
 \subsubsection{ArUco marker detection}
 

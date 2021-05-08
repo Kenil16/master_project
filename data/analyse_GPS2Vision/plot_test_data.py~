@@ -216,5 +216,5 @@ if __name__ == "__main__":
 
     tt = plot_data()
     #tt.plot_data('test4_5-7ms_wind_20_runs/')
-    #tt.plot_data('test2_noWind_20_runs/')
-    tt.plot_data('test5_7-10ms_wind_20_runs/')
+    tt.plot_data('test2_noWind_20_runs/')
+    #tt.plot_data('test5_7-10ms_wind_20_runs/')

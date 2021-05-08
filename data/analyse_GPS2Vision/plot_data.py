@@ -33,12 +33,15 @@ class plot_data():
     def read_data(self, file_name):
         init = True
         seq = 0
+
+        #Read all data in the txt file and split it up when plotting
         with open(file_name,"r") as text_file:
             for line in text_file:
                 items = line.split(' ')
-                items[-1] = items[-1].strip()
+                items[-1] = items[-1].strip() #avoid using last character
                 str_to_float = [float(item) for item in items]
 
+                #These defines which substate the uav is in 0(gps), 1(locate board), 2(navigate to board) and 3(gps2vision)
                 if str_to_float[-1] == 0:
                     self.x_gps.append(str_to_float[0])
                     self.y_gps.append(str_to_float[1])
@@ -120,6 +123,7 @@ class plot_data():
         ax.set_xlim([self.x_gps[0]-7, self.x_gps[0]+7])
         ax.set_ylim([self.y_gps[0]-5, self.y_gps[0]+22])
 
+        #Plot the track of each state with different color for visualization
         for state in states:
 
             x = state['x'].values

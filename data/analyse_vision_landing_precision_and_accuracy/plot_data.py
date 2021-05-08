@@ -76,6 +76,7 @@ class plot_data():
 
 
         for item in self.data:
+            #Find which data belongs to which landing station
             if item[0] == 3:
                 self.aruco_x_one.append(item[1])
                 self.aruco_y_one.append(item[2])

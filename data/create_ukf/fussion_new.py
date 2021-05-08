@@ -4,10 +4,6 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
-
-import math
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import pandas as pd
 from matplotlib import style
 style.use('fivethirtyeight')
@@ -139,7 +135,7 @@ class ukf():
         self.last_step_z = 0
         self.start_z = 0
 
-        #Used in the GA (chromosome)
+        #Covariance matrix
         self.covariance = [0.5, 0.5, 0.5, #Process noise x, y and z (pos)
                            0.5, .5, 0.5, #Process noise x, y and z (vel)
                            0.2, 0.2, 0.5, #Process noise x, y and z (acc)
@@ -148,11 +144,8 @@ class ukf():
                            0.00005, 0.00005, 0.005, #Measurement noise x, y and z (pos)
                            0.03, 0.03, 2.08, #Measurement noise x, y and z (acc)
                            0.05, 0.05, 0.05, #Measurement noise x, y and z (angle)
-                           1.5, 1.5, 0.5] #Measurement noise x, y and z (abgle rate)
-        
-        # From best individual using GA 
-        #self.covariance = self.load_chromosome('ga_data/best_chromosome.txt')
-    
+                           1.5, 1.5, 0.5] #Measurement noise x, y and z (angle rate)
+
     def read_data(self, file_name):
         init = True
         seq = 0
@@ -238,7 +231,7 @@ class ukf():
         q[11][11] = 1.5 #baro bias
         
         
-        # Create measurement noise covariance matrices
+        #Create measurement noise covariance matrices
         r_imu_acc = np.zeros([2, 2])
         r_imu_gyro_v = np.zeros([3, 3])
         r_imu_acc[0][0] = 0.5 #acc x
@@ -262,14 +255,10 @@ class ukf():
         r_baro_offset = np.zeros([1,1])
         r_baro_offset[0][0] = 0.005
         
-        # pass all the parameters into the UKF!
-        # number of state variables, process noise, initial state, initial coariance, three tuning paramters, and the iterate function
         measurements = np.vstack((self.mx, self.my, self.mz, self.macc_x, self.macc_y, self.macc_z, self.mpsi, self.mphi, self.mtheta, self.mgyro_x, self.mgyro_y, self.mgyro_z, 
             self.mvision_seq, self.mimu_seq, self.g_roll, self.g_pitch, self.g_yaw, self.mbaro, self.mbaro_seq))
         m = measurements.shape[1]
-        #print(measurements.shape)
         i = measurements
-        #print(m)
         x_init = [i[0,0], i[1,0], i[2,0], 0, 0, i[6,0], i[7,0], i[8,0], 0 ,0 ,0, 0]
         
         state_estimator = UKF(12, q, x_init, 0.0001*np.eye(12), 0.04, 15.0, 2.0, self.iterate_x)
@@ -283,13 +272,11 @@ class ukf():
                 dt = self.mtime[j]-self.mtime[j-1] 
             
             
-            # create an array for the data from each sensor
+            #Create an array for the data from each sensor
             x = state_estimator.get_state()
             bias = [-0.190006656546, -0.174740895383]
             gravity = 9.79531049538
-
             off = 0.000000001
-
 
             #Rotation matrix to align angle to that of the acceleration of the drone. Hences the gravity can be subtracted
             R1 = self.eulerAnglesToRotationMatrix([0, 0, 2*x[7] + np.pi/2])
@@ -313,8 +300,7 @@ class ukf():
             corrected_acc_z = row[5] - gravity #*np.cos(x[9])*np.cos(x[10])
             self.acc_gravity = row[5]
             
-            #Mechanical Filtering Window
-            
+            #Mechanical Filtering Window            
             if corrected_acc_x < 0.15 and corrected_acc_x > -0.15:
                 corrected_acc_x = 0#corrected_acc_x*0.0005
 
@@ -345,7 +331,7 @@ class ukf():
             #imu_accZ = corrected_acc_z
             imu_rollV = corrected_gyro[0]
             imu_pitchV =corrected_gyro[1]
-            imu_yawV = corrected_gyro[2] +0.0018871804653
+            imu_yawV = corrected_gyro[2]
 
             vision_data_pos = np.array([vision_x, vision_y, vision_z])
             vision_data_ori = np.array([vision_roll, vision_pitch, vision_yaw])
@@ -355,7 +341,7 @@ class ukf():
             baro_data = np.array([row[17]])
             baro_offset = vision_z - baro_data
 
-            # prediction is pretty simple
+            #Prediction step
             state_estimator.predict(dt, row)
             if not self.vision_seq == row[12]:
                 state_estimator.update([0, 1, 2], vision_data_pos, r_vision_pos)
@@ -467,6 +453,7 @@ class ukf():
         plt.axis('equal')
 
         plt.savefig('Positionxy.png')
+
     def plot_position_2d(self):
 
         fig, ax = plt.subplots()
@@ -544,23 +531,10 @@ class ukf():
         plt.subplots_adjust(bottom=0.1, top=0.93, hspace=0.2, wspace=0)
         plt.savefig(fig_name, facecolor=fig.get_facecolor())
 
-
-    def load_chromosome(self,file_name):
-        chromosome = []
-        with open(file_name,"r") as ga_file:
-            for line in ga_file:
-                items = line.split(' ')
-                for item in items:
-                    chromosome.append(item)
-        return chromosome
-  
-        
 if __name__ == "__main__":
 
     ukf = ukf()
-    #ukf.create_ground_truth()
     ukf.main()
-
     
     labels = ['x','y','z', 'g_x', 'g_y', 'g_z']
     ys = [ukf.x0, ukf.x1, ukf.x2, ukf.g_x, ukf.g_y, ukf.g_z]

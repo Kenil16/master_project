@@ -11,7 +11,8 @@ class plot_data():
     def __init__(self):
 
         self.data = []
-
+        
+        #Read file 
         self.read_data('../aruco_pose_estimation.txt')
         
         #Aruco pose estimations

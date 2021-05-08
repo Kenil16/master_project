@@ -15,7 +15,7 @@ class drone_control():
 
         #Init ROS
         rospy.init_node('drone_control')
-        self.rate = rospy.Rate(50)
+        self.rate = rospy.Rate(30)
         
         #Make object to make uav2aruco offset calculations
         self.tc = transformations_calculations()

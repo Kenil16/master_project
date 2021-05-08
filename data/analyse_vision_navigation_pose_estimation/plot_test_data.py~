@@ -137,21 +137,21 @@ class plot_data():
             aruco_error_std = []
             
             self.plot_data([aruco_roll, g_roll], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-                'Error [Degress]', 'Error in angle in roll', [['Aruco angle roll'],['Ground truth roll']], 
+                'Error [degress]', 'Error in angle in roll', [['Aruco angle roll'],['Ground truth roll']], 
                 self.error_roll_plot_path + 'pose_error_roll_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
             aruco_error_std.append(self.aruco_std)
 
             self.plot_data([aruco_pitch, g_pitch], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-                    'Error [Degress]', 'Error in angle in pitch', [['Aruco angle pitch'],['Ground truth pitch']], 
+                    'Error [degress]', 'Error in angle in pitch', [['Aruco angle pitch'],['Ground truth pitch']], 
                     self.error_pitch_plot_path + 'pose_error_pitch_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
             aruco_error_std.append(self.aruco_std)
 
             self.plot_data([aruco_yaw, g_yaw], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-                    'Error [Degress]', 'Error in angle in yaw', [['Aruco angle yaw'],['Ground truth yaw']], 
+                    'Error [degress]', 'Error in angle in yaw', [['Aruco angle yaw'],['Ground truth yaw']], 
                     self.error_yaw_plot_path + 'pose_error_yaw_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)

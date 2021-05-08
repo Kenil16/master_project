@@ -180,7 +180,8 @@ class plot_data():
                 str_to_float = [float(item) for item in items]
                 
                 old_lines.append(str_to_float)
-
+                
+                #Skip data from gps2vision transition and use only data from the bottom camera 
                 if seq > 500:
                     self.data.append([old_lines[-1][0], 
                                       old_lines[-1][1], 
@@ -249,6 +250,8 @@ class plot_data():
         "text.usetex": True})
 
        fig, ax = plt.subplots(figsize=(15,15),facecolor='white')
+       
+       #Paths to the landing stations
        one = [[3.65, 1.10], [3.65, 4.25]]
        two = [[3.65, 4.25], [0.40, 4.25]]
        three = [[3.65, 4.25], [7.10, 4.25]]

@@ -44,7 +44,8 @@ class plot_data():
                 str_to_float = [float(item) for item in items]
                 
                 old_lines.append(str_to_float)
-
+                
+                #Take only the part from where the UAV uses the bottom camera for the vision navigation and skip gps2vision transition
                 if seq > 500:
                     self.data.append([old_lines[-1][0], 
                                       old_lines[-1][1], 

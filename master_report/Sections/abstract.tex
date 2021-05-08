@@ -1,0 +1,9 @@
+\documentclass[../Head/report.tex]{subfiles}
+\begin{document}
+\section{Abstract}
+
+This paper proposes methods for navigation of an unmanned aerial vehicle (UAV) utilizing computer vision. This is achieved using ArUco marker boards which are used for pose estimation of the UAV. The goal is to have a UAV to fly autonomously using GPS in outdoor environments from where missions can be executed. When the UAV needs to recharge a reliable GPS to vision transition is performed from the where the UAV can navigate to indoor environments using ArUco markers located on the ground for vision based navigation in GPS denied environments. In the indoor environment, a precise vision based landing can then be performed when it needs to recharge. 
+
+To accomplish this, the robot operating system (ROS) is used along with the PX4 autopilot in order to achieve autonomous flight for offboard control. To make the implementation robust to external disturbances in regard to the pose estimation of the UAV, sensor fusion is used utilizing an unscented Kalman filter. The autonomous solution have been tested thoroughly in simulation and yields promising results in regard to pose estimation, autonomous flight and vision based landings of the UAV.   
+
+\end{document}

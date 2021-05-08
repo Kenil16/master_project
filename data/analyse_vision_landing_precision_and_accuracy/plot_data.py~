@@ -17,7 +17,7 @@ class plot_data():
         self.errors_above_acc = 0
 
         #self.read_data('test2.txt')
-        self.read_data('test2_speed_0.5_error_0.1/vision_landing_precision_and_accuracy.txt')
+        self.read_data('test3_speed_0.9_error_0.1/vision_landing_precision_and_accuracy.txt')
         
         #Landing station 
         self.landing_station = np.array([item[0] for item in self.data])

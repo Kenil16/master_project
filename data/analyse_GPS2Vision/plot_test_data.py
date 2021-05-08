@@ -73,7 +73,8 @@ class plot_data():
                     items = line.split(' ')
                     items[-1] = items[-1].strip()
                     str_to_float = [float(item) for item in items]
-
+                    
+                    #These defines which substate the uav is in 0(gps), 1(locate board), 2(navigate to board) and 3(gps2vision)
                     if str_to_float[-1] == 0:
                         self.x_gps.append(str_to_float[0])
                         self.y_gps.append(str_to_float[1])

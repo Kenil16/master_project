@@ -115,7 +115,7 @@ class plot_data():
 
         index = 0
         colors = ['b','r','y','g']
-        legends = ['GPS', 'Locating board', 'Navigate to board', 'GPS2Vision transition']
+        legends = ['GPS', 'Locating board (GPS)', 'Navigate to board (GPS)', 'GPS2Vision transition (vision)']
         fig, ax = plt.subplots(figsize=(15,25),facecolor='white')
         ax.set_xlim([self.x_gps[0]-7, self.x_gps[0]+7])
         ax.set_ylim([self.y_gps[0]-5, self.y_gps[0]+22])
