@@ -7,7 +7,7 @@ import unittest
 import rospy
 import math
 
-from mavros_msgs.srv import CommandBool, CommandTOL, ParamGet, SetMode, WaypointClear, WaypointPush, ParamSet
+from mavros_msgs.srv import CommandBool, CommandTOL, ParamGet, SetMode, WaypointClear, WaypointPush, ParamSet, CommandLong
 from mavros_msgs.msg import Altitude, ExtendedState, HomePosition, State, WaypointList, ParamValue
 from geometry_msgs.msg import PoseStamped, Quaternion
 from pymavlink import mavutil
@@ -28,6 +28,7 @@ class flight_modes:
         self.local_position = PoseStamped()
         self.state = State()
         self.param_value = ParamValue()
+        #self.force_disarm_msg = CommandLong()
         
         #Initialize list of subscribed topics ready to be false
         self.sub_topics_ready = {
@@ -54,6 +55,7 @@ class flight_modes:
         self.set_mode_uav = rospy.ServiceProxy('/mavros/set_mode', SetMode)
         self.set_param_uav = rospy.ServiceProxy('/mavros/param/set', ParamSet)
         self.get_param_uav = rospy.ServiceProxy('/mavros/param/get', ParamGet)
+        self.set_force_disarm_uav = rospy.ServiceProxy('/mavros/cmd/command', CommandLong)
         
         #Initialize subscribers
         self.alt_sub = rospy.Subscriber('/mavros/altitude', Altitude, self.altitude_callback)
@@ -117,7 +119,10 @@ class flight_modes:
         if not self.sub_topics_ready['state'] and data.connected:
             self.sub_topics_ready['state'] = True
 
-    
+    def force_disarm(self):
+        self.set_force_disarm_uav(broadcast=False, command=400, confirmation=0, param1=0.0, param2=21196.0, param3=0.0,
+                param4=0.0, param5=0.0, param6=0.0, param7=0.0)
+
     def set_arm(self, arm, timeout):
         
         #arm: True to arm or False to disarm, timeout(int): seconds

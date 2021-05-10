@@ -170,6 +170,10 @@ class drone_control():
         if command == '8':
             self.set_state('landing_test')
 
+        if command == '9':
+            self.set_state('real_uav_vision_takeoff_test')
+
+
     def message_control(self):
 
         if not self.uav_state == 'idle':
@@ -247,6 +251,12 @@ class drone_control():
                 self.pub_msg(new_pose, self.pub_vision_pose)
             
             elif self.uav_state == 'landing_test':
+                output_msg = self.autonomous_flight_pose_setpoint
+                self.pub_msg(output_msg, self.pub_local_pose)
+                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
+                self.pub_msg(new_pose, self.pub_vision_pose)
+            
+            elif self.uav_state == 'real_uav_vision_takeoff_test':
                 output_msg = self.autonomous_flight_pose_setpoint
                 self.pub_msg(output_msg, self.pub_local_pose)
                 new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
