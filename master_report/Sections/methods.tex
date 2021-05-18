@@ -721,7 +721,7 @@ For easy debugging of the system, rqt is installed. This is a software framework
 #Install packages for visualization of video stream (ros rqt)
 $ sudo apt-get install ros-melodic-rqt ros-melodic-rqt-common-plugins
 #Install packages for USB readings using ROS
-$ sudo apt-get install ros-melodic-usb-cam ros-melodic-image-transport ros-melodic-image-transport-plugins ros-melodic-image-transport-plugins ros-melodic-camera-info-manager
+$ sudo apt-get install ros-melodic-usb-cam ros-melodic-image-transport ros-melodic-image-transport-plugins ros-melodic-image-transport-plugins ros-melodic-camera-info-manager ros-melodic-vrpn-client-ros
 #Install packages fto be able to execute scrips
 $ sudo apt-get install liblapack-dev gfortran libblas-dev libxml2-dev libxslt-dev python-dev python-pip
 $ pip install pathlib pymavlink pandas scipy opencv-contrib-python matplotlib numpy
@@ -1326,7 +1326,7 @@ In regard to the sensor noise in the accelerometer and gyro, they are found by t
 
 This section deals with the setting up of the onboard computer used on the UAV. A number of different companion computers were considered like the Jetson nano, Banana Pi M3 and Raspberry Pi 4. The Jetson nano offers many features for computer vision algorithms and do have a much better graphic card than the Raspberry Pi 4. This is because this computer includes a Nvidia graphic card specifically build for deep learning and other computationally heavy algorithms. The Banana Pi M3 is generally more powerful than the Raspberry Pi 4. However, both the Jetson nano and Banana Pi M3 are more expensive. Hence, because the Raspberry Pi 4 yields good computational performance at an acceptable price, this unit will be used as the companion computer on the UAV. 
 
-The operating system used on the Raspberry Pi will be discussed in Section \ref{sec:operating_system_pi}. Section \ref{sec:wireless_communication_pi} will explain the procedures for wireless communication of the Raspberry Pi 4 to the laptop. Section \ref{sec:disabling_uart_at_boot_time_pi} will explain the disabling of UART between the Raspberry Pi 4 and PX4 at boot time, which can be essential for the system to boot. For performance optimizations on the Raspberry Pi 4, overclocking is used which is shortly discussed in Section \ref{sec:performance optimizations_pi}. 
+The operating system used on the Raspberry Pi will be discussed in Section \ref{sec:operating_system_pi}. Section \ref{sec:wireless_communication_pi} will explain the procedures for wireless communication of the Raspberry Pi 4 to the laptop. Section \ref{sec:disabling_uart_at_boot_time_pi} will explain the disabling of UART between the Raspberry Pi 4 and PX4 at boot time, which can be essential for the system to boot. For performance optimizations on the Raspberry Pi 4, overclocking is used which is shortly discussed in Section \ref{sec:performance optimizations_pi}. In Section \ref{sec:serial_communication_px4} and \ref{sec:communication_with_optiTrack_for_ground_truth_of_uav} the procedures for serial communication between the Raspberry Pi to PX4 and OptiTrack system for ground truth estimation of the UAV will be discussed respectively. 
 
 \subsubsection{Operating system}
 \label{sec:operating_system_pi}
@@ -1487,5 +1487,55 @@ arm_freq=1750
 \end{listing} 
 
 However, care must be taken because an increased number of cycles on the CPU increases the heat generated. The maximum overclocking is approximately 2.1 GHz, but a 1.8 GHz overclocking will be used in this case which is found appropriate for the cooling system available (fan shim). The reason for boosting the performance of the Raspberry Pi is to enable more calculations per time unit, which results in more pose updates to the system. 
+
+\subsubsection{Serial communication to PX4}
+\label{sec:serial_communication_px4}
+
+As mentioned in Section \ref{sec:hardware}, serial connection between the Raspberry Pi and PX4 is achieved by connecting the 6 pin connection cable to a TTL 232R cable to the USB port of the Raspberry Pi. However, for communication to be initiated some additional steps have to be performed. In these steps QGroundCrontrol is used. Here one can change parameters in the configuration files of the PX4. The parameters \textit{MAV\_1\_CONFIG} is set to \textit{TELEM/SERIAL 4} to enable UART through the USB port, \textit{ MAV\_1\_MODE} is set to \textit{onboard} for telling PX4 that this Mavlink connection is used to comminicate to the onboard computer (Raspberry Pi) and \textit{MAV\_1\_RATE} and  \textit{SER\_TEL4\_BAUD} is set to \textit{80000} and \textit{921600 8N1} for the date rates respectively.
+
+\subsubsection{Communication with OptiTrack for ground truth of UAV}
+\label{sec:communication_with_optiTrack_for_ground_truth_of_uav}
+
+As discussed in Section \ref{sec:hardware}, an extra WiFi adapter is connected to the Raspberry Pi. This is done so that the UAV can be controlled from a wireless connection between the laptop and Raspberry Pi meanwhile the Raspberry Pi gets ground truth updates of its pose using the other WiFi module connected to the \href{https://optitrack.com/}{OptiTrack} system. 
+
+The OptiTrack system is used which enables high precision tracking of the UAV pose. This is done using cameras which transmits pulsed infrared light using attached infrared LEDs. The light will then be reflected back to the cameras from small markers attached to the UAV. This way a pose can be tracked using triangulation.
+
+To get the ground truth from the OptiTrack system instead of the Gazebo simulation, the ROS package \textit{vrpn\_client\_ros} is used which enables communication between the onboard computer and the OptiTrack system using WiFi. This can be accomplished by running the command in Listing \ref{lst:run_vrpn_client_ros} after setting up the Optitrack system.     
+
+\begin{listing}[H] 
+\begin{tcolorbox}[
+    enhanced,
+    attach boxed title to top left={xshift=6mm,yshift=-3mm},
+    colback=lightgreen!20,
+    colframe=lightgreen,
+    fonttitle=\bfseries\color{black},
+]
+\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
+roslaunch vrpn_client_ros sample.launch server:=<server-ip-adress>
+\end{minted}
+\end{tcolorbox}
+\caption{How to get pose estimation of the UAV from the OptiTrack system}
+\label{lst:run_vrpn_client_ros}    
+\end{listing} 
+ 
+ \begin{listing}[H] 
+\begin{tcolorbox}[
+    enhanced,
+    attach boxed title to top left={xshift=6mm,yshift=-3mm},
+    colback=lightgreen!20,
+    colframe=lightgreen,
+    fonttitle=\bfseries\color{black},
+]
+\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
+rosrun topic_tools relay /vrpn_client_node/<rigid_body_name>/pose /mavros/vision_pose/pose
+\end{minted}
+\end{tcolorbox}
+\caption{How to map the estimated pose from the OptiTrack system to the local pose of the UAV}
+\label{lst:relay_vrpn_client_ros}    
+\end{listing} 
+
+This way the exact same code can be used as in the simulation, but instead of subscribing to the ground truth pose of the UAV from Gazebo, the pose estimated from the OptiTrack system can be used from the topic published using Listing \ref{lst:run_vrpn_client_ros}. 
+
+For using the estimated pose of the UAV from the OptiTrack system as the local coordinate system of the UAV, Listing \ref{lst:relay_vrpn_client_ros} is used. This maps the pose from the OptiTrack system to the UAV so that the UAV can navigate inside the OptiTrack system with very high precision for initial testing of the implementation.  
 
 \end{document}

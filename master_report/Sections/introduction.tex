@@ -65,28 +65,27 @@ Furthermore, the precise landing should be implemented in such a way that the ti
 
 This leads to the following problems:
 
-\begin{itemize}
-    \item How can computer vision be used to detect markers?
-    \item How can a smooth transition between using GPS coordinates to vision based navigation be found?
-    \item How can navigation between markers be performed?
-    \item How can sensor fusion be implemented for pose optimization?
-    \item How can a precise landing be executed?
-    \item How can the landing time be reduced without causing instabilities to the UAV?
-    
-\end{itemize} 
+\begin{enumerate}[label=\textbf{P.\arabic*}]
+    \item \label{ps:one} How can computer vision be used to detect markers?
+    \item \label{ps:two} How can a smooth transition between using GPS coordinates to vision based navigation be found?
+    \item \label{ps:three} How can navigation between markers be performed?
+    \item \label{ps:four} How can sensor fusion be implemented for pose optimization?
+    \item \label{ps:five} How can a precise landing be executed?
+    \item \label{ps:six} How can the landing time be reduced without causing instabilities to the UAV?    
+\end{enumerate} 
 
 \subsection{Specification of requirements}
 
 From the outline of the project as well as the problem statement, the following requirements for the project have been formulated:
 
-\begin{itemize}
-	\item The implemented system must be able to function completely autonomous
-    \item The error of the landing must not exceed $\pm 10$ cm. 
-    \item The pilot must be able to send missions on a wireless connection to the UAV for execution
-    \item The UAV should be able to make the transition of using GPS coordinates to indoor vision based navigation even in windy conditions i.e up to 8 m/s.
-    \item The landing must be performed within 5 seconds from where the UAV is hovering 1.5 meters above the landing sight to a landing is performed
+\begin{enumerate}[label=\textbf{R.\arabic*}]
+	\item \label{sor:one} The implemented system must be able to function completely autonomous. This is wanted because an autonomous solution would yield a reduction in operational cost for the target user e.g HealthDrone project.   
+    \item \label{sor:two} The error of the landing must not exceed $\pm 10$ cm. This is based on results from related work in Section \ref{sec:related_work}, where this implementation as a minimum must yield similar landing precisions
+    \item \label{sor:three} The pilot must be able to send missions on a wireless connection to the UAV for execution. This is critical in order to control and test the system when each element of the implementation is executed 
+    \item \label{sor:four} The UAV should be able to make the transition of using GPS coordinates to indoor vision based navigation even in windy conditions i.e up to 8 m/s. This is based on the average wind speed in Denmark from three \href{https://www.dmi.dk/klima/temaforside-klimaet-frem-til-i-dag/vind-i-danmark/}{coastal stations (DMI)} which is found to be between 7-8 $\frac{m}{s}$ as a sort of worst case scenario for normal operation of the UAV
+    \item \label{sor:five} The landing must be performed within 5 seconds from where the UAV is hovering 1.5 meters above the landing sight to a landing is performed. From the perspective of a vertical velocity of 0.3 $\frac{m}{s}$ of the UAV for this demand to be met, this is set as an upper limit for the landing time which is found appropriate.   
 
-\end{itemize}
+\end{enumerate}
 
 
 \newpage
