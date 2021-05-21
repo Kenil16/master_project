@@ -12,7 +12,8 @@ class plot_data():
 
         self.data = []
 
-        self.read_data('test2_gps2visionBoard_1.0Wind_-1.0y/test1.txt')
+        #self.read_data('hold_pose_landing_board_one_test/test2.txt')
+        self.read_data('../hold_pose_using_aruco_pose_estimation.txt')
         
         #Aruco pose estimations
         self.aruco_x = np.array([item[0] for item in self.data])

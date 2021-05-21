@@ -68,10 +68,12 @@ class print_markers:
         print("Pixels in y: " + str(image_height))
         print("Pixels in x: " + str(image_width))
         
-        first_marker = 221
-        for i in range(0,1):
+        row = 10
+        col = 25
+        first_marker = 221 #+ col*row
+        for i in range(1,15):
             
-            self.first_marker = first_marker + 25*i
+            self.first_marker = first_marker + col*i
             print(self.first_marker)
             self.aruco_board = aruco.GridBoard_create(self.markers_x, self.markers_y, self.marker_length, self.marker_separation, self.dictionary, firstMarker = self.first_marker)
             
@@ -79,15 +81,44 @@ class print_markers:
             font = cv2.FONT_HERSHEY_SIMPLEX
             cv2.putText(img,'OpenCV ArUco marker ' + str(self.first_marker)  + ' (' + str((self.first_marker-200)/25) + "," + str((self.first_marker - 200 - (25*i))) + ') DICT_5X5_1000 ' ,(8,20), font, 0.35,(255,255,255),1,cv2.LINE_AA)
             
+            #cv2.putText(img,'OpenCV ArUco marker ' + str(self.first_marker)  + ' (' + str((self.first_marker-200)/25) + "," + str((self.first_marker - 200 - row*col)) + ') DICT_5X5_1000 ' ,(8,20), font, 0.35,(255,255,255),1,cv2.LINE_AA)
+            
             #cv2.imwrite('../../blender_models/aruco_boards_used/grid_board_vision' + str(self.first_marker) +'.png',img) # Set back to grid_board_new_
             cv2.imwrite('grid_board_single_marker' + str(self.first_marker) +'.png',img) # Set back to grid_board_new_
 
             image = glob('grid_board_single_marker' + str(self.first_marker) +'.png')
             pdf = FPDF()
+            
+            
             for img in image:
                 pdf.add_page()
                 pdf.image(img,5,47.5,200)
             pdf.output('grid_board_single_marker' + str(self.first_marker) +'.pdf', "F")
+            
+            """ 
+            for img in image:
+                cover = Image.open(img)
+                width, height = cover.size
+
+                # convert pixel in mm with 1px=0.264583 mm
+                width, height = float(width * 0.264583), float(height * 0.264583)
+
+                # given we are working with A4 format size
+                #pdf_size = {'P': {'w': 210, 'h': 297}, 'L': {'w': 297, 'h': 210}}
+                pdf_size = {'P': {'w': 297, 'h': 210}, 'L': {'w': 210, 'h': 297}}
+
+                # get page orientation from image size
+                orientation = 'P' if width < height else 'L'
+
+                #  make sure image size is not greater than the pdf format size
+                width = width if width < pdf_size[orientation]['w'] else pdf_size[orientation]['w']
+                height = height if height < pdf_size[orientation]['h'] else pdf_size[orientation]['h']
+
+                pdf.add_page(orientation=orientation)
+
+                pdf.image(img, 47.5, 5, width, height)
+                pdf.output('grid_board_single_marker' + str(self.first_marker) +'.pdf', "F")
+            """
 
     def print_multible_boards(self):
         
@@ -120,6 +151,6 @@ class print_markers:
 if __name__ == "__main__":
 
     pm = print_markers()
-    #pm.print_aruco_board()
-    pm.print_multible_markers()
+    pm.print_aruco_board()
+    #pm.print_multible_markers()
 
