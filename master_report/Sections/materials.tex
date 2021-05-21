@@ -99,10 +99,24 @@ Because LiPo batteries can be dangerous and may cause fire if damaged or overcha
 
 In order to achieve serial communication between the PX4 and the Raspberry Pi, the universal asynchronous receiver-transmitter (UART) port of the PX4 is used via a 6 pin connection cable seen in Figure \ref{fig:six_pin_serial_connection_cable}. Either two ways could be used to achieve serial communication from the point of view of the Raspberry Pi. One method is to use the general purpose input output (GPIO) pins of the Pi which is Tx (transmit) and Rx (receive). If choosing this setup, the data will be transmitted through the \textit{/dev/ttyS0} port of the Raspberry Pi where you got to have read/write privileges or being part of the group \textit{tty} to do so. These settings can be changed accordingly from the terminal in Ubuntu as seen in Listing \ref{lst:change_permissions}. 
 
-\begin{lstlisting}[frame=none,caption={How to change read/write permissions along with adding a user (ubuntu) to the tty group}, label=lst:change_permissions]
+\definecolor{lightgreen}{rgb}{0.56, 0.93, 0.56}
+\definecolor{moonstoneblue}{rgb}{0.45, 0.66, 0.76}
+\begin{listing}[H] 
+\begin{tcolorbox}[
+    enhanced,
+    attach boxed title to top left={xshift=6mm,yshift=-3mm},
+    colback=lightgreen!20,
+    colframe=lightgreen,
+    fonttitle=\bfseries\color{black},
+]
+\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
 $ cd chmod a+rw /dev/ttyS0
 $ usermod -a -G tty ubuntu
-\end{lstlisting}
+\end{minted}
+\end{tcolorbox}
+\caption{How to change read/write permissions along with adding a user (ubuntu) to the tty group}
+\label{lst:change_permissions}    
+\end{listing} 
 
 The other method is to connect the 6 pin connection cable to a TTL 232R cable seen in Figure \ref{fig:usb-TTL_232R_Raspberry_Pi_debug} to the universal serial bus (USB) port of the Raspberry Pi. This can easily be done by solder the Tx, Rx and ground parts of the two cables together. Some benefits comes by using the later solution e.g no problems with u-boot of the Raspberry Pi when the PX4 transmit data on the GPIO pins during boot up of the system  \cite{uBoot}. The latter option is used.
 
@@ -130,7 +144,7 @@ In regard to the onboard computer, a Raspberry Pi 4B with 8 GB of random access 
 
 Because the central processing unit (CPU) of the Raspberry Pi can overheat during constant computational load, a fan is used to cool down the Raspberry Pi during operation. The Shim fan along with the fan attached to the Raspberry Pi can be seen in Figures \ref{fig:raspberry_pi_shim_fan} and \ref{fig:raspberry_pi} respectively. Moreover, by using active cooling instead of passive cooling e.g a aluminum heat-sink Case, the weight of the Pi is reduced. This also enables the use of overclocking of the Raspberry Pi for better performance which is discussed in Section \ref{sec:companion_computer}.
 
-To safely attache the Raspberry Pi on to the drone, a transparent case is used as seen in Figure \ref{fig:raspberry_pi_case}. This case is appropriate because it can store both the Shim fan and Raspberry Pi camera without any change of damage to the hardware on the board. 
+To safely attache the Raspberry Pi on to the drone, a transparent case is used as seen in Figure \ref{fig:raspberry_pi_case}. This case is appropriate because it can store both the Shim fan and Raspberry Pi camera without any change of damage to the hardware on the board. In order to control the UAV using WiFi, another WiFi adapter seen in Figure \ref{fig:tpLinkac} is used in order to get ground truth data from the Optitrack system. This is discussed in Section \ref{sec:companion_computer}.
 
 A Logitech C270 HD camera is used as the front camera and a Raspberry Pi V2 as bottom camera as seen in Figures \ref{fig:raspberry_pi_front_cam} and \ref{fig:raspberry_pi_bottom_cam} respectively. The Logitech camera will be attached to the USB port of the Raspberry Pi while the Raspberry Pi camera is connected through the camera serial interface (CSI). 
 
@@ -159,6 +173,13 @@ A Logitech C270 HD camera is used as the front camera and a Raspberry Pi V2 as b
         \caption{}
         \label{fig:raspberry_pi_case}
     \end{subfigure}
+            \begin{subfigure}[b]{.07\textwidth}
+        \centering
+        \includegraphics[width=1\linewidth]{../Figures/tpLinkac600.png}
+         \vspace{1.0em}
+        \caption{}
+        \label{fig:tpLinkac}
+    \end{subfigure}
      \hspace{-2.0em}
           \hspace{8.0em}
         \begin{subfigure}[b]{.17\textwidth}
@@ -176,7 +197,7 @@ A Logitech C270 HD camera is used as the front camera and a Raspberry Pi V2 as b
         \caption{}
         \label{fig:raspberry_pi_bottom_cam}
     \end{subfigure}
-    \caption{The \href{https://raspberrypi.dk/produkt/raspberry-pi-4-model-b-8-gb/?gclid=CjwKCAjwmv-DBhAMEiwA7xYrd2LC9iHY0AN25mCwZ8Fs49enGRBWJXCx4h8_iUrUABRWneCpaoBL1xoCoqEQAvD_BwE}{Raspberry Pi 4} can be seen in Figure \ref{fig:raspberry_pi} with the \href{https://raspberrypi.dk/produkt/blaeser-shim-til-raspberry-pi/?gclid=CjwKCAjwmv-DBhAMEiwA7xYrd5JllLUeSBohDiBjfJkpH86XFp8hRJX4kEt2lRBBwthX2DqVFSvOvRoCUykQAvD_BwE}{SHIM fan} connected. The \href{https://www.dustinhome.dk/product/5011141918/okdo-raspberry-pi-4-standard-case-clear?ssel=false&gclid=CjwKCAjwmv-DBhAMEiwA7xYrd0phkQRZwAqPH6RzFVFdcMyjZXHYr7NCCICoSREcjA1byAvG8ZpApRoCPEoQAvD_BwE}{case} for the Raspberry Pi can be seen in Figure \ref{fig:raspberry_pi_case}. Lastly, the \href{https://www.elgiganten.dk/product/pc-tablets/webcam/162136/logitech-c270-hd-webkamera?gclid=CjwKCAjwmv-DBhAMEiwA7xYrdzGYXgj59-xIbjHVtHUrPCTyhi44RPsqtSSi8ABd0mK8TRYZaIw8CxoC8nIQAvD_BwE&gclsrc=aw.ds}{Logitech C270 HD} and \href{https://www.proshop.dk/Mini-PC-Android-Raspberry-Pi/Raspberry-Pi-Camera-V2/2621958?utm_source=google&utm_medium=cpc&utm_campaign=searchengine&gclid=CjwKCAjwmv-DBhAMEiwA7xYrd8j1kjOx7KOcc9q1OgHUSgPDvirQwUCqQY-arqanNgdlmTPhYd3GkRoC0L8QAvD_BwE}{Raspberry Pi V2} cameras can be seen in Figures \ref{fig:raspberry_pi_front_cam} and \ref{fig:raspberry_pi_bottom_cam} respectively}
+    \caption{The \href{https://raspberrypi.dk/produkt/raspberry-pi-4-model-b-8-gb/?gclid=CjwKCAjwmv-DBhAMEiwA7xYrd2LC9iHY0AN25mCwZ8Fs49enGRBWJXCx4h8_iUrUABRWneCpaoBL1xoCoqEQAvD_BwE}{Raspberry Pi 4} can be seen in Figure \ref{fig:raspberry_pi} with the \href{https://raspberrypi.dk/produkt/blaeser-shim-til-raspberry-pi/?gclid=CjwKCAjwmv-DBhAMEiwA7xYrd5JllLUeSBohDiBjfJkpH86XFp8hRJX4kEt2lRBBwthX2DqVFSvOvRoCUykQAvD_BwE}{SHIM fan} connected. The \href{https://www.dustinhome.dk/product/5011141918/okdo-raspberry-pi-4-standard-case-clear?ssel=false&gclid=CjwKCAjwmv-DBhAMEiwA7xYrd0phkQRZwAqPH6RzFVFdcMyjZXHYr7NCCICoSREcjA1byAvG8ZpApRoCPEoQAvD_BwE}{case} for the Raspberry Pi can be seen in Figure \ref{fig:raspberry_pi_case}. The used USB WiFi adapter from \href{https://www.avxperten.dk/usb-wifi-adapter/usb-wifi-adapter-600mbps-tp-link-archer-t2u-nano.asp}{TP-Link} can be seen in Figure \ref{fig:tpLinkac}. Lastly, the \href{https://www.elgiganten.dk/product/pc-tablets/webcam/162136/logitech-c270-hd-webkamera?gclid=CjwKCAjwmv-DBhAMEiwA7xYrdzGYXgj59-xIbjHVtHUrPCTyhi44RPsqtSSi8ABd0mK8TRYZaIw8CxoC8nIQAvD_BwE&gclsrc=aw.ds}{Logitech C270 HD} and \href{https://www.proshop.dk/Mini-PC-Android-Raspberry-Pi/Raspberry-Pi-Camera-V2/2621958?utm_source=google&utm_medium=cpc&utm_campaign=searchengine&gclid=CjwKCAjwmv-DBhAMEiwA7xYrd8j1kjOx7KOcc9q1OgHUSgPDvirQwUCqQY-arqanNgdlmTPhYd3GkRoC0L8QAvD_BwE}{Raspberry Pi V2} cameras can be seen in Figures \ref{fig:raspberry_pi_front_cam} and \ref{fig:raspberry_pi_bottom_cam} respectively}
     \label{fig:raspberry_pi_hardware}
 \end{figure}
 
@@ -204,14 +225,9 @@ The Pixhawk 4 mini can be seen in Figure \ref{fig:pixhawk_mini_four_board} with 
 
 All connections between the user, PX4 and Raspberry Pi can be seen in Figure \ref{fig:wiring_diagram}. The green boxes indicates hardware which the user can interact with the drone. The ground control station (GCS) is software installed in the computer from where communication between the GCS and PX4 is giving. This can be commands directly passed to the PX4 system from the GCS e.g takeoff, landing, drone whereabouts etc. This is done from a set of transmit/receiver pairs attached to the computer by a \textit{USB connection} and the other to the PX4 using the \textit{Telem} interface (UART). In order to take command of the drone from manual flying, the pilot can due so by using the transmitter which is connected to the PX4 using a radio receiver module from connected through \textit{RCIN}. The telemetry links along with the GPS can be seen in the yellow boxes, where the GPS is attached to the GPS input of the PX4. 
 
-To communicate directly with the Raspberry Pi, an access point can be set up from a hot-spot or wireless connection to a WiFi network. The configuration of this will be explained in Section \ref{sec:companion_computer}. This enables commands directly passed to the Raspberry Pi for controlling the drone or video streaming of the cameras to the laptop. Furthermore, changes in software can easily be done this way like down- and uploading of new firmware  recursively from the terminal using Listing \ref{lst:scp_down_uploading}.
+To communicate directly with the Raspberry Pi, an access point can be set up from a hot-spot or wireless connection to a WiFi network. The configuration of this will be explained in Section \ref{sec:companion_computer}. This enables commands directly passed to the Raspberry Pi for controlling the drone or video streaming of the cameras to the laptop.
 
 The shim fan is connected to the Raspberry Pi from the GPIOs. This is because the fan can be set with a curtain speed of rotation to take into account the temperature of the CPU to act accordingly. All of the hardware directly associated with the Raspberry Pi are labeled red.  
-
-\begin{lstlisting}[frame=none,caption={How to down- and upload software between laptop and Rasberry Pi respectively using the scp protocol}, label=lst:scp_down_uploading]
-$ scp -r raspberry@<ip-adress-rasperry>:/home/raspberry /home/<user>
-$ scp -r /home/<user> raspberry@<ip-adress-rasperry>:/home/raspberry
-\end{lstlisting}
 
 Through the output pins of the PX4 power is regulated using electronic speed controllers (ESC) before past to the four motors connected to the propellers of the drone. As already mentioned, the batteries are connected separately to the PX4 and Raspberry Pi through power converters from where constant and stable voltage an current are giving to the two units.   
 
@@ -305,8 +321,9 @@ Raspberry pi (\textit{Raspberry Pi and related materials}) & \\
 \phantom{ZZ} Okdo Raspberry Pi 4 Standard Case Clear & dustinhome.dk & 1 & 55,00 DKK \\
 \phantom{ZZ} Logitech C270 HD camera & elgiganten.dk & 1 & 249,00 DKK \\
 \phantom{ZZ} Raspberry Pi Camera V2 & proshop.dk & 1 & 299,00 DKK \\
+\phantom{ZZ} USB WiFi adapter & avxperten.dk & 1 & 149,00 DKK \\
 
-\textsc{Overall product price} & & & \fbox{4.502,14 DKK} \\
+\textsc{Overall product price} & & & \fbox{4.651,14 DKK} \\
 
 \bottomrule                
 \end{tabular}
