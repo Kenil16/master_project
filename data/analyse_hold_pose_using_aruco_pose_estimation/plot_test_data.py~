@@ -13,7 +13,8 @@ class plot_data():
     def __init__(self):
 
         self.data = []
-        dir_ = 'test5_landingBoard3_noWind/'
+        #dir_ = 'test2_gps2visionBoard_1.0Wind_-1.0y/'
+        dir_ = 'hold_pose_landing_board_two_test/'
         
         self.cur_dir = dir_
 
@@ -148,7 +149,7 @@ class plot_data():
             setpoint_error_std = []
             
             self.plot_data([aruco_roll, setpoint_roll, g_roll], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-                'Error [m]', 'Error in angle and setpoint deviation in roll', [['Aruco angle roll'],['Setpoint roll'],['Ground truth roll']], 
+                'Error [degress]', 'Error in angle and setpoint deviation in roll', [['Aruco angle roll'],['Setpoint roll'],['Ground truth roll']], 
                 self.error_roll_plot_path + 'pose_error_roll_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
@@ -157,7 +158,7 @@ class plot_data():
             setpoint_error_std.append(self.setpoint_std)
             
             self.plot_data([aruco_pitch, setpoint_pitch, g_pitch], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-                    'Error [m]', 'Error in angle and setpoint deviation in pitch', [['Aruco angle pitch'],['Setpoint pitch'],['Ground truth pitch']], 
+                    'Error [degress]', 'Error in angle and setpoint deviation in pitch', [['Aruco angle pitch'],['Setpoint pitch'],['Ground truth pitch']], 
                     self.error_pitch_plot_path + 'pose_error_pitch_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
@@ -166,7 +167,7 @@ class plot_data():
             setpoint_error_std.append(self.setpoint_std)
             
             self.plot_data([aruco_yaw, setpoint_yaw, g_yaw], 'Time [s]', 'Time [s]', 'Angle [degress]', 
-                    'Error [m]', 'Error in angle and setpoint deviation in yaw', [['Aruco angle yaw'],['Setpoint yaw'],['Ground truth yaw']], 
+                    'Error [degress]', 'Error in angle and setpoint deviation in yaw', [['Aruco angle yaw'],['Setpoint yaw'],['Ground truth yaw']], 
                     self.error_yaw_plot_path + 'pose_error_yaw_test' + str(test) + '.png')
             
             aruco_error_mean.append(self.aruco_mean)
