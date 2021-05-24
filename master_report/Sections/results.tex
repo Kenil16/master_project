@@ -1098,7 +1098,7 @@ $3.15^{\circ}$ & $0.02^{\circ}$\\
         \caption{}
         \label{fig:optitrack_hold_pose_board_three}
     \end{subfigure}
-    \caption{Illustrations}
+    \caption{Illustrations of the different configurations of the tests. The ArUco landing boards are used in Figure \ref{fig:optitrack_hold_pose_board_one}, \ref{fig:optitrack_hold_pose_board_two} and \ref{fig:optitrack_hold_pose_board_three} for landing station one, two and three respectively. Videos with sound of the tests can be seen on Github using \href{https://github.com/Kenil16/master_project/blob/master/test\_videos/optitrack/hold\_pose\_using\_estimated\_aruco\_pose\_one.mp4}{Landing station one}, \href{https://github.com/Kenil16/master_project/blob/master/test\_videos/optitrack/hold\_pose\_using\_estimated\_aruco\_pose\_two.mp4}{Landing station two} and \href{https://github.com/Kenil16/master_project/blob/master/test\_videos/optitrack/hold\_pose\_using\_estimated\_aruco\_pose\_three.mp4}{Landing station three}}
     \label{fig:optitrack_hold_pose_boards}
 \end{figure}
 
@@ -1106,7 +1106,7 @@ $3.15^{\circ}$ & $0.02^{\circ}$\\
     \centering
     \addtolength{\leftskip} {-2cm}
     \addtolength{\rightskip}{-2cm}
-        \caption{Statistics of the results of holding the pose using the ArUco landing boards. It may be noticed that as more ArUco markers are present in the image, the lesser is the pose estimation error. However, no significant decrease in the pose estimation error is seen between using landing board one and three even though the entire image is filled with ArUco markers as seen in Figure \ref{fig:hold_pose_aruco_board_five}}
+        \caption{Statistics of the results of holding the pose using the ArUco landing boards. It may be noticed that the error is in the order of centimeters for the position. This error is primarily due to an offset in the ArUco boards in regard to the OptiTrack system. This is clearly seen in Figure \ref{fig:optitrack_hold_pose_using_estimated_aruco_pose_error_pos_test_five} and \ref{fig:optitrack_hold_pose_using_estimated_aruco_pose_error_ori_test_five}. Hence, the actual difference between the pose estimated from the ArUco boards and Optitrack system is quite small. Moreover, negligible fluctuations in the pose estimations yields a small STD which agrees with the results in the simulations in Section \ref{sec:hold_pose_using_aruco_pose_estimation}}
         \pgfplotstabletypeset[normal,
                 columns/eg/.style={
                 column name={Runs},
@@ -1151,7 +1151,7 @@ Setpoint         & 5      & No & $4.54cm$ & $3.03cm$ & $0.87^{\circ}$ & $0.22^{\
         \caption{}
         \label{fig:optitrack_hold_pose_using_estimated_aruco_pose_error_z_test_five}
     \end{subfigure}
-    \caption{Illustration of the pose estimation and setpoint error using configuration in Figure \ref{fig:hold_pose_aruco_board_one_5-7ms_wind}. It may be noticed that the pose estimation errors in x and y are in the orders of centimeters with a bit increase in error in z}
+    \caption{Illustration of the position estimation and setpoint error using configuration in Figure \ref{fig:optitrack_hold_pose_board_three}. The ArUco position estimation can be seen to follow the ground truth of the OptiTrack system quite nicely and only deviates in an offset}
     \label{fig:optitrack_hold_pose_using_estimated_aruco_pose_error_pos_test_five}
 \end{figure}
 
@@ -1178,7 +1178,7 @@ Setpoint         & 5      & No & $4.54cm$ & $3.03cm$ & $0.87^{\circ}$ & $0.22^{\
         \caption{}
         \label{fig:optitrack_hold_pose_using_estimated_aruco_pose_error_yaw_test_five}
     \end{subfigure}
-    \caption{Illustration of the pose estimation and setpoint error using configuration in Figure \ref{fig:hold_pose_aruco_board_one_5-7ms_wind}. It may be noticed that the pose estimation errors in x and y are in the orders of centimeters with a bit increase in error in z}
+    \caption{Illustration of the angle estimation and setpoint error using configuration in Figure \ref{fig:optitrack_hold_pose_board_three}. The ArUco angle estimation can be seen to follow the ground truth of the OptiTrack system quite nicely and only deviates in an offset}
     \label{fig:optitrack_hold_pose_using_estimated_aruco_pose_error_ori_test_five}
 \end{figure}
 

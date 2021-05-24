@@ -68,7 +68,7 @@ A number of different 3D models have been created to be used in the simulation e
 
 The general idea behind this design is that the UAV can fly towards the wall and locate the ArUco marker board placed at the top of the wall. This board can be seen in Figure \ref{fig:gazebo_gps2vision_board} which is called GPS2Vsion board because the UAV will use this board when switching from using GPS to vision coordinates. This will enable GPS to vision based navigation where the UAV shifts between using the GPS as the global coordinate system to that of the ArUco marker board (vision based). When the UAV has positioned itself with a certain distance away from this marker board, it will switch to using the bottom camera where the ArUco board located on the ground will function as a world coordinate system. In this scenario, the UAV is to land on one of three different locations in front of the ArUco board located at the end of each track. Here transformations of the pose of these three ArUco boards have been performed to align these with that of the ArUco board located on the ground (world coordinate) to avoid switching between different coordinate systems. This will be explained further in Section \ref{sec:pose_estimation_using_aruco_markers}. 
 
-The ArUco markers used in these models will be ($5 \times 5$) bit markers. The GPS to vision marker board located on the top of the wall will be a ($2\times 4$) with marker length of 0.2 m and marker separation of 0.1 m, the ground marker a ($25\times25$) with marker length of 0.2 m and marker separation of 0.1 m and the landing markers ($4\times2$) with marker length of 0.2 m and marker separation of 0.1 m. These sizes have been chosen to be appropriate taking into account the size of the optitrack system where a flying height of approximately 1.5 m will be used.
+The ArUco markers used in these models will be ($5 \times 5$) bit markers. The GPS to vision marker board located on the top of the wall will be a ($2\times 4$) board with marker length of 0.2 m and marker separation of 0.1 m, the ground marker a ($25\times25$) board with marker length of 0.2 m and marker separation of 0.1 m and the landing marker boards ($4\times2$) with marker length of 0.2 m and marker separation of 0.1 m. These sizes have been chosen to be appropriate taking into account the size of the optitrack system where a flying height of approximately 1.5 m will be used.
 
 If this setup were to be implemented in real life, an implementation with fewer ArUco markers would be beneficial if this would not decrease the precision of the pose estimation too much. In this small ($25\times25$) ArUco marker board scenario it would not be a general problem, but if this has to be scalable e.g. big industrial companies, great performance using a small amount of ArUco markers would be preferred.
 
@@ -95,7 +95,7 @@ Because the precision of the pose estimation from ArUco marker boards will be ba
 
 Because relying completely on vision based navigation will put the system in a vulnerable position e.g. no markers are found in the image, optimizations have to be performed. This will be utilized through sensor fusion where the pose estimation from the ArUco marker board and sensor data from the inertial measurement unit (IMU) and barometer will be fused together to give a more reliable estimation of the current position of the UAV. The implementation of this will be discussed in Section \ref{sec:sensor_fusion}. 
 
-To evaluate the performance of sensor fusion, two models with missing ArUco markers have been created as seen in Figure \ref{fig:gazebo_one_pattern_board_missing_markers} and \ref{fig:gazebo_one_pattern_board_missing_markers_wear}. The goal of this is to have the UAV to fly a couple of meters without any global position (vision) for the pose estimation and still keep its track until the pose will be updated when markers again are visible for the UAV.
+To evaluate the performance of sensor fusion, two models with missing ArUco markers have been created as seen in Figure \ref{fig:gazebo_one_pattern_board_missing_markers} and \ref{fig:gazebo_one_pattern_board_missing_markers_wear}. The goal of this is to have the UAV to fly a couple of meters without any vision position update for the pose estimation and still keep its track until the pose will be updated when markers again are visible for the UAV.
 
 For the vision based landing, three different ArUco marker boards have been created. These can be seen in Figure \ref{fig:gazebo_landing_board_one}, \ref{fig:gazebo_landing_board_two} and \ref{fig:gazebo_landing_board_three} which are called landing board one, landing board two and landing board three respectively. Because these boards have been created is to analyze the performance of pose estimation when a different number of ArUco markers are visible in the image. More ArUco markers in the image should give better pose estimates because more points from each marker are fused together to give a better pose estimation. Hence, these three landing boards will be used to analyze if a very high number of ArUco markers in the image are required for a precise landing. Results of this can be seen in Section \ref{sec:hold_pose_using_aruco_pose_estimation} and \ref{sec:vision_based_landing}. 
 
@@ -128,7 +128,7 @@ For the vision based landing, three different ArUco marker boards have been crea
         \caption{}
         \label{fig:gazebo_landing_board_three}
     \end{subfigure}
-    \caption{Illustration of the created ArUco marker boards used in simulation. The board in \ref{fig:gazebo_gps2vision_board} is used for the GPS to vision transition for navigation and the boards in Figure \ref{fig:gazebo_landing_board_one}, \ref{fig:gazebo_landing_board_two} and \ref{fig:gazebo_landing_board_three} are used for vision based landing}  
+    \caption{Illustration of the created ArUco marker boards used in simulation. The board in \ref{fig:gazebo_gps2vision_board} is used for the GPS to vision transition for navigation and the boards in Figure \ref{fig:gazebo_landing_board_one}, \ref{fig:gazebo_landing_board_two} and \ref{fig:gazebo_landing_board_three} are used for vision based landings}  
     \label{fig:gazebo_aruco_marker_boards}
 \end{figure}      
 
@@ -170,7 +170,7 @@ For the vision based landing, three different ArUco marker boards have been crea
 
 Gazebo is an open source 3D robotic simulator which integrates the open dynamics engine (ODE) physics engine, openGL rendering and supports code for both actuator control and sensor simulation. Using this software, the UAV can be tested and simulated in environments and conditions close to real life. Hence, all tests will be performed in simulation before further action will be executed with the UAV. Furthermore, wind can be applied to the simulation which will also be a critical aspect to consider before deployment of the UAV. 
 
-To use the newly created models, a world file must be defined. The world file includes all elements which are to be included in a given simulation such as robots, lights, sensors, objects etc. The file must end with a \textit{.world} extension to be recognized as a world file. The GZServer will read this file which builds the world as a virtual environment for which the robot can operate. This means that the operation can be visualized using GZClient or be run in the background only using GZServer to save systems resources. The latter corresponds to running Gazebo in headless mode, which is a great feature to use if a number of simulations have to be performed in a automatic fashion.
+To use the newly created models, a world file must be defined. The world file includes all elements which are to be included in a given simulation such as robots, lights, sensors, objects etc. The file must end with a \textit{.world} extension to be recognized as a world file. The GZServer will read this file which builds the world as a virtual environment for which the robot can operate. This means that the operation can be visualized using GZClient or be run in the background only using GZServer to save systems resources. The latter corresponds to running Gazebo in headless mode, which is a great feature to use if a number of simulations have to be performed in an automatic fashion.
 
 The world file uses the SDF format which contains things like \textit{worlds}, \textit{models} etc. Joints can be set to be either revolute or prismatic according to the wanted configuration. To each joint a link can be attached. The collision, visualization and inertia tags specifies the visualization for the model, collision detection and physics in Gazebo respectively. The static tags are used for models which have to be static throughout a simulation like ground, tress etc. The same SDF format is used when creating a model, where the \textit{.dae} file is included to use the 3D models created in Blender.  
 
@@ -187,9 +187,9 @@ specialization in unmanned aerial systems technology at the University of Southe
 \subsubsection{QGroundControl}
 \label{sec:qgroundcontrol}
 
-\href{https://docs.qgroundcontrol.com/master/en/}{QGroundControl} offers full flight control and setup of the vehicles for a number of flight controllers including PX4. The advantage of using this as the GCS is that one gets immediate updates of the state of the drone e.g pose, power of battery, errors etc. to a laptop using a wireless connection.  Moreover, the latest stable PX4 Firmware can be fetched and flashed directly to the SD card of the PX4. An visualization of the QGroundcontrol GUI can be seen in Figure \ref{fig:qgroundcontrol}.
+\href{https://docs.qgroundcontrol.com/master/en/}{QGroundControl} offers full flight control and setup of the vehicles for a number of flight controllers including PX4. The advantage of using this as the GCS is that one gets immediate updates of the state of the UAV e.g pose, power of battery, errors etc. to a laptop using a wireless connection.  Moreover, the latest stable PX4 Firmware can be fetched and flashed directly to the SD card of the PX4. A visualization of the QGroundcontrol GUI can be seen in Figure \ref{fig:qgroundcontrol}.
 
-The primary usage of this software will be to change parameters on the UAV in flight e.g vertical and horizontal velocities, changes of parameters of PIDs for pose control etc. Furthermore, sensor calibration of the compass, gyroscope and accelerometer can easily be done before every flight to achieve the best performance of the UAV. Besides of this, transmitter and telemetry setup can be performed where different flight modes can be encoded to belong to a giving channel on the transmitter for manual control of the UAV. Especially two flight modes will be encoded in the system to be triggered when the transmitter is used namely \textit{\textbf{altitude}} and \textit{\textbf{manual}}. The \textit{\textbf{altitude}} mode offers altitude control where the altitude is keep constant using the barometer in the PX4 sensors. In \textit{\textbf{manual mode}}, the pilot has full control of the UAV where he has to control both altitude and attitude of the UAV. These modes can then be used to take manual control of the UAV if something unexpected should happen when the UAV is in autonomous offboard mode. A more thorough description of the different flight modes offered in PX4 can be seen in \href{https://docs.px4.io/v1.9.0/en/flight_modes/}{flight modes}.
+The primary usage of this software will be to change parameters on the UAV in flight e.g vertical and horizontal velocities, changes of parameters of PIDs for pose control etc. Furthermore, sensor calibration of the compass, gyroscope and accelerometer can easily be done before every flight to achieve the best performance of the UAV. Besides of this, transmitter and telemetry setup can be performed where different flight modes can be encoded to belong to a giving channel on the transmitter for manual control of the UAV. Especially two flight modes will be encoded in the system to be triggered when the transmitter is used namely \textit{\textbf{altitude}} and \textit{\textbf{manual}}. The \textit{\textbf{altitude}} mode offers altitude control where the altitude is kept constant using the barometer in the PX4 sensors. In \textit{\textbf{manual mode}}, the pilot has full control of the UAV where he has to control both altitude and position of the UAV. These modes can then be used to take manual control of the UAV if something unexpected should happen when the UAV is in autonomous offboard mode. A more thorough description of the different flight modes offered in PX4 can be seen in \href{https://docs.px4.io/v1.9.0/en/flight_modes/}{flight modes}.
 
 \begin{figure}[H]
     \centering
@@ -220,7 +220,7 @@ The primary usage of this software will be to change parameters on the UAV in fl
         \caption{SDU drone model}
         \label{fig:sdu_drone}
     \end{subfigure}
-    \caption{Illustration of different air frame configurations which can be set in QGroundControl. The Holybro QAV250 Quadcopter uses the configuration in Figure \ref{fig:quadrotor} and the SDU drone model seen in Figure \ref{fig:sdu_drone} developed by \href{https://portal.findresearcher.sdu.dk/da/persons/jes-grydholdt-jepsen}{Jes Grydholdt Jepsen} uses the configuration seen in Figure \ref{fig:hexarotor}}
+    \caption{Illustration of different air frame configurations which can be set in QGroundControl. The Holybro QAV250 Quadcopter uses the configuration in Figure \ref{fig:quadrotor} and the SDU drone model seen in Figure \ref{fig:sdu_drone} created by \href{https://portal.findresearcher.sdu.dk/da/persons/jes-grydholdt-jepsen}{Jes Grydholdt Jepsen} uses the configuration seen in Figure \ref{fig:hexarotor}}
     \label{fig:airframes}
 \end{figure}
 
@@ -298,7 +298,7 @@ Interface between the marker detection script and ROS
 \end{minipage}\vspace{0.5em}  \\
 
 \hline
-data\_data.py &
+log\_data.py &
 \begin{minipage}[t]{\linewidth}%
 Responsible for logging of estimated ArUco marker board pose data   
 \end{minipage}\\
@@ -328,13 +328,13 @@ Interface between the sensor fusion script and ROS
 \end{minipage}\vspace{0.5em}  \\
 
 \arrayrulecolor{black}\hline
-ukf.py &
+ukf.py \cite{UKF} &
 \begin{minipage}[t]{\linewidth}%
 Unscented Kalman filter (UKF) implementation 
 \end{minipage}\vspace{0.5em}  \\
 
 \hline
-data\_data.py &
+log\_data.py &
 \begin{minipage}[t]{\linewidth}%
 Responsible for logging sensor fusion data   
 \end{minipage}\\
@@ -402,7 +402,7 @@ Responsible for arming, mode change, service calls and parameter chances of the 
 \end{minipage}\vspace{0.5em}\\
 
 \hline
-data\_data.py &
+log\_data.py &
 \begin{minipage}[t]{\linewidth}%
 Responsible for logging of UAV data in tests   
 \end{minipage}\\
@@ -416,11 +416,11 @@ Responsible for logging of UAV data in tests
 
 A flowchart of the system used in offboard control can be seen in Figure \ref{fig:offboard_control}. This gives a simplified overview of the main messages distributed between the nodes. In this design a number of six nodes are used. The core node is called \textit{\textbf{drone\_control}} which is set with 30 updates each second. This node is responsible for publishing set points to the PX4 as well as the state on the onboard system. The reason for having only one node publishing set points is for safety reasons so that no more than a single node can publish new set points to the UAV. The onboard states includes takeoff, loiter, return to home or some of the missions which have been defined to be executed during flight. Hence, through keyboard commands, the onboard state can be changed. 
 
-This is done using the node \textit{\textbf{ground\_control}} which is set with 10 updates each second. This node listings to keyboard commands and publishes these if an update occurs e.g a keystroke. The reason for having this as a separate node is that keystrokes does show up in a the main terminal which makes it hard to analyze important updates from the PX4 and other nodes that publishes updates to the user from the terminal. Hence, a separate terminal (terminal window) will open for keyboard inputs and a main terminal with updates on the current state of the system will be used. 
+This is done using the node \textit{\textbf{ground\_control}} which is set with 10 updates each second. This node listings to keyboard commands and publishes these if an update occurs e.g a keystroke. The reason for having this as a separate node is that keystrokes do show up in a the main terminal which makes it hard to analyze important updates from the PX4 and other nodes that publishes updates to the user from the terminal. Hence, a separate terminal (terminal window) will open for keyboard inputs and a main terminal with updates on the current state of the system will be used. 
 
 Another node which subscribes to updates giving from keystrokes is called  \textit{\textbf{loiter\_pilot}} which is set with 20 updates each second. This node enables the user to take full control of the UAV using keystrokes which makes it much easier to debug the system. The possible commands giving from the user can be seen in Table \ref{tab:ros_commands}. This table is split up into commands passed to the drone control and loiter pilot node. The latter will increment/decrement the current position of the UAV with 0.5 m and increment/decrement the yaw angle by 5 degrees for each keystroke given. The loiter pilot node also subscribes to the local position topic, but is not visualized in Figure \ref{fig:offboard_control}.
 
-All missions giving to the UAV will be controlled in the \textit{\textbf{autonomous\_flight}} node which is set with 10 updates each second. In this node different missions can be executed which is discussed in Section \ref{sec:offboard_control_system}. These missions are started by the control node after giving numerical values to the terminal by keystrokes as seen in Table  \ref{tab:ros_commands}. This is done so that a number of missions can be executed for testing the performance of the UAV in the simulation. Moreover, this node listings to the current position of the UAV which will be used to determine when a giving set point has been reached giving a predefined flight plan. 
+All missions giving to the UAV will be controlled in the \textit{\textbf{autonomous\_flight}} node which is set with 10 updates each second. In this node different missions can be executed which is discussed in Section \ref{sec:offboard_control_system}. These missions are started by the control node after giving numerical values to the terminal by keystrokes as seen in Table  \ref{tab:ros_commands}. This is done so that a number of missions can be executed for testing the performance of the UAV in the simulation as well as the implementation on the Raspberry Pi.
 
 \begin{figure}[H]
     \centering
@@ -429,22 +429,24 @@ All missions giving to the UAV will be controlled in the \textit{\textbf{autonom
     \label{fig:offboard_control}
 \end{figure}
 
+Moreover, this node listings to the current position of the UAV which will be used to determine when a giving set point has been reached giving a predefined flight plan.
+
 The use of ROS gives the opportunity to subscribe to services from the PX4. These services includes arming the UAV, change parameters like vertical or horizontal speed and much more. This is beneficial because the parameters can be changed during flight in offboard control. This is done using a script called \href{https://github.com/Kenil16/master\_project/blob/master/software/ros\_workspace/src/offboard\_control/uav\_flight\_modes.py}{uav\_flight\_modes.py}. 	
 
 Furthermore, this node publishes the wanted ArUco marker board from which a pose estimation is wanted to be estimated. This is done to distinguish between the GPS to vision marker, world marker on the ground and landing markers. Also the detection of the specified ArUco marker board will be returned as a Boolean to the autonomous flight node by a subscription to the ArUco board found topic. This is done so that the mission will not start until the wanted marker has been located. Furthermore, the distance to the GPS2Vision marker board, its center and a Boolean of whether the estimated pose is considered stable is given to this node.  
 
 The \textit{\textbf{marker\_detection}} node will analyze the incoming images from the front and bottom camera and estimate the ArUco pose if any markers is located in the image. This node is set with 5 updates each second. The theory behind the pose estimation of the ArUco markers will be giving in Section \ref{sec:pose_estimation_using_aruco_markers}. When the pose has been estimated, the result is published to other nodes in the system.
 
-The node which uses the ArUco marker pose is called \textit{\textbf{sensor\_fusion}} which is set with 20 updates each second. This node takes the pose and optimizes it based on fusion with IMU and altimeter (barometer) data. This is done to insure that the UAV still gets an updated pose estimation even though no markers being detected in the image. This is very important because the UAV uses the ArUco markers as its local coordinate system. The implementation of sensor fusion will be discussed in \ref{sec:sensor_fusion}. Moreover, this node also gets a boolean of whether the ArUco marker board has been detected, because it first initiates when reliable pose estimates from ArUco markers are being published. 
+The node which uses the ArUco marker pose is called \textit{\textbf{sensor\_fusion}} which is set with 20 updates each second. This node takes the pose and optimizes it based on fusion with IMU and altimeter (barometer) data. This is done to ensure that the UAV still gets an updated pose estimation even though no markers being detected in the image. This is very important because the UAV uses the ArUco markers as its local coordinate system. The implementation of sensor fusion will be discussed in \ref{sec:sensor_fusion}. Moreover, this node also gets a boolean of whether the ArUco marker board has been detected, because it first initiates when reliable pose estimates from ArUco markers are being published. 
 
 As seen in Figure \ref{fig:offboard_control}, the drone control node publishes set points to either global position (geographic coordinates), local position (Cartesian coordinates) or vision pose (Cartesian coordinates). The later is a very important aspect of this implementation, which must be mentioned. When the UAV gets the pose from a GPS as either   geographic or Cartesian transformed (UTM) coordinates as global or local respectively, the UAV uses this coordinate system for navigation. The PX4 auto pilot is relying on an extended Kalman filter for sensor fusion which can be altered from the parameter \textit{EKF2\_AID\_MASK} from the list of services. This uses GPS positions as default, but can be changed to fuse the estimated vision pose instead. By using this configuration, the estimation of the local coordinate system can be changed during flight when the UAV is to navigate according to ArUco markers. This way, the use of the build in control schemes for pose control can still be used, but now the UAV navigates according to vision instead of GPS. Hence, a smooth transition from using GPS to vision and vision to GPS can be applied whenever needed. This is also one of the reasons why the pose estimation from the ArUco markers has to be very precise without much variance in its estimates. Otherwise, this could lead to an unstable system where the UAV could have trouble positioning itself according to the predefined pose. 
 
 \paragraph{GPS to vision transition}
 \label{sec:gps_to_vision_transition}
 
-Because going from one coordinate system to another comes with a cost of an unstable system for a short amount of time, the parameters \textit{MPC\_XY\_VEL\_MAX}, \textit{MPC\_Z\_VEL\_MAX\_DN} and  \textit{MPC\_Z\_VEL\_MAX\_UP} for horizontal and vertical velocities  and \textit{MC\_ROLLRATE\_MAX}, \textit{MC\_PITCHRATE\_MAX} and \textit{MC\_YAWRATE\_MAX} for angular velocities can be set to a very low value before changing between coordinate systems e.g GPS to vision. This insures the UAV responds very slowly in the phase of instability caused by the local position and set point position are not aligned i.e. either one is publishing values from the old configuration due to a time delay. Then when the system has settled, the speeds are set back to its initial configuration yielding a smooth transition. This is simply done by inserting a time delay of a few hundreds of milliseconds after a change in the coordinate system to avoid this instability causing problems to the performance of the UAV.
+Because going from one coordinate system to another comes with a cost of an unstable system for a short amount of time, the parameters \textit{MPC\_XY\_VEL\_MAX}, \textit{MPC\_Z\_VEL\_MAX\_DN} and  \textit{MPC\_Z\_VEL\_MAX\_UP} for horizontal and vertical velocities  and \textit{MC\_ROLLRATE\_MAX}, \textit{MC\_PITCHRATE\_MAX} and \textit{MC\_YAWRATE\_MAX} for angular velocities can be set to a very low value before changing between coordinate systems e.g GPS to vision. This ensures the UAV responds very slowly in the phase of instability caused by the local position and set point position are not aligned i.e. either one is publishing values from the old configuration due to a time delay. Then when the system has settled, the speeds are set back to its initial configuration yielding a smooth transition. This is simply done by inserting a time delay of a few hundreds of milliseconds after a change in the coordinate system to avoid this instability causing problems to the performance of the UAV.
 
-However, this  solution does no take into account the contribution of wind, which could make the UAV fly away because of decreased rates in angular as well as positional velocities. Moreover, because the ArUco marker board has its own cooridnate system, the local coordinate system of the UAV could potentially be very different in regard to position which would yield errors in the build in Extended Kalman filter of the PX4 if big changes were made in position from one time instant to other.    
+However, this  solution does no take into account the contribution of wind, which could make the UAV fly away because of decreased rates in angular as well as positional velocities. Moreover, because the ArUco marker board has its own coordinate system, the local coordinate system of the UAV could potentially be very different in regard to position which would yield errors in the build in Extended Kalman filter of the PX4 if big changes were made in position from one time instant to other.    
 
 A mitigation to this problem is to map the local pose of the UAV when it is about to change from using GPS to vision based navigation to that of the vision pose from the ArUco pose estimation. This is done by finding the rotation between the current pose of the UAV and that of the ArUco marker board. This is done in Equation \ref{eq:r_uav2aruco}.
 
@@ -503,11 +505,11 @@ This vector of the difference between the estimated ArUco position and the offse
 	\label{eq:yaw_transformed}
 \end{equation}
 
-When the position has been transformed to align to the original UAV coordinate system they are simply added to the offset of the UAV using Equation \ref{eq:x_transformed},  \ref{eq:y_transformed} and  \ref{eq:z_transformed}. Because both the UAV and ArUco marker board uses coordinate systems with the z-axis pointing up, the yaw angle is just added to the offset as seen in Equation \ref{eq:yaw_transformed} without any transformation needed. These steps are performed in a method called \href{https://github.com/Kenil16/master_project/blob/master/software/ros_workspace/src/offboard_control/transformations_calculations.py} {transformations calculations} which can be seen in GitHub. Hence, the latter solution will be used in the transition from using GPS to vision based navigation to insure a stable and reliable transition. 
+When the position has been transformed to align to the original UAV coordinate system they are simply added to the offset of the UAV using Equation \ref{eq:x_transformed},  \ref{eq:y_transformed} and  \ref{eq:z_transformed}. Because both the UAV and ArUco marker board uses coordinate systems with the z-axis pointing up, the yaw angle is just added to the offset as seen in Equation \ref{eq:yaw_transformed} without any transformation needed. These steps are performed in a method called \href{https://github.com/Kenil16/master_project/blob/master/software/ros_workspace/src/offboard_control/transformations_calculations.py} {transformations calculations} which can be seen in GitHub. Hence, the latter solution will be used in the transition from using GPS to vision based navigation to ensure a stable and reliable transition. 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[height=4.5cm]{../Figures/state_machine_gps2vision_transition.png}
+    \includegraphics[height=4.5cm]{../Figures/gps2vision_transition.png}
     \caption{Illustration of the sub-states when initializing GPS to vision based navigation. Gray boxes defines the use of GPS for pose estimation and blue boxes vision based estimation}
     \label{fig:state_machine_gps2vision_transition}
 \end{figure}
@@ -601,7 +603,7 @@ The \textit{Hold ArUco pose estimation test} is performed to see how well the UA
 
 The \textit{GPS to vision test} was performed to evaluate the performance of the GPS to vision transition discussed in Section \ref{sec:gps_to_vision_transition}. This test includes all steps from using GPS, to locate the marker board, navigate to the marker board and initialize the GPS to vision transition. Results of this can be seen in Section \ref{sec:gps2vision_transition}.
 
-In the \textit{Vision based navigation test}, the performance of using the bottom camera to navigate the UAV is evaluated. In this test sensor fusion is used in the indoor environment with a number of different configuration of markers located on the ground. Results can be seen in Section \ref{sec:vision_based_navigation}. 
+In the \textit{Vision based navigation test}, the performance of using the bottom camera to navigate the UAV is evaluated. In this test, sensor fusion is used in the indoor environment with a number of different configuration of markers located on the ground. Results can be seen in Section \ref{sec:vision_based_navigation}. 
 
 Finally, the vision based landing procedure is tested in \textit{Landing test}. Here the UAV will move between landing stations and land in front of the landing boards where the final landing position will be compared to that of the ground truth to evaluate the performance from the wanted setpoint location. Results can be seen in Section \ref{sec:vision_based_landing}
 
@@ -950,7 +952,7 @@ It may be noticed that the GPS2Vision marker board and all landing marker boards
 This initial step goes for both cameras. Now to get the position of the UAV w.r.t the ground marker, Equation \ref{eq:translation_drone2ground_gps2vision} is used.
 
 \begin{equation}
-	P^{Drone}_{Marker_{Ground}} = T^{Marker_{GPS2vision}}_{Marker_{ground}} \cdot T^{Drone}_{Camera_{front}} \cdot t
+	P^{UAV}_{Marker_{Ground}} = T^{Marker_{GPS2vision}}_{Marker_{ground}} \cdot T^{UAV}_{Camera_{front}} \cdot t
 	\label{eq:translation_drone2ground_gps2vision} 
 \end{equation}
 
@@ -973,7 +975,7 @@ This initial step goes for both cameras. Now to get the position of the UAV w.r.
     \label{fig:3d_view_aruco_coordinate_systems}
 \end{figure}
 
-Here a transformation of the position of the GPS2Vision marker board w.r.t the ground marker is multiplied with a transformation of the drone w.r.t the front camera which is then multiplied with the translation vector from the front camera to the marker. The same principle goes for Equation \ref{eq:translation_drone2ground_landing1} according to the $Marker_{landing_1}$, Equation \ref{eq:translation_drone2ground_landing2} for the $Marker_{landing_2}$, Equation  \ref{eq:translation_drone2ground_landing3} for the  $Marker_{landing_3}$ and Equation \ref{eq:translation_drone2ground} where the later uses the bottom camera for pose estimation of the ground marker.   
+Here a transformation of the position of the GPS2Vision marker board w.r.t the ground marker is multiplied with a transformation of the UAV w.r.t the front camera which is then multiplied with the translation vector from the front camera to the marker. The same principle goes for Equation \ref{eq:translation_drone2ground_landing1} according to the $Marker_{landing_1}$, Equation \ref{eq:translation_drone2ground_landing2} for the $Marker_{landing_2}$, Equation  \ref{eq:translation_drone2ground_landing3} for the  $Marker_{landing_3}$ and Equation \ref{eq:translation_drone2ground} where the later uses the bottom camera for pose estimation of the ground marker.   
 
 
 \begin{equation}
@@ -1112,8 +1114,7 @@ k_1 & k_2 & p_1 & p_2 & k_3
 \label{eq:distortion_coefficients_bottom}
 \end{equation}
 
-The outcome of the calibration can be seen in Equation \ref{eq:camera_matrix_front} and \ref{eq:distortion_coefficients_bottom} for the camera matrix of the front and bottom camera respectively and distortion parameters in \ref{eq:distortion_coefficients_front} and \ref{eq:distortion_coefficients_bottom} for the front and bottom camera respectively. Here the focal length $f_x$ and $f_y$ has been estimated along the optical center $c_x$ and $c_y$. These values will only be used on the real UAV and not in the simulation where no camera calibration will be performed. 
-
+The outcome of the calibration can be seen in Equation \ref{eq:camera_matrix_front} and \ref{eq:distortion_coefficients_bottom} for the camera matrix of the front and bottom camera respectively and distortion parameters in \ref{eq:distortion_coefficients_front} and \ref{eq:distortion_coefficients_bottom} for the front and bottom camera respectively. Here the focal length $f_x$ and $f_y$ has been estimated along the optical center $c_x$ and $c_y$. These values will only be used on the real UAV and not in the simulation where no camera calibration will be performed.
 
 \subsection{Sensor fusion}
 \label{sec:sensor_fusion}
@@ -1536,6 +1537,10 @@ rosrun topic_tools relay /vrpn_client_node/<rigid_body_name>/pose /mavros/vision
 
 This way the exact same code can be used as in the simulation, but instead of subscribing to the ground truth pose of the UAV from Gazebo, the pose estimated from the OptiTrack system can be used from the topic published using Listing \ref{lst:run_vrpn_client_ros}. 
 
-For using the estimated pose of the UAV from the OptiTrack system as the local coordinate system of the UAV, Listing \ref{lst:relay_vrpn_client_ros} is used. This maps the pose from the OptiTrack system to the UAV so that the UAV can navigate inside the OptiTrack system with very high precision for initial testing of the implementation.  
+For using the estimated pose of the UAV from the OptiTrack system as the local coordinate system of the UAV, Listing \ref{lst:relay_vrpn_client_ros} is used. This maps the pose from the OptiTrack system to the UAV so that the UAV can navigate inside the OptiTrack system with very high precision for initial testing of the implementation.
+
+\subsection{OptiTrack system}
+
+
 
 \end{document}
