@@ -1182,5 +1182,82 @@ Setpoint         & 5      & No & $4.54cm$ & $3.03cm$ & $0.87^{\circ}$ & $0.22^{\
     \label{fig:optitrack_hold_pose_using_estimated_aruco_pose_error_ori_test_five}
 \end{figure}
 
+\subsubsection{Vision based landing}
+\label{sec:optitrack_vision_based_landing}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[height=3.5cm]{../Figures/optitrack/optitrack_vision_landing_part_one.png}
+        \caption{}
+        \label{fig:optitrack_vision_based_landing_landing_station_one_part_one}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[height=3.5cm]{../Figures/optitrack/optitrack_vision_landing_part_two.png}
+        \caption{}
+        \label{fig:optitrack_vision_based_landing_landing_station_one_part_two}
+    \end{subfigure}
+     \hspace{-0.13em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[height=3.5cm]{../Figures/optitrack/optitrack_vision_landing_part_three.png}
+        \caption{}
+        \label{fig:optitrack_vision_based_landing_landing_station_one_part_three}
+    \end{subfigure}
+    \caption{Illustrations of the landing test. The UAV is set to takeoff as seen in Figure \ref{fig:optitrack_vision_based_landing_landing_station_one_part_one}, then move approximately a meter backwards as seen in Figure \ref{fig:optitrack_vision_based_landing_landing_station_one_part_two} and then back to its initial pose for execution of a vision based landing seen in Figure \ref{fig:optitrack_vision_based_landing_landing_station_one_part_three}. A video of test one can be seen on Github using \href{}{}}
+    \label{fig:optitrack_vision_based_landing_landing_stations}
+\end{figure} 
+
+\begin{table}[H]
+    \centering
+    \addtolength{\leftskip} {-2cm}
+    \addtolength{\rightskip}{-2cm}
+        \caption{Statistics of the results from landing tests. Each test runs for 20 landings}
+        \pgfplotstabletypeset[normal,
+                columns/eg/.style={
+                column name={Runs},
+                dec sep align
+        }
+        ]{ %
+        Station & eg & Success & WP error & Vel & Min & Max & Mean & STD & Stabilize time & Landing time\\
+        \topmidheader{12}{\textbf{Test 1}}
+        One         & 20   & 11  & $0.1 m$ & $0.2 \frac{m}{s}$ & $1.04cm$ & $17.68cm$ & $9.76cm$ & $4.07cm$ & $1.45s$ &$6.05s$\\  
+        \midheader{12}{\textbf{Test 2}}
+        Two         & 20   & 16   & $0.1 m$ & $0.2 \frac{m}{s}$ & $1.58cm$ & $13.21cm$ & $7.66cm$ & $3.22cm$ & $1.85s$ &$6.25s$\\   
+        \midheader{12}{\textbf{Test 3}}
+        Three         & 20   & 16   & $0.1 m$ & $0.2 \frac{m}{s}$ & $1.57cm$ & $14.19cm$ & $6.99cm$ & $3.56cm$ & $1.20s$ &$6.55s$\\
+        }
+        \label{tab:optitrack_vision_based_landing}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/optitrack/landing_test/landing_for_station_one.png}
+        \caption{}
+        \label{fig:optitrack_vision_based_landing_test1}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/optitrack/landing_test/landing_for_station_two.png}
+        \caption{}
+        \label{fig:optitrack_vision_based_landing_test2}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/optitrack/landing_test/landing_for_station_three.png}
+        \caption{}
+        \label{fig:optitrack_vision_based_landing_test3}
+    \end{subfigure}
+    \caption{Illustrations of the final landings seen from above for test one, two and three in Figure \ref{fig:optitrack_vision_based_landing_test1}, \ref{fig:optitrack_vision_based_landing_test2} and \ref{fig:optitrack_vision_based_landing_test3} respectively. The wanted landing position should be in the center of the green circle which illustrates a threshold for acceptance for $\pm 10$ centimeters}
+    \label{fig:optitrack_vision_based_landing_test}
+\end{figure}
+
 
 \end{document}
