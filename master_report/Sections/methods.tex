@@ -1497,9 +1497,7 @@ As mentioned in Section \ref{sec:hardware}, serial connection between the Raspbe
 \subsubsection{Communication with OptiTrack for ground truth of UAV}
 \label{sec:communication_with_optiTrack_for_ground_truth_of_uav}
 
-As discussed in Section \ref{sec:hardware}, an extra WiFi adapter is connected to the Raspberry Pi. This is done so that the UAV can be controlled from a wireless connection between the laptop and Raspberry Pi meanwhile the Raspberry Pi gets ground truth updates of its pose using the other WiFi module connected to the \href{https://optitrack.com/}{OptiTrack} system. 
-
-The OptiTrack system is used which enables high precision tracking of the UAV pose. This is done using cameras which transmits pulsed infrared light using attached infrared LEDs. The light will then be reflected back to the cameras from small markers attached to the UAV. This way a pose can be tracked using triangulation.
+As discussed in Section \ref{sec:hardware}, an extra WiFi adapter is connected to the Raspberry Pi. This is done so that the UAV can be controlled from a wireless connection between the laptop and Raspberry Pi meanwhile the Raspberry Pi gets ground truth updates of its pose using the other WiFi module connected to the OptiTrack system. The OptiTrack system is discussed in Section \ref{sec:optitrack_system}. 
 
 To get the ground truth from the OptiTrack system instead of the Gazebo simulation, the ROS package \textit{vrpn\_client\_ros} is used which enables communication between the onboard computer and the OptiTrack system using WiFi. This can be accomplished by running the command in Listing \ref{lst:run_vrpn_client_ros} after setting up the Optitrack system.     
 
@@ -1519,28 +1517,90 @@ roslaunch vrpn_client_ros sample.launch server:=<server-ip-adress>
 \label{lst:run_vrpn_client_ros}    
 \end{listing} 
  
- \begin{listing}[H] 
-\begin{tcolorbox}[
-    enhanced,
-    attach boxed title to top left={xshift=6mm,yshift=-3mm},
-    colback=lightgreen!20,
-    colframe=lightgreen,
-    fonttitle=\bfseries\color{black},
-]
-\begin{minted}[ numbersep=6pt, linenos=true, breaklines=true, breakanywhere=true, mathescape, escapeinside=||,fontsize=\small]{bash}
-rosrun topic_tools relay /vrpn_client_node/<rigid_body_name>/pose /mavros/vision_pose/pose
-\end{minted}
-\end{tcolorbox}
-\caption{How to map the estimated pose from the OptiTrack system to the local pose of the UAV}
-\label{lst:relay_vrpn_client_ros}    
-\end{listing} 
-
 This way the exact same code can be used as in the simulation, but instead of subscribing to the ground truth pose of the UAV from Gazebo, the pose estimated from the OptiTrack system can be used from the topic published using Listing \ref{lst:run_vrpn_client_ros}. 
 
-For using the estimated pose of the UAV from the OptiTrack system as the local coordinate system of the UAV, Listing \ref{lst:relay_vrpn_client_ros} is used. This maps the pose from the OptiTrack system to the UAV so that the UAV can navigate inside the OptiTrack system with very high precision for initial testing of the implementation.
-
 \subsection{OptiTrack system}
+\label{sec:optitrack_system}
 
+For tracking the UAV in real flight, the \href{https://optitrack.com/}{OptiTrack system} is used which enables high precision tracking of the pose of the UAV. This is done using fourteen cameras placed on a truss which are attached to the ceiling as seen in Figure \ref{fig:optitrack_setup}. These cameras transmits pulsed infrared light using attached infrared LEDs. The light will be reflected back to the cameras from small markers attached to the UAV as seen in Figure \ref{fig:drone_with_markers}. This way the pose of the UAV can be tracked using triangulation. 
 
+For setting up the OptiTrack system a \href{https://v22.wiki.optitrack.com/index.php?title=Quick\_Start\_Guide:\_Getting\_Started}{getting started guide} from the OptiTrack homepage can be used. However, in this case three changes to the default setup have been used. Here the exposure time has been set to 250 $\mu s$ and the camera frame rate to 30Hz. The exposure time has been set to a lower value because the markers located on top of the UAV are quite small which results in that the exposure time must be set lower in order to properly track the UAV. 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/optitrack/optitrack_left.jpg}
+        \caption{}
+        \label{fig:optitrack_left}
+    \end{subfigure}
+     \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/optitrack/optitrack_straight.jpg}
+        \caption{}
+        \label{fig:optitrack_straight}
+    \end{subfigure}
+         \hspace{0.2em}
+    \begin{subfigure}[t]{.30\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/optitrack/optitrack_right.jpg}
+        \caption{}
+        \label{fig:optitrack_right}
+    \end{subfigure}
+    \caption{Illustration of the setup of the vision based navigation area inside of the OptiTrack system. Here a simplified version of the original design used in the simulation from Section \ref{sec:3d_modeling} has been used. This is because only parts of the planned tests have been conducted due to the limited access to the airport discussed in section \ref{sec:tentative_time_schedule}. Small changes to the landing boards had been made to fit the size of the A0 paper. Now the distance between markers and marker length are 6.5 cm and 13 cm, 3.1 cm and 6.1 cm, 2.85 cm and 5.858 cm for landing board board one, two and three respectively}   
+    \label{fig:optitrack_setup}
+\end{figure}    
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/optitrack/optitrac_software_one.PNG}
+        \caption{}
+        \label{fig:optitrack_software_one}
+    \end{subfigure}
+    \begin{subfigure}[t]{.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Figures/optitrack/optitrac_software_three.PNG}
+        \caption{}
+        \label{fig:optitrack_software_two}
+    \end{subfigure}
+    \caption{Illustration of the setup of the OptiTrack system using \href{https://optitrack.com/software/motive/}{motive}. The fourteen cameras placed at the truss are calibrated in Figure \ref{fig:optitrack_software_one} and the calibration square in Figure \ref{fig:marker_plane_stick} is used to set the ground plane in Figure \ref{fig:optitrack_software_two}}  
+    \label{fig:optitrack_setup_drone}
+\end{figure}    
+
+\begin{figure}[H]
+    \centering
+     \hspace{-0.5em}
+    \begin{subfigure}[t]{.3\textwidth}
+        \centering
+        \includegraphics[height=5.0cm]{../Figures/optitrack/drone_with_markers.jpg}
+        \caption{}
+        \label{fig:drone_with_markers}
+    \end{subfigure}
+    \hspace{-2.0em}
+    \begin{subfigure}[t]{.3\textwidth}
+        \centering
+        \includegraphics[height=5.0cm]{../Figures/optitrack/ground_markers.jpg}
+        \caption{}
+        \label{fig:ground_markers}
+    \end{subfigure}
+    \hspace{2.5em}
+    \begin{subfigure}[t]{.3\textwidth}
+        \centering
+        \includegraphics[height=5.0cm]{../Figures/optitrack/marker_plane_stick_one.jpg}
+        \caption{}
+        \label{fig:marker_plane_stick}
+    \end{subfigure}
+    \caption{Small reflective markers have been placed on top of GPS module on the UAV which is used to track its pose as seen in Figure \ref{fig:drone_with_markers}. In Figure \ref{fig:ground_markers}, a close view of one of the ground markers can be seen. It may be noticed that the row and column number of the marker is labeled in the top left corner which is used to easily keep track of each marker that is part of the $25 \times 25$ ArUco marker board. The calibration square can be seen in Figure \ref{fig:marker_plane_stick} with the used orientation and origin}  
+    \label{fig:optitrack_setup_drone}
+\end{figure}  
+
+The camera frame rate has been set to 30 which matches the update rate from Gazebo. These changes can be seen in Figure \ref{fig:optitrack_software_one} and \ref{fig:optitrack_software_two}. Lastly, the ground plane has been set as illustrated in Figure \ref{fig:marker_plane_stick}. Here the longer leg represents the z axis and shorter leg the x axis which means the y axis will point upwards. In this setup the x axis points towards the ArUco marker landing boards where motive will automatically change the ground plane so that the z axis will point up. This way, the coordinate system matches exactly the coordinate system from the Gazebo simulation which means that no changes in the code have to be made in regard to the ground truth. 
+
+The reason for placing the markers on top of the GPS module is that cameras could have a hard time tracking the UAV if these markers were placed other places on the UAV. Using this asymmetrical design of the marker placements, the UAV can be tracked without problems using the OptiTrack system. In Figure \ref{fig:ground_markers}, a close view of one of the ground markers can be seen. The ArUCo marker have been printed in the middle of the A4 paper. This way the papers can be aligned side-by-side to achieve the best accuracy. However, small changes to the size have been made. The distance between the markers are now set to 10.5 cm and the size of the marker is 19.2 cm. These where found appropriate for the giving size of the paper.      
+
+Results of pose estimation using ArUco markers can be seen in Section \ref{sec:steady_state_aruco_pose_estimation}, UAV flight in Section \ref{sec:hold_pose_using_estimated_aruco_pose} and vision based landings in Section \ref{sec:optitrack_vision_based_landing}. These are only some of the planned tests of real flight of the UAV where a thorough description of the others will be explained in Section \ref{sec:future_work} for future work.  
 
 \end{document}
