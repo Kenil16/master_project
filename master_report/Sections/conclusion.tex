@@ -1,6 +1,7 @@
 \documentclass[../Head/report.tex]{subfiles}
 \begin{document}
 \section{Conclusion}
+\label{sec:conclusion}
 
 The implementation of the offboard control system was based on ROS and the PX4 autopilot. This way a number of nodes in the robot operating system for drone control, autonomous flight, pose estimation using ArUco marker boards and sensor fusion could be run concurrently in order to achieve autonomous flight of the UAV for Requirement \ref{sor:one}. Furthermore, this software was tested in Gazebo simulations where a number of missions could be set to be executed autonomously using keyboard commands. This software was fetched to a Raspberry Pi 4B which was used as companion computer for the Holybro Pixhawk 4 mini QAV250 Quadcopter UAV. Hence, using the wireless module of the Raspberry Pi 4B for wireless communication to the laptop, these missions could be send through a wireless connection to be executed on the UAV. This satisfies Requirement \ref{sor:three}.     
 
