@@ -1,9 +1,0 @@
-\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8}]
-\PYG{c+c1}{\PYGZsh{}Install packages for visualization of video stream (ros rqt)}
-\PYGZdl{} sudo apt\PYGZhy{}get install ros\PYGZhy{}melodic\PYGZhy{}rqt ros\PYGZhy{}melodic\PYGZhy{}rqt\PYGZhy{}common\PYGZhy{}plugins
-\PYG{c+c1}{\PYGZsh{}Install packages for USB readings using ROS}
-\PYGZdl{} sudo apt\PYGZhy{}get install ros\PYGZhy{}melodic\PYGZhy{}usb\PYGZhy{}cam ros\PYGZhy{}melodic\PYGZhy{}image\PYGZhy{}transport ros\PYGZhy{}melodic\PYGZhy{}image\PYGZhy{}transport\PYGZhy{}plugins ros\PYGZhy{}melodic\PYGZhy{}image\PYGZhy{}transport\PYGZhy{}plugins ros\PYGZhy{}melodic\PYGZhy{}camera\PYGZhy{}info\PYGZhy{}manager
-\PYG{c+c1}{\PYGZsh{}Install packages fto be able to execute scrips}
-\PYGZdl{} sudo apt\PYGZhy{}get install liblapack\PYGZhy{}dev gfortran libblas\PYGZhy{}dev libxml2\PYGZhy{}dev libxslt\PYGZhy{}dev python\PYGZhy{}dev python\PYGZhy{}pip
-\PYGZdl{} pip install pathlib pymavlink pandas scipy opencv\PYGZhy{}contrib\PYGZhy{}python matplotlib numpy
-\end{Verbatim}

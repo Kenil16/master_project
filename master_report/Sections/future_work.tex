@@ -1,0 +1,24 @@
+\documentclass[../Head/report.tex]{subfiles}
+\begin{document}
+\section{Future work}
+\label{sec:future_work}
+
+As already discussed in Section \ref{sec:tentative_time_schedule}, not all planned executions of the tests in the OptiTrack system was accomplished due to the limited access to the airport. Hence, more work of testing the implementation with real flight of the UAV has to be done in order to properly verify that the all parts of the offboard control works as expected before using the UAV in missions for autonomous flight. As discussed in Section \ref{sec:conclusion}, all problems and requirements to the system from Section \ref{sec:problem_statement} and \ref{sec:specification_of_requirements} where completed. However, a landing time below 5 seconds for Requirement \ref{sor:five} was not achieved. 
+
+Hence, this gives the following objectives to be completed before a complete real life implementation of the system can be initiated. 
+
+\begin{enumerate}[rightmargin=0.5cm]
+
+    \item The vision based navigation must be completed in the OptiTrack system to see how well the implementation of sensor fusion works on real hardware on the UAV. These tests will follow the simulations from Section \ref{sec:vision_based_navigation}, where a number of missing ArUco markers are placed on the ground to see how well the implementation performs when a minimum amount of ArUco markers are present in the image. This should also be performed with high horizontal velocity to investigate how blur effects the detection and pose estimation of ArUco markers.
+    
+    \item When sensor fusion has been properly tested on the real UAV, the GPS to vision transition can be executed. Here the idea is that the GPS2Vision ArUco marker board will be placed on top of the entrance to the OptiTrack system from where the ground truth pose of the UAV can be tracked to analyze its stability when going from using GPS to vision based pose estimations. Here the error in the GPS module must be taken into account, to ensure that the UAV is not too close to the entrance of the OptiTrack system when it starts to locate the ArUco marker board. 
+    
+    \item Fine tuning of the PID controllers in the PX4 autopilot may be changed to achieve better precision landings which could also yield a faster landing time when a faster response in pose changes is applied to the controller. Because the procedure is case specific e.g small changes to the load of the UAV, placements of hardware etc., this could be time consuming, but will yield better results if performed correctly. 
+    
+    \item Before execution of missions in autonomous flight in real life, a way to handle moisture and rain must be analyzed. This means that all electronics on the UAV e.g Raspberry Pi, must be encapsulated to avoid damaging the system. Moreover, the risk of raindrops on the front and bottom cameras should be considered which could potentially have an impact in the detection of ArUco markers.
+    
+    \item Finally, a specific operations risk assessment (SORA) must be performed. This will have to be completed if the UAV is to participate in autonomous missions where the UAV have to operate beyond visual line of sight (BVLOS). This will ensure that all steps of the operations in a safety perspective point of view are satisfied.
+     
+\end{enumerate}
+
+\end{document}

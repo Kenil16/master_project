@@ -14,6 +14,8 @@ class plot_data():
         
         #Read file 
         self.read_data('../aruco_pose_estimation.txt')
+        #self.read_data('landing_board_one_steady_state_test/test1.txt')
+        #self.read_data('vision_board_walking_test/test5.txt')
         
         #Aruco pose estimations
         self.aruco_x = np.array([item[0] for item in self.data])

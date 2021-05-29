@@ -2,7 +2,7 @@
 \begin{document}
 \section{Introduction}
 
-This thesis is about vision based navigation of a UAV where it is to perform a precise landing according to markers on the ground. The reason for choosing this area of subject is because of the ongoing HealthDrone project which is being developed in Odense. This project is about transportation of blood samples between Odense University Hospital (OUH) and Svendborg Hospital using drones autonomously. This is a three-year innovation project funded by Innovation Fund Denmark and is to be completed in 2021 \cite{HealthDrone}. Another inspiration has been the EiT project 2020 where an autonomous solution for fence inspection where to be made. In this case a drone where used which had to follow the fence and analyze the possibility for breaches using a deep neural network. Here the UAV had to be able to return to an indoor landing station for recharging after the inspection task was completed.     
+This thesis is about vision based navigation of a UAV where it is to perform a precise landing according to markers on the ground. The reason for choosing this area of subject is because of the ongoing HealthDrone project which is being developed in Odense. This project is about transportation of blood samples between Odense University Hospital (OUH) and Svendborg Hospital using drones autonomously. This is a three-year innovation project funded by Innovation Fund Denmark and is to be completed in 2021 \cite{HealthDrone}. Another inspiration has been the Experts in teams (EiT) project 2020 where an autonomous solution for fence inspection were to be made. In this case a drone where used which had to follow the fence and analyze the possibility for breaches using a deep neural network. Here the UAV had to be able to return to an indoor landing station for recharging after the inspection task was completed.     
 
 For these projects to be completely autonomous, an efficient and robust solution for indoor navigation and landing must be considered from where battery recharging or replacement is to be performed. This also calls for a robust solution for the transition of flying outdoor to indoor even in windy conditions. Furthermore, because the UAV is to land on a recharging or battery replacement station, the landing must be performed with high accuracy and precision.
 
@@ -39,7 +39,7 @@ The robot operating system (ROS) will be used along the PX4 autopilot in order t
 
 Vision based navigation is a vast research area for utilizing computer vision for navigation and precision landings. According to \cite{OnBoardVisionAutonomousLanding}, landing platforms can be categorized into the three groups for different landing scenarios. \textit{Category one} defines platforms which are fixed, \textit{category two} for moving platforms of two degrees and \textit{category three} which considers landings on ships where the platform of the ship deck can be modeled as a rigid body with six additional degrees of freedom based on the psychical movements of the waves. 
 
-Fixed based platforms using computer vision have been used for some time to enable landings for better accuracy compared to that of using GPS. In \cite{AVisionBasedSystemForAutonomousVerticaLanding}, an implementation of using ArUco markers located on the landing platform is proposed. Here the UAV is able to land and recognize the ArUco marker located on the ground from an altitude of twenty meters using Pixhawk 4 as flight controller with a Raspberry Pi 3 for onboard computing. 
+Fixed based platforms using computer vision have been used for some time to enable landings for better accuracy compared to that of using GPS. In \cite{AVisionBasedSystemForAutonomousVerticaLanding}, an implementation of using ArUco markers located on a landing platform is proposed. Here the UAV is able to land and recognize the ArUco marker located on the ground from an altitude of twenty meters using Pixhawk 4 as flight controller with a Raspberry Pi 3 for onboard computing. 
 
 In \cite{AutonomousRechargingSystemforDronesOne} \cite{AutonomousRechargingSystemforDronesTwo} autonomous landings are performed where the UAV is to land on a wireless charging station. However, though these systems perform quite well, both use a single ArUco marker for pose estimation with a cost in reduced accuracy which may affect the overall performance of the landing system. The advantage of using more markers for pose estimation was investigated by Tiago Gomes Carreira \cite{QuadcopterAutomaticLandingOnaDockingStation}. He performed an evaluation in using different sets of ArUco markers for where the error in the estimation is based on one, four and eights ArUco markers. Results shows performance improvements when more markers are present in the image. 
 
@@ -56,44 +56,47 @@ The way this thesis differs from previous work is the implementation of a GPS to
   
 \newpage
 \subsection{Problem Statement}
+\label{sec:problem_statement}
 
 The UAV must be able to make a reliable GPS to vision transition. This leads to the challenge of finding a robust solution for the transition of using GPS coordinates to indoor vision based navigation even in windy conditions. This transition must be incorporated using markers located on the wall to the entrance of the vision navigation area. The UAV then needs to be capable of navigating in indoor environments using markers located on the ground.    
 
-A solution for onboard computing for pose estimation of the markers as well as autonomous flight must be found. This says that the computer must be able to perform real-time calculations of the pose of the markers to insure a reliable system. 
+A solution for onboard computing for pose estimation of the markers as well as autonomous flight must be found. This says that the computer must be able to perform real-time calculations of the pose of the markers to ensure a reliable system. 
 
-Furthermore, the precise landing should be implemented in such a way that the time, from which the UAV is hovering above the marker to the landing is performed, is minimized. The same goes for the error associated with the precision landing .  
+Furthermore, the precise landing should be implemented in such a way that the time, from which the UAV is hovering above the marker to the landing is performed, is minimized. The same goes for the error associated with the precision landing.  
 
 This leads to the following problems:
 
-\begin{itemize}
-    \item How can computer vision be used to detect markers?
-    \item How can a smooth transition between using GPS coordinates to vision based navigation be found?
-    \item How can navigation between markers be performed?
-    \item How can sensor fusion be implemented for pose optimization?
-    \item How can a precise landing be executed?
-    \item How can the landing time be reduced without causing instabilities to the UAV?
-    
-\end{itemize} 
+\begin{enumerate}[label=\textbf{P.\arabic*}]
+    \item \label{ps:one} How can computer vision be used to detect markers?
+    \item \label{ps:two} How can a smooth transition between using GPS coordinates to vision based navigation be found?
+    \item \label{ps:three} How can navigation between markers be performed?
+    \item \label{ps:four} How can sensor fusion be implemented for pose optimization?
+    \item \label{ps:five} How can a precise landing be executed?
+    \item \label{ps:six} How can the landing time be reduced without causing instabilities to the UAV?    
+\end{enumerate} 
 
 \subsection{Specification of requirements}
+\label{sec:specification_of_requirements}
 
 From the outline of the project as well as the problem statement, the following requirements for the project have been formulated:
 
-\begin{itemize}
-	\item The implemented system must be able to function completely autonomous
-    \item The error of the landing must not exceed $\pm 10$ cm. 
-    \item The pilot must be able to send missions on a wireless connection to the UAV for execution
-    \item The UAV should be able to make the transition of using GPS coordinates to indoor vision based navigation even in windy conditions i.e up to 8 m/s.
-    \item The landing must be performed within 5 seconds from where the UAV is hovering 1.5 meters above the landing sight to a landing is performed
+\begin{enumerate}[label=\textbf{R.\arabic*}]
+	\item \label{sor:one} The implemented system must be able to function completely autonomous. This is wanted because an autonomous solution would yield a reduction in operational cost for the target user e.g HealthDrone project.   
+    \item \label{sor:two} The mean error of the landing must not exceed $\pm 10$ cm. This is based on results from related work in Section \ref{sec:related_work}, where this implementation as a minimum must yield similar landing precisions
+    \item \label{sor:three} The pilot must be able to send missions on a wireless connection to the UAV for execution. This is critical in order to control and test the system when each element of the implementation is executed 
+    \item \label{sor:four} The UAV should be able to make the transition of using GPS coordinates to indoor vision based navigation even in windy conditions i.e up to 8 m/s. This is based on the average wind speed in Denmark from three \href{https://www.dmi.dk/klima/temaforside-klimaet-frem-til-i-dag/vind-i-danmark/}{coastal stations (DMI)} which is found to be between 7-8 $\frac{m}{s}$ as a sort of worst case scenario for normal operation of the UAV
+    \item \label{sor:five} The landing must be performed within 5 seconds from where the UAV is hovering 1.5 meters above the landing sight to a landing is performed. From the perspective of a vertical velocity of 0.3 $\frac{m}{s}$ of the UAV for this demand to be met, this is set as an upper limit for the landing time which is found appropriate.   
 
-\end{itemize}
+\end{enumerate}
 
 
 \newpage
 \subsection{Tentative time schedule}
 \label{sec:tentative_time_schedule}
 
-At the start of the project a tentative time schedule was formulated. This was done to keep an overview of the most essential elements which had to be implemented. Time was put aside to complete each block of work so that things could be done in an order which was found appropriate.  This time schedule can be seen in Figure \ref{fig:Tentative_time_schedule_2020} and \ref{fig:Tentative_time_schedule_2021}. The main focus has been to get things to work properly in simulations before conducting any tests on the drone to reduce the risks of failures.   
+At the start of the project a tentative time schedule was formulated. This was done to keep an overview of the most essential elements which had to be implemented. Time was put aside to complete each block of work so that things could be done in an order which was found appropriate.  This time schedule can be seen in Figure \ref{fig:Tentative_time_schedule_2020} and \ref{fig:Tentative_time_schedule_2021}. The main focus has been to get things to work properly in simulations before conducting any tests on the UAV to reduce the risks of failures.  
+
+In the initial phase of the project CAD models were created for buildings and markers. Then the ROS implementation along the PX4 software was installed which would be used in the simulation. Hence, the main focus of the project for 2020 was the computer vision part where marker detection, pose estimation, navigation between markers and landing was in focus which was programmed in python with OpenCV as the computer vision software. These used methods will be discussed in Section \ref{sec:methods}.    
 
 \newcounter{myWeekNum}
 \stepcounter{myWeekNum}
@@ -146,10 +149,6 @@ time slot format/start date=2020-09-01]{2020-09-01}{2020-12-27}
 
 \end{figure}
 
-In the initial phase of the project CAD models were created for buildings and markers. Then the ROS implementation along the PX4 software was installed which would be used in the simulation. Hence, the main focus of the project for 2020 was the computer vision part where marker detection, pose estimation, navigation between markers and landing was in focus which was programmed in python with OpenCV as the computer vision software. These used methods will be discussed in Section \ref{sec:methods}. 
-
-In the second part of the project, the initial idea was to test the implementation on the real hardware. This was scheduled to begin in the start of March. However, due to the current situation with Covid-19, this was not possible because all access to Hans Christian Andersen airport in Odense was rejected. Due to these limitations, more work has been put into the simulations. As seen in Figure \ref{fig:Tentative_time_schedule_2021}, approximately two months were put aside for flight tests. Because of the limitations just discussed, this period of time had now been used for simulations instead.    
-
 \setcounter{myWeekNum}{5}
 \ganttset{%
 calendar week text={\myWeek{}}%
@@ -172,6 +171,8 @@ time slot format/start date=2021-02-01]{2021-02-01}{2021-05-30}
 
 \ganttbar[bar/.append style={fill=blue}]{Simulation (Gazebo)}{2021-02-01}{2021-02-28}\\
 
+\ganttbar[bar/.append style={fill=white}]{Sensor fusion}{2021-02-01}{2021-03-7}\\
+
 \ganttbar[bar/.append style={fill=yellow}]{Computer vision}{2021-02-01}{2021-03-28}\\
 
 \ganttbar[bar/.append style={fill=gray}]{Flight tests}{2021-02-29}{2021-05-02}\\
@@ -186,9 +187,9 @@ time slot format/start date=2021-02-01]{2021-02-01}{2021-05-30}
 \label{fig:Tentative_time_schedule_2021}
 \end{figure}
 
-The result of the implementation of the autonomous system for offboard control was completed at the beginning of April where videos of all the tests in simulation were recorded for easy visualization of the procedures for testing the system. These can be seen by accessing the links from the results in Section \ref{sec:results}. 
+In the second part of the project, the initial idea was to test the implementation on the real hardware. This was scheduled to begin in the start of March. However, due to the current situation with Covid-19, this was not possible because all access to Hans Christian Andersen airport in Odense was rejected. Due to these limitations, more work has been put into the simulations. As seen in Figure \ref{fig:Tentative_time_schedule_2021}, approximately two months were put aside for flight tests. Because of the limitations just discussed, this period of time had now been used for simulations and report writing instead. The result of the implementation of the autonomous system for offboard control was completed at the beginning of April where videos of all the tests in simulation were recorded for easy visualization of the procedures for testing the system.
 
-Report writing has been done in small steps throughout the period of the project, but the main contribution to this part was done in May where the complete implementation of the system could be documented. 
+The possibility of presence at the airport was made possible at the end of April. Hence, two weeks of work at the airport was put aside in May for execution of some of the planned flight tests before all time was put aside for report writing at the end of May. Report writing has been done in small steps throughout the period of the project, but the main contribution to this part was done in May where the complete implementation of the system could be documented. 
 
 
 \end{document}
