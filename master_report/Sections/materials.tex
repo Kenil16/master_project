@@ -33,7 +33,7 @@ This section deals with the materials used to build the UAV, for communication a
 \subsection{Hardware}
 \label{sec:hardware}
 
-The UAV used is a Holybro Pixhawk 4 mini QAV250 Quadcopter. The reason for choosing this kit is because of the Pixhawk 4 mini which is part of the product. PX4 is open source and has a lot of features together with a discussion forum for debugging and knowledge sharing of the general system. The software part of PX4 will be discussed in Section \ref{sec:px4_flight_stack}. The UAV can be seen in Figure \ref{fig:holybro_pixhawk_mini_drone}. 
+The UAV used is a Holybro Pixhawk 4 mini QAV250 Quadcopter. The reason for choosing this kit is because of the Pixhawk 4 mini that is part of the product which is used as autopilot for the UAV. The software part of PX4 will be discussed in Section \ref{sec:px4_flight_stack}. The UAV can be seen in Figure \ref{fig:holybro_pixhawk_mini_drone}. 
 
 For communication between the pilot and UAV, a FlySky FS i6 transmitter is used. Though this is a basic transmitter it offers great features together with a receiver for a low price. The transmitter and receiver can be seen in Figure \ref{fig:flysky_transmitter}. 
 
@@ -57,7 +57,7 @@ For communication between the pilot and UAV, a FlySky FS i6 transmitter is used.
     \label{fig:holybro_pixhawk_mini}
 \end{figure}
 
-Because the UAV and onboard computer has to be powered separately, two gens ace LiPo batteries with 11.1V and 2200 mAh have been considered. These batteries matches the XT60 connection which is used by the power board of the kit. The reason for choosing these as 3-cell batteries compared to 4-cell, is to reduce the height of center of mass of the UAV which could make the system unstable because the batteries are placed above the propellers as seen in Figure \ref{fig:holybro_pixhawk_mini_drone}. The UAV and Raspberry Pi has to be powered separately because the Raspberry Pi has to be given constant 5 volts and 3 amps for best performance. If the Raspberry Pi is giving under- or over-voltage, the Pi could potentially shut down which could be fatal if the UAV where relying on pose estimates from the onboard computer. The used LiPo battery can be seen in Figure \ref{fig:gens_ace_lipo_battery}.  
+Because the UAV and onboard computer has to be powered separately, two gens ace LiPo batteries with 11.1V and 2200 mAh have been considered. These batteries matches the XT60 connection which is used by the power board of the kit. The reason for choosing these as 3-cell batteries compared to 4-cell, is to reduce the height of center of mass of the UAV which could make the system unstable because the batteries are placed above the propellers as seen in Figure \ref{fig:holybro_pixhawk_mini_drone}. The UAV and Raspberry Pi has to be powered separately because the Raspberry Pi must be supplied with constant 5 volts and 3 amps for best performance. If the Raspberry Pi gets either under- or overvoltage, the Pi could potentially shut down which could be fatal if the UAV were relying on pose estimates from the onboard computer. The used LiPo battery can be seen in Figure \ref{fig:gens_ace_lipo_battery}.  
 
 \begin{figure}[H]
     \centering
@@ -91,11 +91,11 @@ Because the UAV and onboard computer has to be powered separately, two gens ace 
     \label{fig:battery_and_power_connections}
 \end{figure}
 
-To convert the input voltage from the LiPo battery to the Raspberry Pi, a KINGKONG 5V 3A Switching Power UBEC converter for switching between 7.4-22.2V (2-6S LiPoly) to constant 5V/3A is used. The setup of this requires a little soldering where the ends of the wires have to be soldered to a XT60 connector to be used to connect to the LiPo battery, where the output of this is connected to the 5V and ground pins of the raspberry Pi. This switch can be seen in Figure \ref{fig:ubec_3A_power_converter}. 
+To convert the input voltage from the LiPo battery to the Raspberry Pi, a KINGKONG 5V 3A Switching Power UBEC converter for switching between 7.4-22.2V (2-6S LiPoly) to constant 5V/3A is used. The setup of this requires a little soldering where the ends of the wires have to be soldered to a XT60 connector to be used to connect to the LiPo battery, where the output of this is connected to the 5V and ground pins of the Raspberry Pi. This switch can be seen in Figure \ref{fig:ubec_3A_power_converter}. 
 
 To charge the LiPo batteries, a SKYRC balance charger is used. This unit can charge 2-4 cell batteries with constant 1-3 amps of current which fits the 2200 mAh batteries. Moreover, it includes a XT60 charging cable which matches the already mentioned connectors. This charger can be seen in Figure \ref{fig:balance_charger_sky_rc}.
 
-Because LiPo batteries can be dangerous and may cause fire if damaged or overcharged \cite{lipoBatteryGuide}, a LiPo safety bag is used as seen in Figure \ref{fig:lipo_battery_case}. This bag includes \textit{fireballs} which encapsulates the possible fire of the batteries to be only in the safety bag. 
+Because LiPo batteries can be dangerous and may cause fire if damaged or overcharged \cite{lipoBatteryGuide}, a LiPo safety bag is used as seen in Figure \ref{fig:lipo_battery_case}. This bag includes fireballs which encapsulates the possible fire of the batteries to be only in the safety bag. 
 
 In order to achieve serial communication between the PX4 and the Raspberry Pi, the universal asynchronous receiver-transmitter (UART) port of the PX4 is used via a 6 pin connection cable seen in Figure \ref{fig:six_pin_serial_connection_cable}. Either two ways could be used to achieve serial communication from the point of view of the Raspberry Pi. One method is to use the general purpose input output (GPIO) pins of the Pi which is Tx (transmit) and Rx (receive). If choosing this setup, the data will be transmitted through the \textit{/dev/ttyS0} port of the Raspberry Pi where you got to have read/write privileges or being part of the group \textit{tty} to do so. These settings can be changed accordingly from the terminal in Ubuntu as seen in Listing \ref{lst:change_permissions}. 
 
@@ -118,7 +118,7 @@ $ usermod -a -G tty ubuntu
 \label{lst:change_permissions}    
 \end{listing} 
 
-The other method is to connect the 6 pin connection cable to a TTL 232R cable seen in Figure \ref{fig:usb-TTL_232R_Raspberry_Pi_debug} to the universal serial bus (USB) port of the Raspberry Pi. This can easily be done by solder the Tx, Rx and ground parts of the two cables together. Some benefits comes by using the later solution e.g no problems with u-boot of the Raspberry Pi when the PX4 transmit data on the GPIO pins during boot up of the system  \cite{uBoot}. The latter option is used.
+The other method is to connect the 6 pin connection cable to a TTL 232R cable seen in Figure \ref{fig:usb-TTL_232R_Raspberry_Pi_debug} to the universal serial bus (USB) port of the Raspberry Pi. This can easily be done by solder the Tx, Rx and ground parts of the two cables together. Some benefits comes by using the later solution e.g no problems with u-boot of the Raspberry Pi when the PX4 transmit data on the GPIO pins during boot up of the system  \cite{uBoot}. Therefore, the latter option is used.
 
 \begin{figure}[H]
     \centering
@@ -136,13 +136,13 @@ The other method is to connect the 6 pin connection cable to a TTL 232R cable se
         \caption{}
         \label{fig:six_pin_serial_connection_cable}
     \end{subfigure}
-    \caption{Cables for serial communication between the PX4 flight conrtoller and raspberry Pi. To enable the use of serial communication from the USB of the raspberry Pi, a \href{https://raspberrypi.dk/en/product/usb-to-ttl-rs232-debug-cable-for-raspberry-pi/}{USB to TTL-RS232} cable is used which can be seen in Figure \ref{fig:usb-TTL_232R_Raspberry_Pi_debug} and a six pin serial connection cable in Figure \ref{fig:six_pin_serial_connection_cable}}
+    \caption{Cables for serial communication between the PX4 flight controller and Raspberry Pi. To enable the use of serial communication from the USB of the Raspberry Pi, a \href{https://raspberrypi.dk/en/product/usb-to-ttl-rs232-debug-cable-for-raspberry-pi/}{USB to TTL-RS232} cable is used which can be seen in Figure \ref{fig:usb-TTL_232R_Raspberry_Pi_debug} and a six pin serial connection cable in Figure \ref{fig:six_pin_serial_connection_cable}}
     \label{fig:pixhawk_mini_four}
 \end{figure}
 
-In regard to the onboard computer, a Raspberry Pi 4B with 8 GB of random access memory (RAM) is seen in Figure \ref{fig:raspberry_pi}. Other onboard computers like Jetson Nano was also considered. However, because of the price, size, computational capabilities and large community of knowledge sharing the Raspberry Pi is used. Here the operation system Ubuntu 18.04.5 LTS (Bionic Beaver) 64-bit server edition will be implemented. This is further discussed in Section \ref{sec:companion_computer}.
+In regard to the onboard computer, a Raspberry Pi 4B with 8 GB of random access memory (RAM) as seen in Figure \ref{fig:raspberry_pi} will be used. Other onboard computers like Jetson Nano was also considered. However, because of the price, size, computational capabilities and large community of knowledge sharing the Raspberry Pi is used. Here the operating system Ubuntu 18.04.5 LTS (Bionic Beaver) 64-bit server edition will be implemented. This is further discussed in Section \ref{sec:companion_computer}.
 
-Because the central processing unit (CPU) of the Raspberry Pi can overheat during constant computational load, a fan is used to cool down the Raspberry Pi during operation. The Shim fan along with the fan attached to the Raspberry Pi can be seen in Figures \ref{fig:raspberry_pi_shim_fan} and \ref{fig:raspberry_pi} respectively. Moreover, by using active cooling instead of passive cooling e.g a aluminum heat-sink Case, the weight of the Pi is reduced. This also enables the use of overclocking of the Raspberry Pi for better performance which is discussed in Section \ref{sec:companion_computer}.
+Because the central processing unit (CPU) of the Raspberry Pi can overheat during constant computational load, a fan is used to cool down the Raspberry Pi during operation. The Shim fan along with the fan attached to the Raspberry Pi can be seen in Figures \ref{fig:raspberry_pi_shim_fan} and \ref{fig:raspberry_pi} respectively. Moreover, by using active cooling instead of passive cooling e.g an aluminum heatsink case, the weight of the Pi is reduced. This also enables the use of overclocking of the Raspberry Pi for better performance which is discussed in Section \ref{sec:companion_computer}.
 
 To safely attache the Raspberry Pi on to the UAV, a transparent case is used as seen in Figure \ref{fig:raspberry_pi_case}. This case is appropriate because it can store both the Shim fan and Raspberry Pi camera without any chance of damage to the hardware on the board. In order to control the UAV using WiFi, a WiFi adapter seen in Figure \ref{fig:tpLinkac} is used in order to get ground truth data from the Optitrack system. This is discussed in Section \ref{sec:companion_computer} and \ref{sec:optitrack_system}.
 
@@ -223,13 +223,13 @@ A Logitech C270 HD camera is used as the front camera and a Raspberry Pi V2 as b
 
 The Pixhawk 4 mini can be seen in Figure \ref{fig:pixhawk_mini_four_board} with all interfaces in Figure \ref{fig:pixhawk_mini_four_interfaces}. The PX4 features accelerometers, gyros, a magnetometer and barometer along with a 32-bit arm cortex-m7 processer for computing. For communication, a number of serials ports (UART) are included in the PX4. For more information, a link to a detailed description of all features of the board can be seen in Figure \ref{fig:pixhawk_mini_four}. 
 
-All connections between the user, PX4 and Raspberry Pi can be seen in Figure \ref{fig:wiring_diagram}. The green boxes indicate hardware which the user can interact with the UAV. The ground control station (GCS) is software installed in the computer from where communication between the GCS and PX4 is giving. This can be commands directly passed to the PX4 system from the GCS e.g takeoff, landing, UAV whereabouts etc. This is done from a set of transmit/receiver pairs attached to the computer by a \textit{USB connection} and the other to the PX4 using the \textit{Telem} interface (UART). In order to take command of the UAV from manual flying, the pilot can do so by using the transmitter which is connected to the PX4 using a radio receiver module connected through \textit{RCIN}. The telemetry links along with the GPS can be seen in the yellow boxes, where the GPS is attached to the GPS input of the PX4. 
+All connections between the user, PX4 and Raspberry Pi can be seen in Figure \ref{fig:wiring_diagram}. The green boxes indicate hardware which the user can interact with the UAV. The ground control station (GCS) is software installed on the computer from where communication between the GCS and PX4 can be performed. The commands can be passed directly to the PX4 system from the GCS e.g takeoff, landing, UAV whereabouts etc. This is done from a set of transmit/receiver pairs attached to the computer by a USB connection and the other to the PX4 using the Telem interface (UART). In order to take command of the UAV from manual flying, the pilot can do so by using the transmitter which is connected to the PX4 using a radio receiver module connected through RCIN. The telemetry links along with the GPS can be seen in the yellow boxes, where the GPS is attached to the GPS input of the PX4. 
 
 To communicate directly with the Raspberry Pi, an access point can be set up from a hot-spot or wireless connection to a WiFi network. The configuration of this will be explained in Section \ref{sec:companion_computer}. This enables commands directly passed to the Raspberry Pi for controlling the UAV or video streaming of the cameras to the laptop.
 
-The shim fan is connected to the Raspberry Pi from the GPIOs. This is because the fan can be set with a curtain speed of rotation to take into account the temperature of the CPU to act accordingly. All of the hardware directly associated with the Raspberry Pi are labeled red.  
+The shim fan is connected to the Raspberry Pi from the GPIOs. This is because the fan can be set with a certain speed of rotation to take into account the temperature of the CPU to act accordingly. All of the hardware directly associated with the Raspberry Pi are labeled red.  
 
-Through the output pins of the PX4, power is regulated using electronic speed controllers (ESC) before past to the four motors connected to the propellers of the UAV. As already mentioned, the batteries are connected separately to the PX4 and Raspberry Pi through power converters from where constant and stable voltage and current are giving to the two units.   
+Through the output pins of the PX4, power is regulated using electronic speed controllers (ESC) before past to the four motors connected to the propellers of the UAV. As already mentioned, the batteries are connected separately to the PX4 and Raspberry Pi through power converters from where constant and stable voltage and current are supplied to the two units.   
 
 \begin{figure}[H]
     \centering
@@ -238,7 +238,7 @@ Through the output pins of the PX4, power is regulated using electronic speed co
     \label{fig:wiring_diagram}
 \end{figure}
 
-The final configuration of the QAV250 Quadcopter can be seen in Figure \ref{fig:drone_one} and \ref{fig:drone_two}. Here a set of feet is attached to the UAV to make room for the Raspberry Pi, which is attached at the bottom of the UAV. The GPS module has been placed at a higher position compared to the original design in order for better data transmission. Because the propellers of the UAV are near the flight controller, cables have been set close to the center of the UAV in order to avoid collisions. The web came case of the Logitech C270 HD camera has been removed to fit the UAV which is placed at the front of the UAV which can be seen in Figure \ref{fig:drone_front}. Moreover, the USB cable of the Logitech C270 HD has been shortened and re-soldered to fit in configuration of the UAV which may be noticed by the tight ordering of the cables in Figure \ref{fig:drone_close_one} and \ref{fig:drone_close_two}.    
+The final configuration of the QAV250 Quadcopter can be seen in Figure \ref{fig:drone_one} and \ref{fig:drone_two}. Here a landing gear is attached to the UAV to make room for the Raspberry Pi, which is attached at the bottom of the UAV. The GPS module has been placed at a higher position compared to the original design in order for better data transmission. Because the propellers of the UAV are near the flight controller, cables have been set close to the center of the UAV in order to avoid collisions. The web camera case of the Logitech C270 HD camera has been removed to fit the UAV which is placed at the front of the UAV which can be seen in Figure \ref{fig:drone_front}. Moreover, the USB cable of the Logitech C270 HD has been shortened and re-soldered to fit the configuration of the UAV which may be noticed by the tight ordering of the cables in Figure \ref{fig:drone_close_one} and \ref{fig:drone_close_two}.    
 
 \begin{figure}[H]
     \centering
@@ -254,7 +254,7 @@ The final configuration of the QAV250 Quadcopter can be seen in Figure \ref{fig:
         \caption{}
         \label{fig:drone_bottom_zoom}
     \end{subfigure}
-    \caption{Illustration of the final updated design of the QAV250 Quadcopter. As it can be seen in Figure \ref{fig:drone_front}, a landing set has been attached to the UAV to make room for the Raspberry Pi}
+    \caption{Illustration of the final updated design of the QAV250 Quadcopter. As it can be seen in Figure \ref{fig:drone_front}, a landing gear has been attached to the UAV to make room for the Raspberry Pi}
     \label{fig:drone_one}
 \end{figure}
 
@@ -284,14 +284,14 @@ The final configuration of the QAV250 Quadcopter can be seen in Figure \ref{fig:
         \caption{}
         \label{fig:drone_bottom_zoom}
     \end{subfigure}
-    \caption{Illustration of the final updated design of the QAV250 Quadcopter. In Figure \ref{fig:drone_bottom_zoom}, the Raspberry Pi camera is seen to pointing straight down which is accomplished by using the Raspberry case}
+    \caption{Illustration of the final updated design of the QAV250 Quadcopter. In Figure \ref{fig:drone_bottom_zoom}, the Raspberry Pi camera is seen to pointing straight down which is accomplished by using the Raspberry Pi case}
     \label{fig:drone_two}
 \end{figure}
 
 \subsection{Bill of materials}
 \label{sec:bill_of_materials}
 
-The materials used in this configuration can be seen in Table \ref{tab:bill_of_materials} where products, price and supplier is mentioned. It may be noticed that the overall price of the kit is approximately 4.502,14 DKK which is mostly due to the expensive items like the drone kit and Raspberry Pi 4.   
+The materials used in this configuration can be seen in Table \ref{tab:bill_of_materials} where products, price and supplier is mentioned. It may be noticed that the overall price of the kit is approximately 4.502,14 DKK which is mostly due to expensive items like the drone kit and Raspberry Pi 4.   
 
 \newcommand{\done}{\cellcolor{teal}done}  %{0.9}
 \newcommand{\hcyan}[1]{{\color{teal} #1}}
