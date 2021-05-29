@@ -1,4 +1,0 @@
-Here the sensor noise for the accelerometer and gyro was found. This has to be substracted to be used in sensor fusion.
-
-Analysis
-This noise in the accelerometer was found to be much higher than in the gyro. 

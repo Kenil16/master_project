@@ -4,6 +4,7 @@ from copy import deepcopy
 from threading import Lock
 
 
+#Based on an implementation by Basel Alghanem at the University of Michigan https://github.com/balghane/pyUKF
 class UKFException(Exception):
     """Raise for errors in the UKF, usually due to bad inputs"""
 

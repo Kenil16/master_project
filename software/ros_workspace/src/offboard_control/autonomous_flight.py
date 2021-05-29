@@ -312,10 +312,10 @@ class autonomous_flight():
             
             #Make the test continue for x seconds 
             start_time = rospy.get_rostime()
-            timeout = rospy.Duration(10.0)
+            timeout = rospy.Duration(30.0)
             
-            #setpoint = [3.65, -1, 2.50, 0, 0, 90] #x, y, z, roll, pitch, yaw (GPS2Vision board)
-            setpoint = [0.40, 7.10, 1.5, 0, 0, 90] #x, y, z, roll, pitch, yaw (Landing board one)
+            setpoint = [3.65, -1, 2.50, 0, 0, 90] #x, y, z, roll, pitch, yaw (GPS2Vision board)
+            #setpoint = [0.40, 7.10, 1.5, 0, 0, 90] #x, y, z, roll, pitch, yaw (Landing board one)
             #setpoint = [3.65, 7.10, 1.5, 0, 0, 90] #x, y, z, roll, pitch, yaw (Landing board two)
             #setpoint = [7.00, 7.10, 1.5, 0 ,0, 90] #x, y, z, roll, pitch, yaw (Landing board three)
             
@@ -326,6 +326,7 @@ class autonomous_flight():
             pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, np.deg2rad(setpoint[5]),'rxyz'))
 
             pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, pose, True)
+            
             seq = 0 #Only write when new updates from aruco pose arives 
             while (rospy.get_rostime() - start_time) < timeout:
                 self.fly_route(waypoints_poseStamped=[pose])
@@ -338,7 +339,7 @@ class autonomous_flight():
             
             rospy.loginfo('Autonomous_flight: Hold position by using the aruco marker test complete!')
             rospy.signal_shutdown("Test completed!")
-            #self.set_state('loiter')
+        self.set_state('loiter')
     
     def vision_navigation_test(self):
 
@@ -349,9 +350,6 @@ class autonomous_flight():
 
         #Make random move to a landing station
         move = randrange(0,3)
-        
-        #TEST only one
-        move = 0
         
         if move == 0: 
             waypoints1 = self.landing_station_one_waypoints[0]
@@ -429,45 +427,13 @@ class autonomous_flight():
             #Then takeoff, move and land
             self.vision_takeoff_navigation(self.landing_station)
             self.vision_navigation(waypoints_xyzYaw=waypoints)
-            self.vision_landing_navigation(new_landing_station, 0.05)
+            self.vision_landing_navigation(new_landing_station, 0.10)
             
             if self.write_data_log_for_landing_test:
                 self.log_data.write_vision_landing_precision_and_accuracy_data(self.landing_station, self.aruco_pose, waypoints[-1][0], waypoints[-1][1], self.ground_truth, 
                         self.pre_landing_stabilization_time, self.landing_time)
 
         rospy.loginfo('Autonomous_flight: Landing test complete!')
-        self.set_state('vision_landed')
-
-
-    def real_uav_vision_takeoff_test(self):
-
-        #Let starting location be at landing station 3
-        self.landing_station = 3
-        
-        self.set_state('real_uav_vision_takeoff_test')
-        rospy.loginfo('Autonomous_flight: Real uav test vision takeoff and landing by using the aruco marker test  startet')
-        
-        #Let the UAV takeoff using computer vision
-        self.vision_takeoff_navigation(self.landing_station)
-        
-        #Make the test continue for x seconds 
-        start_time = rospy.get_rostime()
-        timeout = rospy.Duration(10.0)
-        
-        setpoint = [0.40, 7.10, 1.0, 0, 0, 90] #x, y, z, roll, pitch, yaw (Landing board one)
-        #setpoint = [3.65, 7.10, 1.5, 0, 0, 90] #x, y, z, roll, pitch, yaw (Landing board two)
-        #setpoint = [7.00, 7.10, 1.5, 0 ,0, 90] #x, y, z, roll, pitch, yaw (Landing board three)
-        
-        seq = 0 #Only write when new updates from aruco pose arives 
-        while (rospy.get_rostime() - start_time) < timeout:
-            self.fly_route(waypoints_xyzYaw=[[setpoint[0],setpoint[1],setpoint[2],setpoint[5]]], GPS2Vision_offset=self.tc.GPS2Vision_offset)
-            if not seq == self.aruco_pose.header.seq:
-                self.log_data.write_hold_pose_using_aruco_pose_estimation_data(self.aruco_pose, setpoint[0], setpoint[1], setpoint[2], setpoint[3], setpoint[4], setpoint[5], self.ground_truth)
-            seq = self.aruco_pose.header.seq
-
-        #Vision landing
-        self.vision_landing_navigation(self.landing_station, 0.10)
-        rospy.loginfo('Autonomous_flight: Real uav test vision takeoff and landing by using the aruco marker test complete!')
         self.set_state('vision_landed')
 
     """Methods to be used for navigating the drone in offboard mode"""
@@ -512,7 +478,6 @@ class autonomous_flight():
             rospy.loginfo('Autonomous_flight: Drone returned to landing station two complete')
             self.set_state('vision_landed')
 
-
     def return_to_landing_station_three(self):
 
         self.drone_takeoff(alt = 2.5)
@@ -533,7 +498,7 @@ class autonomous_flight():
 
         #This methods navigates the drone between waypoints using GPS
         rospy.loginfo('Autonomous_flight: GPS navigation started!')
-
+        
         #Set to use GPS and barometer in the EKF2
         self.flight_mode.set_param('EKF2_AID_MASK', 1, 5)
         self.flight_mode.set_param('EKF2_HGT_MODE', 0, 5)
@@ -545,7 +510,7 @@ class autonomous_flight():
         self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)
         self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)
         self.flight_mode.set_param('MC_YAWRATE_MAX', 135.0, 5)
-
+        
         self.fly_route(waypoints_poseStamped, waypoints_xyzYaw)
 
         rospy.loginfo('Autonomous_flight: GPS navigation complete!')
@@ -696,11 +661,9 @@ class autonomous_flight():
         increment_y = 0.5
         increment_z = 0.5
         
-        pose = PoseStamped()
-        min_dis = 5
-        
+        pose = self.uav_local_pose
+        min_dis = 4
         while (self.dis_to_GPS2Vision_marker > min_dis) and not self.aruco_marker_pose_stable:
-                
             #Simple method to keep the drone orientated towards the marker board 
             board_center_x = self.aruco_marker_board_center.pose.position.x
             board_center_y = self.aruco_marker_board_center.pose.position.y
@@ -747,8 +710,8 @@ class autonomous_flight():
         while (rospy.get_rostime() - start_time) < timeout:
             if self.aruco_marker_pose_stable:
                 break
+        
         min_dis -= 0.5
-
         while(not self.wc.waypoint_check(uav_local_pose=self.uav_local_pose, setpoint_poseStamped = pose, threshold = 0.25)):
             self.pub_msg(pose, self.pub_setpoint)
             if self.write_data_log_for_gps2vision:
@@ -857,12 +820,12 @@ class autonomous_flight():
         self.pub_aruco_board.publish(landing_station)
     
         if landing_station == 3:
-            waypoints_xyzYaw = [[0.4, 7.1, 1.0, 90], [0.4, 7.1, 0.2, 90]]
+            waypoints_xyzYaw = [[0.4, 7.1, 1.5, 90], [0.4, 7.1, 0.2, 90]]
         elif landing_station == 4:
-            waypoints_xyzYaw = [[3.65, 7.1, 1.0, 90], [3.65, 7.1, 0.2, 90]]
+            waypoints_xyzYaw = [[3.65, 7.1, 1.5, 90], [3.65, 7.1, 0.2, 90]]
         elif landing_station == 5:
-            waypoints_xyzYaw = [[7.0, 7.1, 1.0, 90], [7.0, 7.1, 0.2, 90]]
-
+            waypoints_xyzYaw = [[7.0, 7.1, 1.5, 90], [7.0, 7.1, 0.2, 90]]
+            
         #Get landing time (Only for tests purposes)
         start_time = rospy.get_rostime()
         self.fly_route(waypoints_xyzYaw=[waypoints_xyzYaw[0]], GPS2Vision_offset=self.tc.GPS2Vision_offset, waypoint_check_pose_error=waypoint_check_pose_error)
@@ -904,31 +867,32 @@ class autonomous_flight():
         EKF2_AID_MASK = self.flight_mode.get_param('EKF2_AID_MASK')
 
         if not EKF2_AID_MASK.value.integer == 24:
-
+            print(EKF2_AID_MASK.value.integer)
             #Now make transformation of the aruco pose to that of the GPS to insure a smooth GPS2Vision transition
+            self.tc.map_GPS_pose_to_vision(self.aruco_pose, self.uav_local_pose)
+            
             self.pub_uav_offset.publish(self.uav_local_pose)
             self.pub_aruco_offset.publish(self.aruco_pose)
 
-            self.tc.map_GPS_pose_to_vision(self.aruco_pose, self.uav_local_pose)
-            
             #Set maximum horizontal and vertical volocities
             self.flight_mode.set_param('MPC_XY_VEL_MAX', 0.5, 5)
-            self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.2, 5)
-            self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.2, 5)
+            self.flight_mode.set_param('MPC_Z_VEL_MAX_DN', 0.5, 5)
+            self.flight_mode.set_param('MPC_Z_VEL_MAX_UP', 0.5, 5)
             #Set maximum angular velocities
             self.flight_mode.set_param('MC_ROLLRATE_MAX', 90.0, 5)
             self.flight_mode.set_param('MC_PITCHRATE_MAX', 90.0, 5)
             self.flight_mode.set_param('MC_YAWRATE_MAX', 90.0, 5)
+            
             #Set to use vision as pose estimate
             self.flight_mode.set_param('EKF2_AID_MASK', 24, 5)
             self.flight_mode.set_param('EKF2_HGT_MODE', 3, 5)
 
         #Arm drone and go into offboard control
-        self.flight_mode.set_arm(True,5)
+        self.flight_mode.set_arm(True,10)
         self.flight_mode.set_mode('OFFBOARD',5)
 
         if landing_station == 3:
-            waypoints_xyzYaw = [[0.4, 7.1, 1.0, 90]]
+            waypoints_xyzYaw = [[0.4, 7.1, 1.5, 90]]
         elif landing_station == 4:
             waypoints_xyzYaw = [[3.65, 7.1, 1.5, 90]]
         elif landing_station == 5:
@@ -1017,9 +981,6 @@ class autonomous_flight():
                 self.return_to_landing_station_two()
             elif self.uav_state == 'return_to_landing_station_three':
                 self.return_to_landing_station_three()
-            #For testing the real UAV
-            elif self.uav_state == 'real_uav_vision_takeoff_test':
-                self.real_uav_vision_takeoff_test()
             self.rate.sleep()
 
 if __name__ == "__main__":

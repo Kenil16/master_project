@@ -28,6 +28,7 @@ class drone_control():
         #self.autonomous_fligt_state = None
         self.sensor_fusion = PoseStamped()
         self.aruco_offset = PoseStamped()
+        self.start_pub_local_vision = False
 
         #Used for UAV2Aruco offset calculations 
         self.aruco_offset_init = False
@@ -88,7 +89,7 @@ class drone_control():
 
     def local_position_callback(self,msg):
         self.uav_pose = msg
-
+    
     #Fuction for updating onboard state
     def set_state(self, state):
         self.uav_state = state
@@ -138,9 +139,6 @@ class drone_control():
         if command == 'l': #Execute mission
             self.set_state('loiter')
 
-        if command == 'k': # Kill drone
-            rospy.signal_shutdown("test")
-
         #Execute missions from GPS to landing stations or vision2GPS locations
         if command == '0':
             self.set_state('move2GPS_locations_from_vision')
@@ -170,18 +168,12 @@ class drone_control():
         if command == '8':
             self.set_state('landing_test')
 
-        if command == '9':
-            self.set_state('real_uav_vision_takeoff_test')
-
-
     def message_control(self):
 
         if not self.uav_state == 'idle':
 
             output_msg = None
 
-            #self.pub_msg(self.aruco_marker_pose, self.pub_vision_pose)
-            
             #If wanted map aruco marker estimate to UAV globle pose
             if self.aruco_offset_init and self.uav_offset_init:
                 self.tc.map_GPS_pose_to_vision(self.aruco_offset, self.uav_offset)
@@ -200,10 +192,6 @@ class drone_control():
                 output_msg = self.autonomous_flight_pose_setpoint
                 self.pub_msg(output_msg, self.pub_local_pose)
             
-            elif self.uav_state == 'GPS2Vision_aruco_pose_estimation_test':
-                output_msg = self.autonomous_flight_pose_setpoint
-                self.pub_msg(output_msg, self.pub_local_pose)
-            
             elif self.uav_state == 'move2GPS_locations_from_vision':
                 output_msg = self.autonomous_flight_pose_setpoint
                 new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.sensor_fusion)
@@ -212,7 +200,7 @@ class drone_control():
             
             elif self.uav_state == 'return_to_landing_station_one':
                 output_msg = self.autonomous_flight_pose_setpoint
-                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.sensor_fusion)
+                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
                 self.pub_msg(output_msg, self.pub_local_pose)
                 self.pub_msg(new_pose, self.pub_vision_pose)
             
@@ -231,7 +219,7 @@ class drone_control():
             elif self.uav_state == 'GPS2Vision_aruco_pose_estimation_test':
                 output_msg = self.autonomous_flight_pose_setpoint
                 self.pub_msg(output_msg, self.pub_local_pose)
-            
+
             elif self.uav_state == 'hold_aruco_pose_test':
                 output_msg = self.autonomous_flight_pose_setpoint
                 self.pub_msg(output_msg, self.pub_local_pose)
@@ -251,12 +239,6 @@ class drone_control():
                 self.pub_msg(new_pose, self.pub_vision_pose)
             
             elif self.uav_state == 'landing_test':
-                output_msg = self.autonomous_flight_pose_setpoint
-                self.pub_msg(output_msg, self.pub_local_pose)
-                new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
-                self.pub_msg(new_pose, self.pub_vision_pose)
-            
-            elif self.uav_state == 'real_uav_vision_takeoff_test':
                 output_msg = self.autonomous_flight_pose_setpoint
                 self.pub_msg(output_msg, self.pub_local_pose)
                 new_pose = self.tc.calculate_GPS2Vision_offset(self.tc.GPS2Vision_offset, self.aruco_marker_pose)
