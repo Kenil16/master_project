@@ -178,7 +178,7 @@ class plot_data():
             ax.plot(x,y,linewidth=0.8, linestyle='--', color='k')
             
         #Show text for start and GPS2Vision board locations 
-        ax.annotate('Start from GPS', xy=(3,0.5), xytext=(2.55,-17.9), size=25,bbox=dict(boxstyle="round, pad=0.3",fc="white", ec="k", lw=1))
+        ax.annotate('Start from GPS', xy=(3,0.5), xytext=(2.55,-17.7), size=25,bbox=dict(boxstyle="round, pad=0.3",fc="white", ec="k", lw=1))
         ax.annotate('GPS2Vision board', xy=(3,0.5), xytext=(2.35, 2.5), size=25,bbox=dict(boxstyle="round, pad=0.3",fc="white", ec="k", lw=1))
         
         #Show start location
@@ -217,5 +217,5 @@ if __name__ == "__main__":
 
     tt = plot_data()
     #tt.plot_data('test4_5-7ms_wind_20_runs/')
-    tt.plot_data('test2_noWind_20_runs/')
-    #tt.plot_data('test5_7-10ms_wind_20_runs/')
+    #tt.plot_data('test2_noWind_20_runs/')
+    tt.plot_data('test5_7-10ms_wind_20_runs/')

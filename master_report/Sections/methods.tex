@@ -32,7 +32,7 @@
 
 This section is about the methods used to utilize offboard autonomous flight of the UAV with the aim of making a reliable GPS to vision transition for vision based navigation and autonomous landing using ArUco marker boards.  
 
-In Section \ref{sec:3d_modeling_for_gazebo_simulations} the used 3D models will be discussed and why they were considered to be important in the simulations along the simulation environment Gazebo. Section \ref{sec:autonomous_flight} deals with the implementation of autonomous flight of the UAV and offboard control. This implementation will be used in simulation and in the real UAV hardware using a Raspberry Pi. Pose estimation using ArUco marker boards is explained in Section \ref{sec:pose_estimation_using_aruco_markers}. Here methods for detecting the ArUco marker boards along with pose estimation will be considered. Moreover, camera calibration is explained, which will be used in the actual hardware on the UAV. For pose optimization, sensor fusion is used which will be discussed in Section \ref{sec:sensor_fusion} along with the implementation. In Section \ref{sec:companion_computer} the onboard computer is explained along with the configuration of the system for the operating system and network configuration. 
+In Section \ref{sec:3d_modeling_for_gazebo_simulations} the used 3D models will be discussed and why they were considered to be important in the simulations along the simulation environment Gazebo. Section \ref{sec:autonomous_flight} deals with the implementation of autonomous flight of the UAV and offboard control. This implementation will be used in simulation and in the real UAV hardware using a Raspberry Pi. Pose estimation using ArUco marker boards is explained in Section \ref{sec:pose_estimation_using_aruco_markers}. Here methods for detecting the ArUco marker boards along with pose estimation will be considered. Moreover, camera calibration is explained, which will be used in the actual hardware on the UAV. For pose optimization, sensor fusion is used which will be discussed in Section \ref{sec:sensor_fusion} along with the implementation. In Section \ref{sec:companion_computer} the onboard computer is explained along with the configuration of the system for the operating system and network configuration. The OptiTrack system will be explained in Section \ref{sec:optitrack_system}. 
 
 \subsection{3D modeling for Gazebo simulations}
 \label{sec:3d_modeling_for_gazebo_simulations}
@@ -760,14 +760,14 @@ PX4 is an open source control software for unmanned vehicles. PX4 uses software 
     \label{fig:sitl_simulation_enviroment}
 \end{figure}
 
-In Figure \ref{fig:simulator_mavlink_api}, a high level view of the communication between the PX4 flight stack and simulation environment (Gazebo) can be seen. Sensor readings like GPS, IMU data etc. are passed to the PX4 flight controller which returns control outputs (motor actuator commands) to the simulation according to sensor readings. 
+In Figure \ref{fig:simulator_mavlink_api}, a high level view of the communication between the PX4 flight stack and simulation environment can be seen. Sensor readings like GPS, IMU data etc. are passed to the PX4 flight controller which returns control outputs (motor actuator commands) to the simulation according to sensor readings. 
 
-The transmission of messages between PX4 and external programs happens using  the user datagram protocol (UDP) ports for MAVLink communication. This is illustrated in Figure \ref{fig:mavlink_comminication}. Here a number of ports are associated to different applications. The UDP Port 14540 is used for offboard control communication which will be python scripts running in the simulation or on the Raspberry Pi for autonomous flight using information from sensors e.g. vision feedback. The UDP port 14550 is used for communicating with ground control stations (GCS). QGroundControl will be used which offers many features like sensor calibration, radio setup and calibration of transmitters, predefined air frame selection for different drones etc. Moreover, parameters for position and attitude control, velocity limits and the like can be changed during flights. However, these parameters can also be changed using ROS in the offboard control script. The last port, UDP 4560, will be used for transmission of messages between PX4 and the simulation environment.
+The transmission of messages between PX4 and external programs happens using  the user datagram protocol (UDP) ports for MAVLink communication. This is illustrated in Figure \ref{fig:mavlink_comminication}. Here a number of ports are associated to different applications. The UDP Port 14540 is used for offboard control which will be python scripts running in the simulation or on the Raspberry Pi for autonomous flight using information from sensors e.g. vision feedback. The UDP port 14550 is used for communicating with GCS. QGroundControl will be used which offers many features like sensor calibration, radio setup and calibration of transmitters, predefined air frame selection for different drones etc. Moreover, parameters for position and attitude control, velocity limits and the like can be changed during flights. However, these parameters can also be changed using ROS in the offboard control script. The last port, UDP 4560, will be used for transmission of messages between PX4 and the simulation environment.
 
 \paragraph{Software setup}
 \label{sec:software_setup_px4}
 
-Whenever a new terminal is opened, the variables of the software has to be exported with the ROS workspace and firmware sourced so that the PX4 simulation can be started. In order to do this in one step, a script has been created as seen in Listing \ref{lst:setup_gazebo.bash}. 
+Whenever a new terminal is opened, the variables of the software have to be exported with the ROS workspace and firmware sourced so that the PX4 simulation can be started. In order to do this in one step, a script has been created as seen in Listing \ref{lst:setup_gazebo.bash}. 
 
 \begin{listing}[H] 
 \begin{tcolorbox}[
@@ -792,7 +792,7 @@ $ export GAZEBO_PLUGIN_PATH=${GAZEBO_PLUGIN_PATH}:~/catkin_ws/devel/lib/
 
 This script can either be run from the ROS workspace or past to the \textit{.bashrc} file to be executed every time a new terminal is opened for easy initialization. 
 
-This implementation of PX4 SITL requires firmware vision 1.11.0 to work correctly. This setup relies on the PX4 firmware being installed in the \textit{home} directory of the user, but can be modified to another installation directory with minor configurations. A walk-trough of these initial steps for installing and setting up of the firmware can be seen in Listing \ref{lst:installation_px4_sitl}. 
+This implementation of PX4 SITL requires firmware vision 1.11.0 to work correctly. This setup relies on the PX4 firmware being installed in the home directory of the user, but can be modified to another installation directory with minor configurations. A walkthrough of these initial steps for installing and setting up of the firmware can be seen in Listing \ref{lst:installation_px4_sitl}. 
 
 \begin{listing}[H] 
 \begin{tcolorbox}[
@@ -828,18 +828,18 @@ $ DONT_RUN=1 make px4_sitl_default gazebo
 \label{lst:installation_px4_sitl}    
 \end{listing}  
 
-Here the PX4 firmware is fetched and installed in a directory called \textit{PX4\_SITL} from where dynamic links have been created from a ROS workspace. This configuration was made to easily link updates made in files from \textit{init.d-posix}, \textit{mixers}, \textit{models}, \textit{worlds} and \textit{launch} directories. The \textit{init.d-posix} directory is used for parameter initialization for the vehicle at startup which contains files for the used \textit{sdu model drone} to be used in simulations. The \textit{mixers} directory contains files for the motor configuration of the vehicle. In this case it would be configurations for an hexarotor drone. The directory for \textit{models} contains files to be used in simulations like the \textit{sdu drone model} seen in Figure  \ref{fig:sdu_drone} and models created in Section \ref{sec:3d_modeling_for_gazebo_simulations}. The \textit{worlds} directory includes all world files to be used in the simulation which were defined in Section \ref{sec:3d_modeling_for_gazebo_simulations}. Lastly, the \textit{launch} directory stores the launch files to be used for running the PX4 SITL simulation wrapped in ROS.   
+Here the PX4 firmware is fetched and installed in a directory called \textit{PX4\_SITL} from where dynamic links have been created from a ROS workspace. This configuration was made to easily link updates made in files from \textit{init.d-posix}, \textit{mixers}, \textit{models}, \textit{worlds} and \textit{launch} directories. The \textit{init.d-posix} directory is used for parameter initialization for the vehicle at startup which contains files for the used \textit{SDU drone} to be used in simulations. The \textit{mixers} directory contains files for the motor configuration of the vehicle. In this case it would be configurations for an hexarotor drone. The directory for \textit{models} contains files to be used in simulations like the \textit{SDU drone} seen in Figure  \ref{fig:sdu_drone} and models created in Section \ref{sec:3d_modeling_for_gazebo_simulations}. The \textit{worlds} directory includes all world files to be used in the simulation which were defined in Section \ref{sec:3d_modeling_for_gazebo_simulations}. Lastly, the \textit{launch} directory stores the launch files to be used for running the PX4 SITL simulation wrapped in ROS.   
 
 \subsection{Pose estimation using ArUco markers}
 \label{sec:pose_estimation_using_aruco_markers}
 
-This section deals which pose estimation of ArUco marker boards to be used as the local coordinate system for the UAV for vision based navigation. 
+This section deals with pose estimation of ArUco marker boards to be used as the coordinate system for the UAV for vision based navigation. 
 
-A number of visual markers could be used for pose estimation e.g ArUco markers, AprilTag or QR-codes. However, to achieve real-time performance, the latter cannot be used due to large amount of data in the marker. This is not the case with ArUco markers which also yields good performance in regards to detection accuracy and a low error rate. \cite{visualmarkers} 
+A number of different visual markers could be used for pose estimation e.g ArUco markers, AprilTag or QR-codes. However, to achieve real-time performance, the latter cannot be used due to large amount of data in the marker. This is not the case with ArUco markers which also yields good performance in regards to detection accuracy and a low error rate \cite{visualmarkers}. 
 
-Another method using convolution with complex kernel for detecting n-fold edges of markers could be used.\cite{nFoldMarkers} This n-fold marker could be placed on the ground and used as a helipad for the UAV which could navigate to it from a very high altitude.  
+Another method using convolution with complex kernel for detecting n-fold edges of markers could be used \cite{nFoldMarkers}. This n-fold marker could be placed on the ground and used as a helipad for the UAV which could navigate to it from a very high altitude.  
 
-Because the ArUco markers have been shown to have high performance along with libraries for ArUco marker boards for better precision, ArUco markers will be used for pose estimation.\cite{visualmarkers} Furthermore, these estimations are performed using OpenCVs marker detection and pose estimation for ArUco markers.
+Because the ArUco markers have been shown to have high performance along with libraries for ArUco marker boards for better precision, ArUco markers will be used for pose estimation \cite{visualmarkers}. Furthermore, these estimations are performed using OpenCVs marker detection and pose estimation for ArUco markers.
 
 \subsubsection{ArUco marker detection}
 
@@ -875,7 +875,7 @@ The ArUco marker consists of a black border with an inner binary matrix (bits) w
     \label{fig:aruco_detection_procedure}
 \end{figure}
 
-In this step Utsu thresholding has been used. Then the image can be divided into cells which corresponds to the predefined size of the marker (bits) and corresponding border size. In each cell, the number of black and white pixels are determined in order to categories the candidate marker to belong to a specific dictionary where it is finally evaluated to be an ArUco marker or not. These steps can be seen in Figure \ref{fig:aruco_detection3}, \ref{fig:aruco_detection4} and \ref{fig:aruco_detection5}. 
+In this step, Utsu thresholding has been used. Then the image can be divided into cells which corresponds to the predefined size of the marker (bits) and corresponding border size. In each cell, the number of black and white pixels are determined in order to categories the candidate marker to belong to a specific dictionary where it is finally evaluated to be an ArUco marker or not. These steps can be seen in Figure \ref{fig:aruco_detection3}, \ref{fig:aruco_detection4} and \ref{fig:aruco_detection5}. 
 
 \subsubsection{ArUco pose estimation}
 
@@ -895,9 +895,9 @@ Knowing the size of the marker defined when creating the ArUco marker board, the
 		0 & 0 & 1
 	\end{bmatrix}
 	\begin{bmatrix}
-		r_11 & r_12 & 13 & t_1\\
-		r_21 & r_22 & r23 & t_2 \\
-		r_31 & r_32 & r_33 & t_3 \\
+		r_{11} & r_{12} & r_{13} & t_1\\
+		r_{21} & r_{22} & r_{23} & t_2 \\
+		r_{31} & r_{32} & r_{33} & t_3 \\
 	\end{bmatrix}
 	\begin{bmatrix}
 		X\\
@@ -915,7 +915,7 @@ Knowing the size of the marker defined when creating the ArUco marker board, the
 
 Here $f_x$ and $f_y$ defines focal lengths, $c_x$ and $c_y$ are the principle points which are expected to be the center of the image, $\gamma$ the skew parameter and $s$ a scaling factor for the image. The two vectors $p_c$ and $p_w$ defines the 2D and 3D points for the projection in the image and known locations of the marker corners respectively. Hence, the rotation matrix $R$ and translation vector $T$ can be estimated, which yields a rotation and translation of the board in respect to the camera \cite{estimatePoseBoard}. 
 
-As defined in Section \ref{sec:3d_modeling_for_gazebo_simulations}, the UAV will use the marker located on the ground as the local coordinate system. Because the GPS2Vision marker board is located on the wall to the entrance of the building used for GPS to vision transition and three landing markers used when the UAV is to land, the $Marker_{GPS2vision}$, $Marker_{landing_1}$, $Marker_{landing_2}$ and $Marker_{landing_3}$ must be transformed to align with the local coordinate system. An illustration of the placement of these marker boards visualized from above can be seen in Figure \ref{fig:2d_view_aruco_coordinate_systems}. 
+As defined in Section \ref{sec:3d_modeling_for_gazebo_simulations}, the UAV will use the marker located on the ground as the coordinate system. Because the GPS2Vision marker board is located on the wall to the entrance of the building used for GPS to vision transition and three landing markers used when the UAV is to land, the $Marker_{GPS2vision}$, $Marker_{landing_1}$, $Marker_{landing_2}$ and $Marker_{landing_3}$ must be transformed to align with the coordinate system on the ground. An illustration of the placement of these marker boards visualized from above can be seen in Figure \ref{fig:2d_view_aruco_coordinate_systems}. 
 
 \begin{figure}[H]
     \centering
@@ -936,7 +936,7 @@ As defined in Section \ref{sec:3d_modeling_for_gazebo_simulations}, the UAV will
     \label{fig:3d_view_aruco_coordinate_systems}
 \end{figure}
 
-It may be noticed that the GPS2Vision marker board and all landing marker boards have the same orientation and differs only in translation. In this configuration, the bottom camera of the UAV is used for pose estimation of the ground marker board and front camera for the GPS2Vision and landing markers boards. This yields two different configurations as seen in Figure \ref{fig:3d_view_aruco_coordinate_systems}. In Figure \ref{fig:3d_view_aruco_front_camera}, the UAV is considered to hover in front of the GPS2Vision marker board. Here four coordinate systems are illustrated namely the marker board located on the ground, the UAV, the front camera attached on the UAV and the GPS2Vision marker board. To get the pose of the UAV in respect to the ground marker, the rotation and translation of the camera w.r.t  the marker board must be found using Equation \ref{eq:translation_from_board2cam}. Here the transpose of the rotation vector named $r_{vec}$ is multiplied with the translation vector $t_{vec}$ to give a translation from the camera to the marker board. This has to be done because the output $r_{vec}$ and $t_{vec}$ from the pose estimation using OpenCV are given from the marker board w.r.t the camera \cite{theExtrinsicCameraMatrix}. This can be seen in Equation \ref{eq:translation_from_board2cam} with the rotation matrix in Equation \ref{eq:rotation_from_board2cam} transformed to euler angles from the Rodrigues rotation matrix. 
+It may be noticed that the GPS2Vision marker board and all landing marker boards have the same orientation and differs only in translation. In this configuration, the bottom camera of the UAV is used for pose estimation of the ground marker board and front camera for the GPS2Vision and landing markers boards. This yields two different configurations as seen in Figure \ref{fig:3d_view_aruco_coordinate_systems}. In Figure \ref{fig:3d_view_aruco_front_camera}, the UAV is considered to hover in front of the GPS2Vision marker board. Here four coordinate systems are illustrated namely the marker board located on the ground, the UAV, the front camera attached on the UAV and the GPS2Vision marker board. To get the pose of the UAV in respect to the ground marker, the rotation and translation of the camera w.r.t the marker board must be found using Equation \ref{eq:translation_from_board2cam} and \ref{eq:rotation_from_board2cam}. Here the transpose of the rotation vector named $r_{vec}$ is multiplied with the translation vector $t_{vec}$ to give a translation from the camera to the marker board. This has to be done because the output $r_{vec}$ and $t_{vec}$ from the pose estimation using OpenCV are given from the marker board w.r.t the camera \cite{theExtrinsicCameraMatrix}. This can be seen in Equation \ref{eq:translation_from_board2cam} with the rotation matrix in Equation \ref{eq:rotation_from_board2cam} transformed to euler angles from the Rodrigues rotation matrix. 
 
 \begin{equation}
 	t = -r_{vec}^T t_{vec} 
@@ -970,7 +970,7 @@ This initial step goes for both cameras. Now to get the position of the UAV w.r.
         \caption{}
         \label{fig:3d_view_aruco_bottom_camera}
     \end{subfigure}
-    \caption{Visualization of the coordinate systems of the ArUco markers in the simulation seen from a 3D view with two camera configurations as seen in Figure \ref{fig:3d_view_aruco_front_camera} and \ref{fig:3d_view_aruco_bottom_camera} for the front and bottom camera respectively}
+    \caption{Visualization of the coordinate systems of the ArUco marker boards in the simulation seen from a 3D view with two camera configurations as seen in Figure \ref{fig:3d_view_aruco_front_camera} and \ref{fig:3d_view_aruco_bottom_camera} for the front and bottom camera respectively}
     \label{fig:3d_view_aruco_coordinate_systems}
 \end{figure}
 
@@ -1002,33 +1002,33 @@ To get the rotation the same equations are used, bot now with $r$ substituted fo
 \subsubsection{Camera calibration}
 Due to the possibility of tangential and radial distortion, the cameras must be calibrated which is done for both the Logitech C270 HD used as front camera and Raspberry Pi V2 used as bottom camera. 
 
-Tangential distortion will have the effect of making straight lines appear curved which will be more visible further away from the center of the image. To correct for this error Equation \ref{eq:x_corrected_tangential_distortion} and \ref{eq:y_corrected_tangential_distortion} will be used.  
+Radial distortion will have the effect of making straight lines appear curved which will be more visible further away from the center of the image. To correct for this error, Equation \ref{eq:x_corrected_radial_distortion} and \ref{eq:y_corrected_radial_distortion} will be used. Here $k_1$, $k_2$ and $k_3$ are radial distortion coefficients and $r=\sqrt{x^2+y^2}$ is the distance to the optical axis.  
 
 \begin{equation}
 	x_{corrected} = x(1+k_1 \cdot r^2 + k_2 \cdot r^4 + k_3 \cdot r^6)
-	\label{eq:x_corrected_tangential_distortion}
-\end{equation}
-
-\begin{equation}
-	y_{corrected} = y(1+k_1 \cdot r^2 + k_2 \cdot r^4 + k_3 \cdot r^6)
-	\label{eq:y_corrected_tangential_distortion}
-\end{equation}
-
-Radial distortion occurs because the lens of the camera not being perfectly parallel aligned with the image plane. This can cause some areas within the image to look nearer than expected. Equations for handling this issue can be seen in Equation \ref{eq:x_corrected_radial_distortion} and \ref{eq:y_corrected_radial_distortion}. 
-
-\begin{equation}
-	x_{corrected} = x + (2 \cdot p_1 \cdot x \cdot y + p_2(r^2 + 2 \cdot x^2))
 	\label{eq:x_corrected_radial_distortion}
 \end{equation}
 
 \begin{equation}
-	y_{corrected} = y + (2 \cdot p_2 \cdot x \cdot y  + p_1(r^2 + 2 \cdot y^2))
+	y_{corrected} = y(1+k_1 \cdot r^2 + k_2 \cdot r^4 + k_3 \cdot r^6)
 	\label{eq:y_corrected_radial_distortion}
+\end{equation}
+
+Tangential distortion occurs because the lens of the camera not being perfectly parallel aligned with the image plane. This can cause some areas within the image to look nearer than expected. Equations for handling this issue can be seen in Equation \ref{eq:x_corrected_tangential_distortion} and \ref{eq:y_corrected_tangential_distortion} where $p_1$ and $p_2$ are tangential distortion coefficients. 
+
+\begin{equation}
+	x_{corrected} = x + (2 \cdot p_1 \cdot x \cdot y + p_2(r^2 + 2 \cdot x^2))
+	\label{eq:x_corrected_tangential_distortion}
+\end{equation}
+
+\begin{equation}
+	y_{corrected} = y + (2 \cdot p_2 \cdot x \cdot y  + p_1(r^2 + 2 \cdot y^2))
+	\label{eq:y_corrected_tangential_distortion}
 \end{equation}
 
 To find the distortion coefficients as well as the camera matrix, camera calibration based on chessboards will be used. Like ArUco markers, chessboards consists of a square pattern of black and white boxes. However, compared to ArUco markers these boxes do not contain any bit codification which makes them completely black and white. Because no separation is needed between these boxes, more corner points can be estimated. This is the reason for using these patterns for calibration which gives the possibility of a better calibration due to more point estimates.   
 
-This calibration will be based on twenty images taken from different orientations using a $7 \times20 $ chessboard as seen in Figure \ref{fig:calibration_front_camera}. This board has been chosen in order to fill out most of the image with boxes for corner estimations. 
+This calibration will be based on twenty images taken from different orientations using a $9 \times19 $ chessboard as seen in Figure \ref{fig:calibration_front_camera}. This board has been chosen in order to fill out most of the image with boxes for corner estimations. 
 
 \begin{figure}[H]
     \centering
@@ -1052,7 +1052,7 @@ This calibration will be based on twenty images taken from different orientation
         \caption{}
         \label{fig:calibration_three}
     \end{subfigure}
-    \caption{Illustration of some of the images taking using the front camera of the UAV in the calibration of the camera. Here circles can be seen on the detected corners of the boxes in the chessboards given images of $640\times480$ pixels}  
+    \caption{Illustration of some of the images taking using the front camera of the UAV in the calibration of the camera. Here circles can be seen on the detected corners of the boxes in the chessboards using images of $640\times480$ pixels}  
     \label{fig:calibration_front_camera}
 \end{figure}    
 
@@ -1113,7 +1113,7 @@ k_1 & k_2 & p_1 & p_2 & k_3
 \label{eq:distortion_coefficients_bottom}
 \end{equation}
 
-The outcome of the calibration can be seen in Equation \ref{eq:camera_matrix_front} and \ref{eq:distortion_coefficients_bottom} for the camera matrix of the front and bottom camera respectively and distortion parameters in \ref{eq:distortion_coefficients_front} and \ref{eq:distortion_coefficients_bottom} for the front and bottom camera respectively. Here the focal length $f_x$ and $f_y$ has been estimated along the optical center $c_x$ and $c_y$. These values will only be used on the real UAV and not in the simulation where no camera calibration will be performed.
+The outcome of the calibration can be seen in Equation \ref{eq:camera_matrix_front} and \ref{eq:camera_matrix_bottom} for the camera matrix of the front and bottom camera respectively and distortion parameters in \ref{eq:distortion_coefficients_front} and \ref{eq:distortion_coefficients_bottom} for the front and bottom camera respectively. Here the focal length $f_x$ and $f_y$ has been estimated along the optical center $c_x$ and $c_y$. These values will only be used on the real UAV and not in the simulation where no camera calibration will be performed.
 
 \subsection{Sensor fusion}
 \label{sec:sensor_fusion}
@@ -1124,22 +1124,22 @@ This section deals with the implementation of sensor fusion for pose estimation.
 \subsubsection{Unscented Kalman Filter}
 \label{sec:ukf}
 
-The Kalman Filter (KF) requires linear models. However, these models are rarely seen in reality and especially not in the dynamics of a Aquacopter. A way to accommodate for this problem could be to approximate the linear model by linearization using an EKF. The basic idea behind this approach is to use the mean of a non-linear Gaussian function and linearize at this single point through Taylor expansion. However, because the EKF only offers \textit{first order} approximations of the optimal terms based on a liniarization for a nonlinear system of the estimated state distribution of a Gaussion Random Variable (GRV), large errors can occur if functions turn out to be \textit{very} nonlinear. Furthermore, calculations of the Jacobaion are needed which can intruduce errrors if not performed correcly. Becuase of these limitations, this method is considered sub-optimal.  
+The Kalman Filter (KF) requires linear models. However, these models are rarely seen in reality and especially not in the dynamics of a Aquacopter. A way to accommodate for this problem could be to approximate the linear model by linearization using an EKF. The basic idea behind this approach is to use the mean of a non-linear Gaussian function and linearize at this single point through Taylor expansion. However, because the EKF only offers first order approximations of the optimal terms based on a linearization for a nonlinear system of the estimated state distribution of a Gaussion Random Variable (GRV), large errors can occur if functions turn out to be very nonlinear. Furthermore, calculations of the Jacobian are needed which can introduce errors if not performed correctly. Because of these limitations, this method is considered suboptimal.  
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[height=7.0cm]{../Figures/ukf.png}
-	\caption{Illustration of the uncented transformation (UT) and how the use of this method in the UKF performas better than EKF in regard to better mean and covariance estimation \cite{UnscentedKalmanFilter}} \label{fig:ut}
+	\includegraphics[height=6.2cm]{../Figures/ukf.png}
+	\caption{Illustration of the UT and how the use of this method in the UKF performas better than EKF in regard to better mean and covariance estimation \cite{UnscentedKalmanFilter}} \label{fig:ut}
 \end{figure}
 
 Another method called UKF takes these considerations into account. The state distribution is still represented using a GRV. However, now a number of sample points around the mean called \textit{sigma points} are chosen which better captures the true mean and covariance of the GRV of the non-linear system using the unscented transformation (UT). An illustration of the superiority of using the UT instead of a first-order linearization in the EKF can be seen in Figure \ref{fig:ut}. For Gaussian functions, the use of the UT results in approximations which are accurate to the third order and at least second order for non Gaussian functions for all nonlinearities. For a more in-depth explanation of the UKF, the paper \cite{UnscentedKalmanFilter} is recommended.  
 
-Because of the discussed optimizations in regard to the EKF, the UKF will be used in the implementation of sensor fusion for estimating the pose of the UAV. 
+Because of the discussed optimizations in regard to the EKF, the UKF will be used in the implementation of sensor fusion for pose estimation of the UAV. 
 
 \subsubsection{UKF implementation}
 \label{sec:ukf_implementation}
 
-Because the appropriate choose for parameters of sigma points may give performance improvements, these have been chosen based on a discussion of the UKF in \cite[p.~354]{KalmanAndBayesianFiltersInPython}. Three initial parameters have to be chosen namely $\alpha$, $\beta$ and $k$. $\alpha$ determines the amount of spread of the sigma points from the mean of $\bar{x}$ which is chosen to be 0.04, $\beta$ incorporates prior knowledge of the distribution of $x$ which is set to 2 and $\mathcal{k}$ is defined as a secondary scaling parameter set to 15. The equations for the calculations of \textit{sigma points} can be seen in Equation \ref{eq:update_zero_sigma_point}, \ref{eq:update_ith_sigma_point_plus} and \ref{eq:update_ith_sigma_point_minus} in Pseudocode \textit{UKF calculate sigma points} with associated weights seen in Equation \ref{eq:init_weight_zero_mean}, \ref{eq:init_weight_zero_covariance}, \ref{eq:init_weight_zero_mean} and \ref{eq:init_weight_zero_covariance}. To calculate the weights, a scaling parameter $\lambda = \alpha^2(L+k)-L$ where $L$ is the number of states in the system is used. The superscipt $(m)$ and $(c)$ in the weights defines the mean and covariance of the weights respectively. The initialization of the UKF can be seen in Pseudocode \textit{UKF initialization}. 
+Because the appropriate choose for parameters of sigma points may give performance improvements, these have been chosen based on a discussion of the UKF in \cite[p.~354]{KalmanAndBayesianFiltersInPython}. Three initial parameters have to be chosen namely $\alpha$, $\beta$ and $k$. $\alpha$ determines the amount of spread of the sigma points from the mean of $\bar{x}$ which is chosen to be 0.04, $\beta$ incorporates prior knowledge of the distribution of $x$ which is set to 2 and $\mathcal{k}$ is defined as a secondary scaling parameter set to 15. The equations for the calculations of \textit{sigma points} can be seen in Equation \ref{eq:update_zero_sigma_point}, \ref{eq:update_ith_sigma_point_plus} and \ref{eq:update_ith_sigma_point_minus} in Pseudocode \textit{UKF calculate sigma points} with associated weights seen in Equation \ref{eq:init_weight_zero_mean}, \ref{eq:init_weight_zero_covariance}, \ref{eq:init_weight_ith_mean} and \ref{eq:init_weight_ith_covariance}. To calculate the weights, a scaling parameter $\lambda = \alpha^2(L+k)-L$ where $L$ is the number of states in the system is used. The superscipt $(m)$ and $(c)$ in the weights defines the mean and covariance of the weights respectively. The initialization of the UKF can be seen in Pseudocode \textit{UKF initialization}. 
 
 \begin{Pseudo}{UKF initialization}{}
 \begin{Indentation}
@@ -1183,8 +1183,7 @@ Because the appropriate choose for parameters of sigma points may give performan
 \end{Indentation}
 \end{Pseudo}
 
-
-Besides the already defined parameters, the process noise matrix $Q$ and measurements noise matrix $R$ must be set. These can be seen in Equation \ref{eq:process_noise} and \ref{eq:measurement_noise} respectively. Both have been set as diagonal matrices with noise in position x, y and z, noise in velocity in x and y, noise in euler angles in roll, pitch and yaw and noise in euler angle rates in roll, pitch and yaw starting from $(0,0)$ to $(11,11)$ for both matrix $Q$ and $R$. However, with two additional measurement noise parameters in $R$ for altimeter height in $(12,12)$ and altimeter error in $(13,13)$. This results in twelve states in the system to track.
+Besides the already defined parameters, the process noise matrix $Q$ and measurements noise matrix $R$ must be set. These can be seen in Equation \ref{eq:process_noise} and \ref{eq:measurement_noise} respectively. Both have been set as diagonal matrices with noise in position x, y and z, noise in velocity in x and y, noise in euler angles in roll, pitch and yaw, noise in euler angle rates in roll, pitch and yaw and lastly noise in altimeter error starting from $(0,0)$ to $(12,12)$ for both matrix $Q$ and $R$. However, with an additional measurement noise parameter in $R$ for altimeter height in $(13,13)$. This results in twelve states in the system to track.
 
 \setcounter{MaxMatrixCols}{13}
 \begin{equation}
@@ -1303,7 +1302,7 @@ The worst STD where found to be 0.011 meters and 0.005 radians for the position 
     \item $\mathcal{K}$ \(\leftarrow P_{xy} \cdot P^{-1}_{yy} \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_kalman_gain}
      
     \item Update state  
-    \item $x$ \(\leftarrow x + \mathcal{K}(y- \bar{y}) \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_state}
+    \item $x$ \(\leftarrow x + \mathcal{K}(\textbf{y} - \bar{y}) \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_state}
     
     \item Update covariance   
     \item $P$ \(\leftarrow P - \mathcal{K} P_{yy} \mathcal{K}^T \)  \qquad \refstepcounter{equation}(\theequation)\label{eq:update_measurement_covariance}
@@ -1331,7 +1330,7 @@ The operating system used on the Raspberry Pi will be discussed in Section \ref{
 \subsubsection{Operating system}
 \label{sec:operating_system_pi}
 
-For onboard computing a Raspberry Pi 4 is used with an Ubuntu 18.04.5 LTS (Bionic Beaver) 64-bit server operating system. The 64-bit version is used because the Raspberry Pi 4 is build on a 64-bit architecture and the server edition is chosen to minimize overhead because the graphical user interface (GUI) is not needed as the interface used for communicating to the Raspberry Pi will be through ssh from the terminal. The mentioned operating system can be fetched from the official Ubuntu website \cite{ubuntuImage}. The Raspberry Pi 4 gives a number of possibles options in regard to system boot, but in this case an SD card will be used. Now  \href{https://www.balena.io/etcher/}{etcher} is used to flash the Ubuntu 18.04.5 image to the SD card which offers a secure way for image flashing. 
+For onboard computing a Raspberry Pi 4 is used with an Ubuntu 18.04.5 LTS (Bionic Beaver) 64-bit server operating system. The 64-bit version is used because the Raspberry Pi 4 is build on a 64-bit architecture and the server edition is chosen to minimize overhead because the GUI is not needed as the interface used for communicating to the Raspberry Pi will be through ssh from the terminal. The mentioned operating system can be fetched from the official Ubuntu website \cite{ubuntuImage}. The Raspberry Pi 4 gives a number of possibles options in regard to system boot, but in this case an SD card will be used. Now  \href{https://www.balena.io/etcher/}{etcher} is used to flash the Ubuntu 18.04.5 image to the SD card which offers a secure way for image flashing. 
 
 The reason for choosing this operating system compared to the default use of Raspbian, which is made specifically for Raspberry Pi, is that the installation of software can be done in the same manner as already described in Section \ref{sec:software_setup_ros}. If one uses Raspbian, some libraries or software have to be installed from source which could be time consuming. Using this setup of Ubuntu 18.04, the exact same procedures can be implemented on the Raspberry Pi as onboard computer which is beneficial. 
 
@@ -1358,7 +1357,7 @@ $ touch ssh
 \label{lst:enable_ssh}    
 \end{listing}  
 
-To access the Raspberry Pi from the terminal, the correct IP-address of the Raspberry Pi must be known. This can be done using the protocol \textit{nmap} which searches for all possible IP-addresses in a defined sub-network in the local network. This is done using Listing \ref{lst:ip_address_ssh}. When the correct IP-address is found an ssh connection can be established. 
+To access the Raspberry Pi from the terminal, the correct IP-address of the Raspberry Pi must be known. This can be done using the protocol nmap which searches for all possible IP-addresses in a defined sub-network in the local network. This is done using Listing \ref{lst:ip_address_ssh}. When the correct IP-address is found an ssh connection can be established. 
 
 \begin{listing}[H] 
 \begin{tcolorbox}[
@@ -1381,7 +1380,7 @@ $ ssh ubuntu$<ip-address-raspberry-pi>
 \label{lst:ip_address_ssh}    
 \end{listing}  
 
-Because the goal is to have a wireless connection to the Raspberry Pi from an access point using WiFi, the netplan has to be configured from \textit{/etc}  in the system configuration files of the Raspberry Pi. The file to be updated can be seen in Listing \ref{lst:wireless_connection_setup_file}. Here the SSID (name of WiFi network) must be configured along with the password of the WiFi network. 
+Because the goal is to have a wireless connection to the Raspberry Pi from an access point using WiFi, the netplan has to be configured from /etc  in the system configuration files of the Raspberry Pi. The file to be updated can be seen in Listing \ref{lst:wireless_connection_setup_file}. Here the SSID (name of WiFi network) must be configured along with the password of the WiFi network. 
 
 \begin{listing}[H] 
 \begin{tcolorbox}[
@@ -1434,7 +1433,7 @@ $ sudo netplan apply
 \label{lst:wireless_connection_setup}    
 \end{listing} 
 
-Now the outgoing IP-address through WiFi from the Raspberry Pi can be found. This IP-address can now be used to \textit{ssh} into Raspberry Pi if both the Laptop and Raspberry Pi are connected to the same WiFi network.
+Now the outgoing IP-address through WiFi from the Raspberry Pi can be found. This IP-address can now be used to ssh into Raspberry Pi if both the Laptop and Raspberry Pi are connected to the same WiFi network.
 
 \subsubsection{Disabling UART at boot time}
 \label{sec:disabling_uart_at_boot_time_pi}
@@ -1442,7 +1441,7 @@ Now the outgoing IP-address through WiFi from the Raspberry Pi can be found. Thi
 Because the system boot of the Raspberry Pi can be interrupted if transmissions are observed on the TX and RX pins on the Raspberry Pi, UART communication must be disabled during auto boot. These transmissions occur 
 because the fan shim connected to the Raspberry Pi, used to cool down the CPU, may send data to the system at boot up. If this happens, the system will not boot which would be critical. 
 
-To mitigate this issue, the following lines in Listing \ref{lst:disable_uart_at_boot_time} can be added to the /system\_boot/config.txt on the Raspberry Pi which is based on a discussion on \href{https://askubuntu.com/questions/1215848/how-to-disable-ttyama0-console-on-boot-raspberry-pi}{stack exchange} for disabling UART at boot time. Another method is to disable UART communication from the TX and RX pins completely by setting \textit{enable\_uart=0} in the same file. 
+To mitigate this issue, the following lines in Listing \ref{lst:disable_uart_at_boot_time} can be added to the /system\_boot/config.txt on the Raspberry Pi which is based on a discussion on \href{https://askubuntu.com/questions/1215848/how-to-disable-ttyama0-console-on-boot-raspberry-pi}{stack exchange} for disabling UART at boot time. Another method is to disable UART communication from the TX and RX pins completely by setting enable\_uart=0 in the same file. 
 
 \begin{listing}[H] 
 \begin{tcolorbox}[
@@ -1592,7 +1591,7 @@ For setting up the OptiTrack system a \href{https://v22.wiki.optitrack.com/index
         \caption{}
         \label{fig:marker_plane_stick}
     \end{subfigure}
-    \caption{Small reflective markers have been placed on top of GPS module on the UAV which is used to track its pose as seen in Figure \ref{fig:drone_with_markers}. In Figure \ref{fig:ground_markers}, a close view of one of the ground markers can be seen. It may be noticed that the row and column number of the marker is labeled in the top left corner which is used to easily keep track of each marker that is part of the $25 \times 25$ ArUco marker board. The calibration square can be seen in Figure \ref{fig:marker_plane_stick} with the used orientation and origin}  
+    \caption{Small reflective markers have been placed on top of the GPS module on the UAV which is used to track its pose as seen in Figure \ref{fig:drone_with_markers}. In Figure \ref{fig:ground_markers}, a close view of one of the ground markers can be seen. It may be noticed that the row and column number of the marker is labeled in the top left corner which is used to easily keep track of each marker that is part of the $25 \times 25$ ArUco marker board. The calibration square can be seen in Figure \ref{fig:marker_plane_stick} with the used orientation and origin}  
     \label{fig:optitrack_setup_drone}
 \end{figure}  
 
@@ -1600,6 +1599,6 @@ The camera frame rate has been set to 30 which matches the update rate from Gaze
 
 The reason for placing the markers on top of the GPS module is that cameras could have a hard time tracking the UAV if these markers were placed other places on the UAV. Using this asymmetrical design of the marker placements, the UAV can be tracked without problems using the OptiTrack system. In Figure \ref{fig:ground_markers}, a close view of one of the ground markers can be seen. The ArUCo marker have been printed in the middle of the A4 paper. This way the papers can be aligned side-by-side to achieve the best accuracy. However, small changes to the size have been made. The distance between the markers are now set to 10.5 cm and the size of the marker is 19.2 cm. These where found appropriate for the giving size of the paper.      
 
-Results of pose estimation using ArUco markers can be seen in Section \ref{sec:steady_state_aruco_pose_estimation}, UAV flight in Section \ref{sec:hold_pose_using_estimated_aruco_pose} and vision based landings in Section \ref{sec:optitrack_vision_based_landing}. These are only some of the planned tests of real flight of the UAV where a thorough description of the others will be explained in Section \ref{sec:future_work} for future work.  
+Results of pose estimation using ArUco markers can be seen in Section \ref{sec:steady_state_aruco_pose_estimation}, UAV flight in Section \ref{sec:optitrack_hold_pose_using_estimated_aruco_pose} and vision based landings in Section \ref{sec:optitrack_vision_based_landing}. These are only some of the planned tests of real flight of the UAV where a thorough description of the others will be explained in Section \ref{sec:future_work} for future work.  
 
 \end{document}
