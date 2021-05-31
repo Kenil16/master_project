@@ -1,14 +1,33 @@
 # Vision based navigation and precision landing of a drone
 ## _An autonomous implementation based on ROS, PX4 and OpenCV_
 
-This project is about gps to vision based navigation (GPS2Vision). The primary goal is to make a smooth a reliable transition between using gps and the pose estimations from the front and bottom camera of the drone using ArUco marker boards. An illustration of this can be seen in the video below. 
+This project proposes methods for navigation of an unmanned aerial vehicle (UAV) utilizing computer vision. This is
+achieved using ArUco marker boards which are used for pose estimation of the UAV. The goal is to have a UAV to fly
+autonomously using GPS in outdoor environments from where missions can be executed. When the UAV needs to recharge,
+a reliable GPS to vision transition is performed where the UAV uses its front camera to detect an ArUco marker board
+located on a wall to the entrance of a building. When the UAV is of a certain distance in front of this board located on the
+wall, it will start using its bottom camera for navigation in indoor GPS denied environments. In the indoor environment, a
+precise vision based landing can then be performed when it needs to recharge, by using its front camera for pose estimation
+of ArUco marker boards located in front of the landing stations. For vision based navigation, sensor fusion will be used
+for pose optimizations. An illustration of this can be seen in the video below. The master thesis for this project can be accessed using [report](https://github.com/Kenil16/master_project/blob/master/master_report/Head/report.pdf).
 
 <p align="center">
   <img alt="Light" src="https://github.com/Kenil16/master_project/blob/master/test_videos/raw_videos/final_test.gif" 
   width="80%">
 </p>
 
-Here the drone starts from an initial position and navigates to a predefined location using gps. Then the drone locates the ArUco board on the wall and navigates to it while keeping its orientation towards the board. In this state, the drone still uses gps. When the drone is close enough to the ArUco board to make a safe GPS2Vision transition, the system starts using vision based navigation. Now the drone can enter the gps denied environment (indoor) and move around safely using sensor fusion. When wanted, the drone can be set to move back outdoor and use gps as navigation once again.
+To achieve autonomous flight for offboard control, the robot operating system (ROS) is used along with the PX4 autopilot.
+Using ROS, a number of nodes for drone control, autonomous flight, ArUco marker detection and sensor fusion can be
+run concurrently. The ArUco marker detection and pose estimation are accomplished by using OpenCV and an unscented
+Kalman filter for sensor fusion. The implementation has been tested in simulation using Gazebo and real flight using a
+Holybro Pixhawk 4 mini QAV250 Quadcopter with a Raspberry Pi 4B which was used as companion computer where an
+OptiTrack system has been used for ground truth tracking of the UAV.
+
+Results show that the implementation works well, where the UAV was able to make GPS to vision transitions even in
+strong wind as well as its ability to use a minimum amount of ArUco markers located on the ground for vision based
+navigation. The latter was accomplished by successfully implementation of sensor fusion where IMU, barometer and
+vision data were fused together to achieve reliable pose estimates. The mean error of the precision landings were found
+to be in the order of centimeters which concludes a reliable implementation of the vision based landings.
 
 # Table of content
 - [Installation](#Installation)
@@ -16,7 +35,7 @@ Here the drone starts from an initial position and navigates to a predefined loc
 - [Simulations](#Simulations)
 
 # Installation
-This project has been implemented on an Ubuntu 18.04 machine using robot operating system (ROS), Gazebo and OpenCV. It relies on the following software which must be installed to make it work proberly.  
+This project has been implemented on an Ubuntu 18.04 machine using the  ROS, Gazebo and OpenCV. It relies on the following software which must be installed to make it work properly.  
 
 You can either download the software or clone it directly from your terminal. To use the latter you must install [Git](https://git-scm.com) using the command line:
 ```bash
@@ -27,14 +46,14 @@ sudo apt install git
 git clone https://github.com/Kenil16/master_project.git
 ```
 
-Now the project can be installed with all dependencies by running the scipt [init_setup.bash](https://github.com/Kenil16/master_project/blob/master/software/ros_workspace/init_setup.bash). Now change directory and run the initialization script: 
+Now the project can be installed with all dependencies by running the script [init_setup.bash](https://github.com/Kenil16/master_project/blob/master/software/ros_workspace/init_setup.bash). Now change directory and run the initialization script: 
 ```bash
 #Change directory and execute the initialization script
 cd software/ros_workspace/
 . ./init_setup.bash
 ```
 
-Now the installation and setup of the system are completed. If one wants to install the necessary software one-by-one, the following stepts must be completed.
+Now the installation and setup of the system are completed. If one wants to install the necessary software one-by-one, the following steps must be completed.
 
 Install PX4 dependencies:
 ```bash
@@ -48,7 +67,7 @@ pip install --user argparse cerberus empy jinja2 numpy packaging pandas psutil p
 pip3 install --user --upgrade empy jinja2 numpy packaging pyros-genmsg toml pyyaml pymavlink
 ```
 
-Install [texmaker](https://www.xm1math.net/texmaker/) and [miktex](https://miktex.org/howto/install-miktex-unx) for plots in latex format 
+Install [texmaker](https://www.xm1math.net/texmaker/) and [miktex](https://miktex.org/howto/install-miktex-unx) for plots in latex format and report reading 
 ```bash
 #Install texmaker
 sudo apt install texmaker
@@ -146,9 +165,9 @@ DONT_RUN=1 make px4_sitl_default gazebo
 ```
 
 # How to use
-To setup the system you have to run the following configuration file from your terminalto link PX4 to the ROS environment:
+To setup the system you have to run the following configuration file from your terminal to link PX4 to the ROS environment:
 ```bash
-#Be in your ros workspace and run the setup script
+#Be in your ROS workspace and run the setup script
 cd software/ros_workspace/
 . ./setup_gazebo.bash
 ```
@@ -158,7 +177,7 @@ To run the program you have to execute the following command from your terminal:
 #Run roslaunch which starts all the nodes in the system 
 roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern_missing_markers.world drone_control_args:="idle" x:=-21.0 y:=0
 ```
-Here you can define the world from a number of possible [setups](https://github.com/Kenil16/master_project/tree/master/software/ros_workspace/PX4-software/worlds). The drone will be in idle state by default, but that can be changed to some mission if prefered. This will be discussed in the report. 
+Here you can define the world from a number of possible [setups](https://github.com/Kenil16/master_project/tree/master/software/ros_workspace/PX4-software/worlds). The UAV will be in idle state by default, but that can be changed to some mission if prefered. This will be discussed in the [report](https://github.com/Kenil16/master_project/blob/master/master_report/Head/report.pdf).
 
 # Simulations 
 
