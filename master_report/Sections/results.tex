@@ -462,7 +462,7 @@ roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern.worl
 \label{lst:hold_aruco_pose_test}    
 \end{listing} 
 
-Here the position for x and y is set to (3, 3.3), (3,0), (3,-3.3), (-4,0) and (-4,0) for the test in Figure \ref{fig:hold_pose_aruco_board_three}, \ref{fig:hold_pose_aruco_board_four}, \ref{fig:hold_pose_aruco_board_five}, \ref{fig:hold_pose_aruco_board_one_noWind} and \ref{fig:hold_pose_aruco_board_one_5-7ms_wind} respectively which is in regard to the Gazebo simulation coordinate system. The wind in the simulation can be activated by changing the followings lines in Listing \ref{lst:hold_aruco_pose_test_activate_wind} in the file /software/ros\_workspace/PX4-software/optitrack\_big\_board\_onepattern.world. All these values were initially set to zero to disable the use of wind. 
+Here the position for x and y is set to (3, 3.3), (3,0), (3,-3.3), (-4,0) and (-4,0) for the test in Figure \ref{fig:hold_pose_aruco_board_three}, \ref{fig:hold_pose_aruco_board_four}, \ref{fig:hold_pose_aruco_board_five}, \ref{fig:hold_pose_aruco_board_one_noWind} and \ref{fig:hold_pose_aruco_board_one_5-7ms_wind} respectively which is in regard to the Gazebo simulation coordinate system. The wind in the simulation can be activated in the file /software/ros\_workspace/PX4-software/optitrack\_big\_board\_onepattern.world.by by changing the followings lines in Listing \ref{lst:hold_aruco_pose_test_activate_wind}. All these values were initially set to zero to disable the use of wind. 
 
 \definecolor{lightgreen}{rgb}{0.56, 0.93, 0.56}
 \definecolor{moonstoneblue}{rgb}{0.45, 0.66, 0.76}
@@ -541,7 +541,7 @@ The most important part of the simulations was the actual transition between usi
     \centering
     \addtolength{\leftskip} {-2cm}
     \addtolength{\rightskip}{-2cm}
-        \caption{Statistics of the results of the GPS2Vision tests. The GPS, locate board, navigate to board and GPS2Vision defines how much time the UAV in average spend in the different substates when executing the tests. It may be noticed that the UAV used a lot more time in GPS2Vision (gps to vision transition) in test 3. That it because the UAV had a hard time finding the ArUco markers located on the ground due to the angle in roll and pitch caused by the simulated wind. Moreover, it was only able to complete 17 out of 20 runs in test 3, because it lost sight of the ground marker in the GPS to vision transition and had to land}
+        \caption{Statistics of the results of the GPS2Vision tests. The GPS, locate board, navigate to board and GPS2Vision defines how much time the UAV in average spend in the different substates when executing the tests. It may be noticed that the UAV used a lot more time in GPS2Vision (GPS to vision transition) in test 3. That it because the UAV had a hard time finding the ArUco markers located on the ground due to the angle in roll and pitch caused by the simulated wind. Moreover, it was only able to complete 17 out of 20 runs in test 3, because it lost sight of the ground marker in the GPS to vision transition and had to land}
         \pgfplotstabletypeset[normal,
                 columns/eg/.style={
                 column name={Runs},
@@ -604,14 +604,14 @@ roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern.worl
 \label{lst:GPS2Vision_test}    
 \end{listing} 
 
-For activating wind, Listing \ref{lst:hold_aruco_pose_test_activate_wind} must be set. However, in the same piece of code the \textit{windVelocityMean} is set to 1.0 and 1.5 for test 1 and test 2 which ensures wind speeds of approximately $5-7 \frac{m}{s}$ and $7-10 \frac{m}{s}$ respectively. 
+For activating wind, Listing \ref{lst:hold_aruco_pose_test_activate_wind} must be set. However, in the same piece of code the \textit{windVelocityMean} is set to 1.0 and 1.5 for test 2 and test 3 which ensures wind speeds of approximately $5-7 \frac{m}{s}$ and $7-10 \frac{m}{s}$ respectively. 
 
 \subsubsection{Vision based navigation}
 \label{sec:vision_based_navigation}
 
 To analyze how the system performs when markers are not always visible in the image, a setup of different ArUco boards located on the ground has been proposed which can be seen in Figure \ref{fig:vision_navigation_boards}. This is done to stress test the system and evaluate the performance using the implemented sensor fusion. The UAV is set to move from a predefined location to one of the landing stations and then back again. This can be seen in Figure \ref{fig:vision_navigation}. 
 
-The ground truth pose of the UAV will be compared to the estimates of the pose from sensor fusion which is summarized in Table \ref{tab:vision_navigation_stastitics}. The waypoint error defined in Table \ref{tab:vision_navigation_stastitics}, means the maximum allowed error between the target setpoint and the estimated pose before moving on to the next target location. This error is calculated using the euclidean error distance added with the error in the yaw angle.   
+The ground truth pose of the UAV will be compared to the estimates of the pose from sensor fusion which is summarized in Table \ref{tab:vision_navigation_stastitics}. The waypoint error defined in Table \ref{tab:vision_navigation_stastitics}, means the maximum allowed error between the target setpoint and the estimated pose before moving on to the next target location. This error is calculated using the euclidean error distance.   
 
 \begin{figure}[H]
     \centering
@@ -797,7 +797,7 @@ roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern.worl
 \label{lst:vision_navigation_test}    
 \end{listing} 
 
-Here the \textit{.world} file must be changed in Listing \ref{lst:vision_navigation_test} to optitrack\_big\_board\_full.world, optitrack\_big\_board\_onepattern.world and optitrack\_big\_board\_onepattern\_missing\_markers.world for the configuration in Figure \ref{fig:vision_navigation_full_pattern_board}, \ref{fig:vision_navigation_one_pattern_board}, \ref{fig:vision_navigation_one_pattern_board_missing_markers} and for the configuration with added custom wear optitrack\_big\_board\_onepattern\_missing\_markers\_wear.world  for  \ref{fig:vision_navigation_one_pattern_board_missing_markers_wear} respectively. 
+The \textit{.world} file must be changed in Listing \ref{lst:vision_navigation_test} to optitrack\_big\_board\_full.world, optitrack\_big\_board\_onepattern.world and optitrack\_big\_board\_onepattern\_missing\_markers.world for the configuration in Figure \ref{fig:vision_navigation_full_pattern_board}, \ref{fig:vision_navigation_one_pattern_board}, \ref{fig:vision_navigation_one_pattern_board_missing_markers} and for the configuration with added custom wear optitrack\_big\_board\_onepattern\_missing\_markers\_wear.world  for  \ref{fig:vision_navigation_one_pattern_board_missing_markers_wear} respectively. 
 
 \subsubsection{Vision based landing}
 \label{sec:vision_based_landing}

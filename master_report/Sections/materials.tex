@@ -118,7 +118,7 @@ $ usermod -a -G tty ubuntu
 \label{lst:change_permissions}    
 \end{listing} 
 
-The other method is to connect the 6 pin connection cable to a TTL 232R cable seen in Figure \ref{fig:usb-TTL_232R_Raspberry_Pi_debug} to the universal serial bus (USB) port of the Raspberry Pi. This can easily be done by solder the Tx, Rx and ground parts of the two cables together. Some benefits comes by using the later solution e.g no problems with u-boot of the Raspberry Pi when the PX4 transmit data on the GPIO pins during boot up of the system  \cite{uBoot}. Therefore, the latter option is used.
+The other method is to connect the 6 pin connection cable to a TTL 232R cable seen in Figure \ref{fig:usb-TTL_232R_Raspberry_Pi_debug} to the universal serial bus (USB) port of the Raspberry Pi. This can easily be done by solder the Tx, Rx and ground parts of the two cables together. Some benefits comes by using the later solution e.g no problems with u-boot of the Raspberry Pi when the PX4 transmit data on the GPIO pins during boot up of the system. Therefore, the latter option is used.
 
 \begin{figure}[H]
     \centering
@@ -144,7 +144,7 @@ In regard to the onboard computer, a Raspberry Pi 4B with 8 GB of random access 
 
 Because the central processing unit (CPU) of the Raspberry Pi can overheat during constant computational load, a fan is used to cool down the Raspberry Pi during operation. The Shim fan along with the fan attached to the Raspberry Pi can be seen in Figures \ref{fig:raspberry_pi_shim_fan} and \ref{fig:raspberry_pi} respectively. Moreover, by using active cooling instead of passive cooling e.g an aluminum heatsink case, the weight of the Pi is reduced. This also enables the use of overclocking of the Raspberry Pi for better performance which is discussed in Section \ref{sec:companion_computer}.
 
-To safely attache the Raspberry Pi on to the UAV, a transparent case is used as seen in Figure \ref{fig:raspberry_pi_case}. This case is appropriate because it can store both the Shim fan and Raspberry Pi camera without any chance of damage to the hardware on the board. In order to control the UAV using WiFi, a WiFi adapter seen in Figure \ref{fig:tpLinkac} is used in order to get ground truth data from the Optitrack system. This is discussed in Section \ref{sec:companion_computer} and \ref{sec:optitrack_system}.
+To safely attach the Raspberry Pi on to the UAV, a transparent case is used as seen in Figure \ref{fig:raspberry_pi_case}. This case is appropriate because it can store both the Shim fan and Raspberry Pi camera without any chance of damage to the hardware on the board. In order to control the UAV using WiFi, a WiFi adapter seen in Figure \ref{fig:tpLinkac} is used in order to get ground truth data from the Optitrack system. This is discussed in Section \ref{sec:companion_computer} and \ref{sec:optitrack_system}.
 
 A Logitech C270 HD camera is used as the front camera and a Raspberry Pi V2 as bottom camera as seen in Figures \ref{fig:raspberry_pi_front_cam} and \ref{fig:raspberry_pi_bottom_cam} respectively. The Logitech camera will be attached to the USB port of the Raspberry Pi while the Raspberry Pi camera is connected through the camera serial interface (CSI). 
 

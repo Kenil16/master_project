@@ -177,9 +177,9 @@ To run the program you have to execute the following command from your terminal:
 #Run roslaunch which starts all the nodes in the system 
 roslaunch px4 gazebo_sim_v1.0.launch worlds:=optitrack_big_board_onepattern_missing_markers.world drone_control_args:="idle" x:=-21.0 y:=0
 ```
-Here you can define the world from a number of possible [setups](https://github.com/Kenil16/master_project/tree/master/software/ros_workspace/PX4-software/worlds). The UAV will be in idle state by default, but that can be changed to some mission if prefered. This will be discussed in the [report](https://github.com/Kenil16/master_project/blob/master/master_report/Head/report.pdf).
+Here you can define the world from a number of possible [setups](https://github.com/Kenil16/master_project/tree/master/software/ros_workspace/PX4-software/worlds). The UAV will be in idle state by default, but that can be changed to some mission if prefered. 
 
-# Simulations 
+# Simulations
 
 ## Simulations from tests 
   - [GPS2Vision pose estimation](https://github.com/Kenil16/master_project/tree/master/test_videos/analyse_GPS2Vision_aruco_pose_estimation)
