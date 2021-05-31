@@ -25,6 +25,7 @@ __pycache__
 
 #Include PDFs in litterature
 !literature/*
+!master_report/Head/report.pdf
 
 #ROS enviroment
 /pythontex-files-results/*
